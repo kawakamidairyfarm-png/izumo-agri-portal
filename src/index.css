@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-gray-800 antialiased;
+    font-family: 'Hiragino Rounded W3', 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+    /* 背景に薄いドットパターンなどを敷くことも可能だが今回はクリーンな白基調 */
+    background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+  }
+}
+
+@layer utilities {
+  .blob-shape {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    transition: border-radius 0.3s ease;
+  }
+  .blob-shape:hover {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  
+  .pop-card {
+    @apply bg-white border-2 border-slate-800 shadow-pop transition-all;
+  }
+  .pop-card:hover {
+    @apply shadow-pop-hover translate-x-[2px] translate-y-[2px];
+  }
+}
