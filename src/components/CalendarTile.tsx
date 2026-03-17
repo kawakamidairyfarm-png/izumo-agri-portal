@@ -24,7 +24,7 @@ const CalendarTile = () => {
             </span>
         </div>
 
-        <div className="relative z-10 w-full flex-grow bg-white rounded-2xl border-2 border-slate-800 overflow-hidden shadow-pop min-h-[600px]">
+        <div className="relative z-10 w-full flex-grow bg-white rounded-2xl border-2 border-slate-800 overflow-hidden shadow-pop h-[400px] md:h-[600px] min-h-[400px]">
           <iframe 
             src="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0dO-S5ibQ_5KbttRiQafgZv5Whu7CtI7wtAIAxXgW4yzLpevKtq5GC_PbKusETQgj9_6lJ2fZ-?gv=true" 
             style={{border: 0}} 
@@ -38,15 +38,15 @@ const CalendarTile = () => {
         </div>
         
         {/* External Link Button */}
-        <div className="relative z-10 mt-8 mb-4 flex justify-center">
+        <div className="relative z-10 mt-6 md:mt-8 mb-2 md:mb-4 flex justify-center">
           <a
              href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0dO-S5ibQ_5KbttRiQafgZv5Whu7CtI7wtAIAxXgW4yzLpevKtq5GC_PbKusETQgj9_6lJ2fZ-?gv=true"
              target="_blank"
              rel="noopener noreferrer"
-             className="inline-flex items-center justify-center px-10 py-5 border-4 border-slate-800 text-xl font-black text-white bg-teal-DEFAULT hover:bg-teal-dark shadow-pop hover:shadow-pop-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all blob-shape active:translate-y-[6px]"
+             className="inline-flex items-center justify-center px-4 py-3 md:px-10 md:py-5 text-center border-4 border-slate-800 text-sm md:text-xl font-black text-white bg-teal-DEFAULT hover:bg-teal-dark shadow-pop hover:shadow-pop-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all blob-shape active:translate-y-[6px]"
           >
-            <ExternalLink size={28} className="mr-3" strokeWidth={3} />
-            別ウィンドウで予約ページを開く
+            <ExternalLink size={20} className="mr-2 md:mr-3 flex-shrink-0 md:w-7 md:h-7" strokeWidth={3} />
+            <span>別ウィンドウで<br className="sm:hidden"/>予約ページを開く</span>
           </a>
         </div>
       </div>

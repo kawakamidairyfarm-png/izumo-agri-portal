@@ -37,17 +37,17 @@ const App = () => {
                 href="https://docs.google.com/forms/d/e/1FAIpQLSc8DfaiXvsatYM6Pn-fX7bmTTP_sn7_alBnQRH-XO7vBMUE0g/viewform?usp=header"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full relative overflow-hidden bg-coral-DEFAULT text-white rounded-[40px] p-6 md:p-8 border-4 border-slate-800 shadow-pop hover:shadow-pop-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-6 group blob-shape"
+                className="w-full relative overflow-hidden bg-coral-DEFAULT text-white rounded-[40px] px-4 py-5 sm:p-6 md:p-8 border-4 border-slate-800 shadow-pop hover:shadow-pop-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 group blob-shape"
               >
                 <div className="absolute inset-0 w-1/4 h-full bg-white/20 skew-x-12 group-hover:translate-x-[400%] transition-transform duration-700"></div>
                 
-                <div className="bg-white text-coral-dark p-4 rounded-full border-2 border-slate-800 shadow-pop transform -rotate-6 group-hover:rotate-0 transition-transform flex-shrink-0">
-                  <ClipboardEdit size={40} strokeWidth={2.5} />
+                <div className="bg-white text-coral-dark p-3 md:p-4 rounded-full border-2 border-slate-800 shadow-pop transform -rotate-6 group-hover:rotate-0 transition-transform flex-shrink-0">
+                  <ClipboardEdit size={32} className="md:w-10 md:h-10" strokeWidth={2.5} />
                 </div>
                 
-                <div className="text-left text-slate-900 drop-shadow-sm">
-                  <span className="block text-2xl md:text-3xl font-black tracking-tighter text-white">活動を報告する！</span>
-                  <span className="block text-sm font-bold opacity-90 mt-1 text-white bg-slate-800/20 px-3 py-1 rounded-full inline-block">体験が終わったらここをタップ</span>
+                <div className="text-center sm:text-left text-slate-900 drop-shadow-sm w-full">
+                  <span className="block text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-white break-words">活動を報告する！</span>
+                  <span className="block text-xs md:text-sm font-bold opacity-90 mt-1 text-white bg-slate-800/20 px-2 md:px-3 py-1 rounded-full inline-block">体験が終わったらタップ</span>
                 </div>
               </a>
             </div>
