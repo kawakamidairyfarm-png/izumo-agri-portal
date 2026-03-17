@@ -28,4 +28,22 @@
   .pop-card:hover {
     @apply shadow-pop-hover translate-x-[2px] translate-y-[2px];
   }
+
+  @keyframes pop-in {
+    0% { transform: translate(-50%, 10px); opacity: 0; }
+    100% { transform: translate(-50%, 0); opacity: 1; }
+  }
+  .animate-pop-in {
+    animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-100 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-400 rounded-full hover:bg-slate-500;
+  }
 }
