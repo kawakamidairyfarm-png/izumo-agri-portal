@@ -42,11 +42,14 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm font-black text-slate-900 uppercase tracking-tighter mb-2">
                   見込み支給額
                 </p>
-                <div className="flex items-baseline justify-center text-6xl font-black text-slate-900 mb-4">
-                  <span className="text-3xl mr-1">¥</span>
+                <div className="flex items-baseline justify-center text-5xl sm:text-6xl font-black text-slate-900 mb-6 bg-white/50 rounded-2xl py-4 border-2 border-slate-900/10 shadow-inner">
+                  <span className="text-2xl sm:text-3xl mr-1">¥</span>
                   <span className="tracking-tighter">{(hours * HOURLY_WAGE).toLocaleString()}</span>
                 </div>
-                <p className="text-xs leading-normal text-slate-800 font-bold bg-white/30 py-2 px-3 rounded-lg">
+                <div className="inline-block mb-4 px-4 py-1.5 bg-slate-900 text-white text-[10px] sm:text-xs font-black rounded-lg border-2 border-slate-700 shadow-pop uppercase tracking-widest transform -rotate-1">
+                  時給400円換算
+                </div>
+                <p className="text-[10px] sm:text-xs leading-normal text-slate-800 font-bold bg-white/30 py-2 px-3 rounded-lg mx-2">
                   ※実際の支給額は牧場の確認後に決定されます。
                 </p>
               </div>

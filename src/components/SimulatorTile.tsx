@@ -52,13 +52,13 @@ const SimulatorTile = () => {
           <p className="text-sm sm:text-base font-black text-white opacity-95 mb-4 tracking-wider">これまでの対価（目安）</p>
           
           <div className="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-800 shadow-inner flex items-baseline justify-center gap-1.5 mt-1 text-slate-900 overflow-hidden">
-            <span className="text-xl sm:text-3xl font-black text-teal-dark">¥</span>
-            <span className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tighter text-teal-dark drop-shadow-sm truncate">
+            <span className="text-xl sm:text-2xl font-black text-slate-900">¥</span>
+            <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-slate-900 drop-shadow-sm truncate px-2">
               {amount.toLocaleString()}
             </span>
           </div>
           
-          <div className="inline-block mt-6 px-4 py-1.5 bg-slate-900 text-white text-[10px] sm:text-xs font-black rounded-lg border border-slate-800 uppercase tracking-widest">
+          <div className="inline-block mt-6 px-4 py-1.5 bg-slate-900 text-white text-[10px] sm:text-xs font-black rounded-lg border-2 border-slate-700 shadow-pop uppercase tracking-widest transform -rotate-1">
             時給400円換算
           </div>
         </div>
