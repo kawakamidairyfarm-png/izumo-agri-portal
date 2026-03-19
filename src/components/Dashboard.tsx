@@ -42,8 +42,8 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm font-black text-slate-900 uppercase tracking-tighter mb-2">
                   見込み支給額
                 </p>
-                <div className="flex items-baseline justify-center text-5xl sm:text-6xl font-black text-slate-900 mb-6 bg-white/50 rounded-2xl py-4 border-2 border-slate-900/10 shadow-inner">
-                  <span className="text-2xl sm:text-3xl mr-1">¥</span>
+                <div className="flex items-baseline justify-center text-4xl sm:text-5xl font-black text-slate-900 mb-6 bg-white/50 rounded-2xl py-4 px-6 border-2 border-slate-900/10 shadow-inner mx-auto w-fit min-w-[140px] whitespace-nowrap">
+                  <span className="text-xl sm:text-2xl mr-1.5 flex-shrink-0">¥</span>
                   <span className="tracking-tighter">{(hours * HOURLY_WAGE).toLocaleString()}</span>
                 </div>
                 <div className="inline-block mb-4 px-4 py-1.5 bg-slate-900 text-white text-[10px] sm:text-xs font-black rounded-lg border-2 border-slate-700 shadow-pop uppercase tracking-widest transform -rotate-1">

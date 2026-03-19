@@ -51,9 +51,9 @@ const SimulatorTile = () => {
           <div className="absolute top-0 right-0 -m-4 w-24 h-24 bg-white opacity-20 blob-shape"></div>
           <p className="text-sm sm:text-base font-black text-white opacity-95 mb-4 tracking-wider">これまでの対価（目安）</p>
           
-          <div className="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-800 shadow-inner flex items-baseline justify-center gap-1.5 mt-1 text-slate-900 overflow-hidden">
-            <span className="text-xl sm:text-2xl font-black text-slate-900">¥</span>
-            <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-slate-900 drop-shadow-sm truncate px-2">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border-2 border-slate-800 shadow-inner flex items-baseline justify-center gap-1.5 mt-1 text-slate-900 mx-auto w-fit min-w-[140px] px-6">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 flex-shrink-0">¥</span>
+            <span className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tighter text-slate-900 drop-shadow-sm whitespace-nowrap">
               {amount.toLocaleString()}
             </span>
           </div>
