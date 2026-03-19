@@ -43,7 +43,7 @@ const CalendarTile = () => {
              href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0dO-S5ibQ_5KbttRiQafgZv5Whu7CtI7wtAIAxXgW4yzLpevKtq5GC_PbKusETQgj9_6lJ2fZ-?gv=true"
              target="_blank"
              rel="noopener noreferrer"
-             className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 md:px-10 md:py-5 text-center border-4 border-slate-800 text-base md:text-xl font-black text-white bg-teal-DEFAULT hover:bg-teal-dark shadow-pop hover:shadow-pop-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all blob-shape active:translate-y-[6px]"
+             className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 md:px-10 md:py-5 text-center border-4 border-slate-800 text-base md:text-xl font-black text-white bg-teal-dark hover:bg-slate-900 shadow-pop hover:shadow-pop-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all blob-shape active:translate-y-[6px]"
           >
             <ExternalLink size={22} className="mr-3 flex-shrink-0 md:w-8 md:h-8" strokeWidth={3} />
             <span className="leading-tight">別ウィンドウで<br className="sm:hidden"/>予約ページを開く</span>

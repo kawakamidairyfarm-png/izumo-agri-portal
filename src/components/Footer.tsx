@@ -20,7 +20,7 @@ const Footer = () => {
           {/* Main Copy Button */}
           <button 
             onClick={handleCopy}
-            className="w-full relative flex items-center justify-center px-8 py-5 bg-coral-DEFAULT hover:bg-coral-dark text-white text-lg font-black border-4 border-slate-800 shadow-pop hover:translate-x-[2.5px] hover:translate-y-[2.5px] hover:shadow-pop-hover transition-all blob-shape active:translate-y-[5px] sm:min-w-[240px]"
+            className="w-full relative flex items-center justify-center px-8 py-5 bg-coral-dark hover:bg-slate-900 text-white text-lg font-black border-4 border-slate-800 shadow-pop hover:translate-x-[2.5px] hover:translate-y-[2.5px] hover:shadow-pop-hover transition-all blob-shape active:translate-y-[5px] sm:min-w-[240px]"
           >
             {copied ? <Check size={22} className="mr-3" strokeWidth={4} /> : <Mail size={22} className="mr-3" strokeWidth={3} />}
             {copied ? 'コピー完了！' : 'メールでお問合せ'}

@@ -47,7 +47,7 @@ const App = () => {
                 
                 <div className="text-center sm:text-left text-slate-900 drop-shadow-sm w-full">
                   <span className="block text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter text-white break-words leading-tight">活動を報告する！</span>
-                  <span className="block text-sm md:text-lg font-bold opacity-95 mt-3 text-white bg-slate-900/20 px-4 md:px-6 py-1.5 rounded-full inline-block backdrop-blur-sm">体験が終わったらタップ</span>
+                  <span className="block text-sm md:text-lg font-bold mt-3 text-slate-900 bg-white/40 px-4 md:px-6 py-1.5 rounded-full inline-block backdrop-blur-sm border border-slate-900/10">体験が終わったらタップ</span>
                 </div>
               </a>
             </div>
