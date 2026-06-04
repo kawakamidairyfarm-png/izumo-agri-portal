@@ -36,7 +36,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
           </div>
           <button 
             onClick={onClose}
-            className="p-2 sm:p-3 bg-white border-2 border-slate-800 rounded-full text-slate-800 hover:bg-slate-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-y-[2px] active:translate-x-[2px] active:shadow-none"
+            className="p-2 sm:p-3 bg-white border-2 border-slate-800 rounded-full text-slate-800 hover:bg-slate-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform"
           >
             <X size={24} className="sm:w-7 sm:h-7" strokeWidth={3} />
           </button>
@@ -95,7 +95,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full py-4.5 mt-4 border-4 border-slate-800 bg-teal-DEFAULT hover:bg-teal-dark text-slate-900 font-black text-xl rounded-full shadow-pop hover:shadow-pop-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center blob-shape active:translate-y-[5px] disabled:opacity-50 disabled:cursor-not-allowed min-h-[64px]"
+              className="w-full py-4.5 mt-4 border-4 border-slate-800 bg-teal-DEFAULT hover:bg-teal-dark text-slate-900 font-black text-xl rounded-full shadow-pop transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed min-h-[64px]"
             >
               <Send size={24} className="mr-3" strokeWidth={3} />
               {isSubmitting ? '報告を送信中...' : '報告する'}

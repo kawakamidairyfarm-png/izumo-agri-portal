@@ -1,6 +1,5 @@
 import HeroTile from './components/HeroTile';
 import CalendarTile from './components/CalendarTile';
-import SimulatorTile from './components/SimulatorTile';
 import Footer from './components/Footer';
 import { ClipboardEdit, Sparkles } from 'lucide-react';
 
@@ -23,7 +22,6 @@ const App = () => {
           </div>
 
           <CalendarTile />
-          <SimulatorTile />
 
           {/* Feature Highlight Tile: The Report Action */}
           <div className="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center mt-10 mb-6">
@@ -37,7 +35,7 @@ const App = () => {
                 href="https://docs.google.com/forms/d/e/1FAIpQLSc8DfaiXvsatYM6Pn-fX7bmTTP_sn7_alBnQRH-XO7vBMUE0g/viewform?usp=header"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full relative overflow-hidden bg-coral-DEFAULT text-white rounded-[2.5rem] sm:rounded-[3rem] px-6 py-8 sm:p-10 md:p-12 border-4 border-slate-800 shadow-pop hover:shadow-pop-hover hover:translate-x-[2.5px] hover:translate-y-[2.5px] transition-all flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 group blob-shape active:translate-y-[6px]"
+                className="w-full relative overflow-hidden bg-coral-DEFAULT text-white rounded-[2.5rem] sm:rounded-[3rem] px-6 py-8 sm:p-10 md:p-12 border-4 border-slate-800 shadow-pop transition-all flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 group"
               >
                 <div className="absolute inset-0 w-1/4 h-full bg-white/20 skew-x-12 group-hover:translate-x-[400%] transition-transform duration-700"></div>
                 

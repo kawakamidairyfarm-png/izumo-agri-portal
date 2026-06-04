@@ -20,7 +20,7 @@ const Footer = () => {
           {/* Main Copy Button */}
           <button 
             onClick={handleCopy}
-            className="w-full relative flex items-center justify-center px-8 py-5 bg-coral-dark hover:bg-slate-900 text-white text-lg font-black border-4 border-slate-800 shadow-pop hover:translate-x-[2.5px] hover:translate-y-[2.5px] hover:shadow-pop-hover transition-all blob-shape active:translate-y-[5px] sm:min-w-[240px]"
+            className="w-full relative flex items-center justify-center px-8 py-5 bg-coral-dark hover:bg-slate-900 text-white text-lg font-black border-4 border-slate-800 shadow-pop transition-all sm:min-w-[240px]"
           >
             {copied ? <Check size={22} className="mr-3" strokeWidth={4} /> : <Mail size={22} className="mr-3" strokeWidth={3} />}
             {copied ? 'コピー完了！' : 'メールでお問合せ'}
@@ -31,7 +31,7 @@ const Footer = () => {
             <span className="truncate mr-3 font-mono">kawakami.dairy.farm@gmail.com</span>
             <a 
               href="mailto:kawakami.dairy.farm@gmail.com" 
-              className="bg-slate-100 hover:bg-slate-200 text-slate-900 border-2 border-slate-800 p-2 rounded-[0.75rem] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all flex-shrink-0"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-900 border-2 border-slate-800 p-2 rounded-[0.75rem] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all flex-shrink-0"
               title="メールソフトを開く"
             >
               <Mail size={16} strokeWidth={3} />
@@ -49,7 +49,7 @@ const Footer = () => {
         <a 
           href="/image_0.png" 
           target="_blank"
-          className="w-full sm:w-auto flex items-center justify-center h-[68px] px-10 bg-white text-slate-800 hover:bg-slate-50 text-lg font-black rounded-full border-4 border-slate-800 shadow-pop hover:translate-x-[2.5px] hover:translate-y-[2.5px] hover:shadow-pop-hover transition-all mt-2 sm:mt-1"
+          className="w-full sm:w-auto flex items-center justify-center h-[68px] px-10 bg-white text-slate-800 hover:bg-slate-50 text-lg font-black rounded-full border-4 border-slate-800 shadow-pop transition-all mt-2 sm:mt-1"
         >
           <FileText size={22} className="mr-3" strokeWidth={3} />
           プログラム規則
