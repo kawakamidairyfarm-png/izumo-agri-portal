@@ -27,7 +27,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
         className="bg-white border-4 border-slate-800 shadow-pop w-full max-w-lg rounded-[2.5rem] overflow-hidden transform transition-all flex flex-col max-h-[92vh] relative"
       >
         {/* Blob decoration top corner */}
-        <div className="absolute -top-12 -right-12 w-32 h-32 bg-teal-DEFAULT/20 blob-shape blur-md"></div>
+        <div className="absolute -top-12 -right-12 w-32 h-32 bg-teal/20 blob-shape blur-md"></div>
         
         <div className="p-6 sm:p-8 border-b-4 border-slate-800 flex justify-between items-center bg-coral-light/30 relative z-10">
           <div>
@@ -49,7 +49,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
               <input 
                 type="text" 
                 required
-                className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal-DEFAULT focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
+                className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
                 placeholder="出雲 太郎"
               />
             </div>
@@ -59,7 +59,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
               <input 
                 type="date" 
                 required
-                className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal-DEFAULT focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
+                className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
               />
             </div>
 
@@ -69,7 +69,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
                 <input 
                   type="time" 
                   required
-                  className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal-DEFAULT focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
+                  className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
                 />
               </div>
               <div>
@@ -77,7 +77,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
                 <input 
                   type="time" 
                   required
-                  className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal-DEFAULT focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
+                  className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)]"
                 />
               </div>
             </div>
@@ -87,7 +87,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
               <textarea 
                 rows={3} 
                 required
-                className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal-DEFAULT focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)] resize-none"
+                className="w-full px-5 py-3.5 bg-white border-2 border-slate-400 rounded-2xl focus:ring-0 focus:border-teal focus:outline-none transition-all font-bold text-slate-800 shadow-[3px_3px_0px_0px_rgba(148,163,184,1)] focus:shadow-[5px_5px_0px_0px_rgba(45,212,191,1)] resize-none"
                 placeholder="今日は牛のブラッシングを体験し..."
               />
             </div>
@@ -95,7 +95,7 @@ const ActivityReportModal = ({ isOpen, onClose }: ActivityReportModalProps) => {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full py-4.5 mt-4 border-4 border-slate-800 bg-teal-DEFAULT hover:bg-teal-dark text-slate-900 font-black text-xl rounded-full shadow-pop transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed min-h-[64px]"
+              className="w-full py-4.5 mt-4 border-4 border-slate-800 bg-teal hover:bg-teal-dark text-slate-900 font-black text-xl rounded-full shadow-pop transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed min-h-[64px]"
             >
               <Send size={24} className="mr-3" strokeWidth={3} />
               {isSubmitting ? '報告を送信中...' : '報告する'}

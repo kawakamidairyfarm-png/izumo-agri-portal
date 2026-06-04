@@ -5,8 +5,8 @@ const HeroTile = () => {
     <div className="relative overflow-hidden rounded-[2.5rem] bg-coral-light/20 p-6 sm:p-10 md:p-12 pop-card flex flex-col items-center justify-center text-center col-span-1 md:col-span-2 lg:col-span-3 min-h-[360px] md:min-h-[450px]">
       
       {/* Organic blob decorations */}
-      <div className="absolute -top-10 -right-10 w-48 h-48 bg-teal-DEFAULT/20 blob-shape blur-xl mix-blend-multiply"></div>
-      <div className="absolute bottom-10 -left-10 w-56 h-56 bg-coral-DEFAULT/20 blob-shape blur-xl mix-blend-multiply border-radius-blob-2"></div>
+      <div className="absolute -top-10 -right-10 w-48 h-48 bg-teal/20 blob-shape blur-xl mix-blend-multiply"></div>
+      <div className="absolute bottom-10 -left-10 w-56 h-56 bg-coral/20 blob-shape blur-xl mix-blend-multiply border-radius-blob-2"></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-yellow-200/30 blob-shape blur-2xl -z-10"></div>
       
       <div className="relative z-10 flex flex-col items-center w-full">

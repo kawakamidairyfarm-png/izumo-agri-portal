@@ -2,7 +2,7 @@ import { CalendarDays, ExternalLink } from 'lucide-react';
 
 const CalendarTile = () => {
   return (
-    <div className="relative overflow-hidden bg-teal-DEFAULT p-5 sm:p-8 pop-card flex flex-col col-span-1 md:col-span-2 lg:col-span-3 h-full text-slate-900 rounded-[2.5rem] transition-all duration-500">
+    <div className="relative overflow-hidden bg-teal p-5 sm:p-8 pop-card flex flex-col col-span-1 md:col-span-2 lg:col-span-3 h-full text-slate-900 rounded-[2.5rem] transition-all duration-500">
       <div className="flex items-center mb-6 px-2">
         <div className="bg-white p-3 rounded-full mr-4 border-2 border-slate-800 shadow-pop flex-shrink-0">
           <CalendarDays size={30} className="text-teal-dark md:w-8 md:h-8" />

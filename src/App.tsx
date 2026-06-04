@@ -35,7 +35,7 @@ const App = () => {
                 href="https://docs.google.com/forms/d/e/1FAIpQLSc8DfaiXvsatYM6Pn-fX7bmTTP_sn7_alBnQRH-XO7vBMUE0g/viewform?usp=header"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full relative overflow-hidden bg-coral-DEFAULT text-white rounded-[2.5rem] sm:rounded-[3rem] px-6 py-8 sm:p-10 md:p-12 border-4 border-slate-800 shadow-pop transition-all flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 group"
+                className="w-full relative overflow-hidden bg-coral text-slate-900 rounded-[2.5rem] sm:rounded-[3rem] px-6 py-8 sm:p-10 md:p-12 border-4 border-slate-800 shadow-pop transition-all flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 group"
               >
                 <div className="absolute inset-0 w-1/4 h-full bg-white/20 skew-x-12 group-hover:translate-x-[400%] transition-transform duration-700"></div>
                 
@@ -44,7 +44,7 @@ const App = () => {
                 </div>
                 
                 <div className="text-center sm:text-left text-slate-900 drop-shadow-sm w-full">
-                  <span className="block text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter text-white break-words leading-tight">活動を報告する！</span>
+                  <span className="block text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter text-slate-900 break-words leading-tight">活動を報告する！</span>
                   <span className="block text-sm md:text-lg font-bold mt-3 text-slate-900 bg-white/40 px-4 md:px-6 py-1.5 rounded-full inline-block backdrop-blur-sm border border-slate-900/10">体験が終わったらタップ</span>
                 </div>
               </a>
