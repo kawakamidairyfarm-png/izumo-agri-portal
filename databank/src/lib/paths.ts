@@ -19,7 +19,6 @@ export const PATHS: LearningPath[] = [
       { id: '2026-03-19_zero-start', why: 'まず、牧場を始めるのに何が必要かを全体像で掴む。' },
       { id: '2026-02-26_non-farm-to-dairy', why: '非農家出身で酪農に入る道と、その壁。' },
       { id: '2026-01-26_startup-capital', why: '資金の規模感を数字で。' },
-      { id: '2025-08-08_real-money', why: '「いくら」より「何に使うか」という考え方。' },
       { id: '2025-12-21_qualifications', why: '資格・免許は何が要るのか。' },
       { id: '2026-03-16_before-agri-college', why: '進学前にやっておくと良いこと。' },
       { id: '2025-11-20_hardest-part', why: '一番大変なところを先に知っておく。' },
