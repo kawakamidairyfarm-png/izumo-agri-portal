@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, Quote, Youtube } from 'lucide-react'
+import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, MessageCircle, Quote, Youtube } from 'lucide-react'
 import { Badge } from '../components/EpisodeCard'
 import EpisodeCard from '../components/EpisodeCard'
 import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate } from '../lib/data'
@@ -179,6 +179,27 @@ export default function EpisodePage() {
           「探す」のボタンは、この回のタイトルで各サービス内を検索します。通常は先頭に該当回が表示されます。Podyでは配信日（
           {formatDate(episode.date)} 前後）から探せます。
         </p>
+      </section>
+
+      <section className="mt-8 rounded-3xl bg-[#e8f8ee] border border-[#b9e8cb] p-6 md:p-7">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1">
+            <h2 className="inline-flex items-center gap-2 font-serif text-lg font-bold text-ink-900">
+              <MessageCircle size={20} className="text-[#06C755]" /> この回について質問してみる
+            </h2>
+            <p className="mt-1 text-sm text-ink-700 leading-relaxed">
+              読んで気になったこと、もっと知りたいことは、川上牧場の公式LINEから気軽に送れます。配信やnoteで答えてもらえることもあります。
+            </p>
+          </div>
+          <a
+            href={LINKS.line}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-[#06C755] text-white px-5 py-3 text-sm font-bold hover:bg-[#05b34c] transition-colors"
+          >
+            <MessageCircle size={18} /> LINEで質問する
+          </a>
+        </div>
       </section>
 
       <nav className="mt-10 grid gap-3 sm:grid-cols-2 text-sm">

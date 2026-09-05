@@ -5,6 +5,8 @@ export const LINKS = {
   note: 'https://note.com/kawakamifarm',
   youtube: 'https://www.youtube.com/channel/UC7biWU5T2H9H6mmzgaNV2Bw',
   spotify: 'https://open.spotify.com/show/5VP7uC8prZ3wjoYDLHSUmj',
+  /** 川上牧場 公式LINE（質問受付） */
+  line: 'https://line.me/R/ti/p/@imb8734o?ts=04142028&oat_content=url',
 }
 
 export interface EpisodeLink {
