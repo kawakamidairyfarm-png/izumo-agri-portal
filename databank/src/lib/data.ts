@@ -15,6 +15,8 @@ export interface IndexEntry {
   category?: Category
   /** Optional: この回のnote記事URL */
   noteUrl?: string
+  youtubeUrl?: string
+  spotifyUrl?: string
 }
 
 export interface Article {
@@ -32,8 +34,10 @@ export interface Article {
   experience: string
   caveats: string
   transcriptFile: string
-  /** この回のnote記事URL（分かっている場合のみ） */
+  /** 各プラットフォームの該当回URL（分かっている場合のみ） */
   noteUrl?: string
+  youtubeUrl?: string
+  spotifyUrl?: string
 }
 
 /** Unified record used across the UI. Curated articles carry an `article`. */
@@ -48,8 +52,10 @@ export interface Episode {
   audience: Audience[]
   article: Article | null
   transcript: string | null
-  /** この回のnote記事URL（記事データまたは索引に登録があるとき） */
+  /** 各プラットフォームの該当回URL（記事データまたは索引に登録があるとき） */
   noteUrl: string | null
+  youtubeUrl: string | null
+  spotifyUrl: string | null
 }
 
 // ---------- raw loading ----------
@@ -144,7 +150,7 @@ function build(): Episode[] {
     if (seen.has(id)) continue
     seen.add(id)
     if (article) byDrive.delete(article.driveId)
-    list.push(toEpisode(e.date, e.title, e.driveId, article, e.category, e.noteUrl))
+    list.push(toEpisode(e.date, e.title, e.driveId, article, e.category, e))
   }
   // Articles that are not in the index (should not happen, but keep them visible)
   for (const a of byDrive.values()) {
@@ -163,7 +169,7 @@ function toEpisode(
   driveId: string,
   article: Article | null,
   ledgerCategory?: Category,
-  indexNoteUrl?: string,
+  indexEntry?: IndexEntry,
 ): Episode {
   const category = article?.category ?? ledgerCategory ?? classify(title)
   const topics = topicsFor(title, article?.tags ?? [])
@@ -180,7 +186,9 @@ function toEpisode(
     audience,
     article,
     transcript: article ? (transcripts[article.transcriptFile] ?? null) : null,
-    noteUrl: article?.noteUrl || indexNoteUrl || null,
+    noteUrl: article?.noteUrl || indexEntry?.noteUrl || null,
+    youtubeUrl: article?.youtubeUrl || indexEntry?.youtubeUrl || null,
+    spotifyUrl: article?.spotifyUrl || indexEntry?.spotifyUrl || null,
   }
 }
 

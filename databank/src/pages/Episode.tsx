@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, Headphones, Info, Quote } from 'lucide-react'
+import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, Quote, Youtube } from 'lucide-react'
 import { Badge } from '../components/EpisodeCard'
 import EpisodeCard from '../components/EpisodeCard'
 import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate } from '../lib/data'
-import { LINKS, noteLinkFor } from '../lib/links'
+import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links'
 
 export default function EpisodePage() {
   const { id = '' } = useParams()
@@ -36,6 +36,8 @@ export default function EpisodePage() {
   const older = idx < EPISODES.length - 1 ? EPISODES[idx + 1] : null
   const paragraphs = episode.transcript ? episode.transcript.split(/\n+/).filter((p) => p.trim()) : []
   const note = noteLinkFor(episode)
+  const youtube = youtubeLinkFor(episode)
+  const spotify = spotifyLinkFor(episode)
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8">
@@ -158,20 +160,24 @@ export default function EpisodePage() {
       )}
 
       <section className="mt-8">
+        <p className="text-xs font-bold text-ink-500 mb-2">この回を聴く・読む</p>
         <div className="flex flex-wrap gap-2">
-          <a href={LINKS.pody} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-600 text-cream-50 px-4 py-2.5 text-sm font-bold hover:bg-moss-700">
-            <Headphones size={16} /> Pody で配信を聴く
+          <a href={note.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-600 text-cream-50 px-4 py-2.5 text-sm font-bold hover:bg-moss-700">
+            <BookOpen size={16} /> {note.exact ? 'note で読む' : 'note で探す'}
           </a>
-          <a href={note.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
-            <BookOpen size={16} /> {note.exact ? 'note でこの回を読む' : 'note でこの回を探す'}
+          <a href={youtube.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
+            <Youtube size={16} className="text-red-600" /> {youtube.exact ? 'YouTube で聴く' : 'YouTube で探す'}
+          </a>
+          <a href={spotify.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
+            <AudioLines size={16} className="text-green-600" /> {spotify.exact ? 'Spotify で聴く' : 'Spotify で探す'}
+          </a>
+          <a href={LINKS.pody} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
+            <Headphones size={16} /> Pody（番組ページ）
           </a>
         </div>
         <p className="mt-2 text-xs text-ink-500">
-          {note.exact
-            ? 'この回のnote記事（文字起こしを再構成した読みもの）に直接飛びます。'
-            : 'この回のタイトルでnoteを検索します。通常は先頭に該当記事が表示されます。Podyでは配信日（' +
-              formatDate(episode.date) +
-              ' 前後）から探せます。'}
+          「探す」のボタンは、この回のタイトルで各サービス内を検索します。通常は先頭に該当回が表示されます。Podyでは配信日（
+          {formatDate(episode.date)} 前後）から探せます。
         </p>
       </section>
 
