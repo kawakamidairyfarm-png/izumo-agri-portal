@@ -11,8 +11,7 @@ export const LINKS = {
  * 配信タイトルと同名なので、通常は先頭に該当記事が出る）。
  */
 export function noteLinkFor(episode: Episode): { url: string; exact: boolean } {
-  const exact = episode.article?.noteUrl
-  if (exact) return { url: exact, exact: true }
+  if (episode.noteUrl) return { url: episode.noteUrl, exact: true }
   const q = encodeURIComponent(`川上哲也 ${episode.title}`)
   return { url: `https://note.com/search?context=note&mode=search&q=${q}`, exact: false }
 }

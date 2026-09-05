@@ -13,6 +13,8 @@ export interface IndexEntry {
   source: 'root' | 'archive'
   /** Optional: category carried over from the ledger spreadsheet. Wins over title rules. */
   category?: Category
+  /** Optional: この回のnote記事URL */
+  noteUrl?: string
 }
 
 export interface Article {
@@ -46,6 +48,8 @@ export interface Episode {
   audience: Audience[]
   article: Article | null
   transcript: string | null
+  /** この回のnote記事URL（記事データまたは索引に登録があるとき） */
+  noteUrl: string | null
 }
 
 // ---------- raw loading ----------
@@ -140,7 +144,7 @@ function build(): Episode[] {
     if (seen.has(id)) continue
     seen.add(id)
     if (article) byDrive.delete(article.driveId)
-    list.push(toEpisode(e.date, e.title, e.driveId, article, e.category))
+    list.push(toEpisode(e.date, e.title, e.driveId, article, e.category, e.noteUrl))
   }
   // Articles that are not in the index (should not happen, but keep them visible)
   for (const a of byDrive.values()) {
@@ -153,7 +157,14 @@ function build(): Episode[] {
   return list
 }
 
-function toEpisode(date: string, title: string, driveId: string, article: Article | null, ledgerCategory?: Category): Episode {
+function toEpisode(
+  date: string,
+  title: string,
+  driveId: string,
+  article: Article | null,
+  ledgerCategory?: Category,
+  indexNoteUrl?: string,
+): Episode {
   const category = article?.category ?? ledgerCategory ?? classify(title)
   const topics = topicsFor(title, article?.tags ?? [])
   const series = seriesFor(title)
@@ -169,6 +180,7 @@ function toEpisode(date: string, title: string, driveId: string, article: Articl
     audience,
     article,
     transcript: article ? (transcripts[article.transcriptFile] ?? null) : null,
+    noteUrl: article?.noteUrl || indexNoteUrl || null,
   }
 }
 
