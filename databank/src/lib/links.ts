@@ -17,11 +17,28 @@ export interface EpisodeLink {
 
 /**
  * この回のnoteリンク。実URLが登録されていればそこへ、
- * なければタイトルでnote内を検索した結果へ飛ぶ。
+ * なければnote内検索へ飛ぶ。noteでの記事タイトルが配信タイトルと
+ * 異なるシリーズは、シリーズ名での検索に切り替える。
  */
 export function noteLinkFor(episode: Episode): EpisodeLink {
   if (episode.noteUrl) return { url: episode.noteUrl, exact: true }
-  const q = encodeURIComponent(`川上哲也 ${episode.title}`)
+  const t = episode.title
+  let query: string
+  if (/(?:famars|farmers)\s*voices/i.test(t)) {
+    // note側は「【Farmers Voices🐮】 AI文字起こし vol.N」表記（配信の約1週間後に公開）
+    query = 'Farmers Voices AI文字起こし'
+  } else if (/R7.?年?研修生と配信/.test(t)) {
+    // note側は「R7年研修生と配信 #N」表記
+    query = 'R7年研修生と配信'
+  } else if (/^川上牧場研修/.test(t)) {
+    // note側は「川上牧場研修 #N【副題】」表記なので副題で検索
+    const sub = t.match(/【(.+?)】/)?.[1]
+    query = sub ? `川上牧場研修 ${sub}` : '川上牧場研修'
+  } else {
+    // 【】や記号を除いてnoteの検索にかかりやすくする
+    query = `川上哲也 ${t.replace(/[【】「」｜]/g, ' ').replace(/\s+/g, ' ').trim()}`
+  }
+  const q = encodeURIComponent(query)
   return { url: `https://note.com/search?context=note&mode=search&q=${q}`, exact: false }
 }
 
