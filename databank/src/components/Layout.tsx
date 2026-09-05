@@ -3,6 +3,7 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { stats } from '../lib/data'
 import { LINKS } from '../lib/links'
+import { CowMark, GrassStrip } from './FarmArt'
 
 const NAV = [
   { to: '/for-students', label: '酪農を学ぶ' },
@@ -19,8 +20,8 @@ export default function Layout() {
       <header className="sticky top-0 z-30 bg-cream-50/90 backdrop-blur border-b border-cream-200">
         <div className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5 min-w-0" onClick={() => setOpen(false)}>
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-moss-600 text-cream-50 font-black text-sm shadow-sm">
-              牛
+            <span className="inline-flex shrink-0 rounded-xl shadow-sm">
+              <CowMark size={38} />
             </span>
             <span className="leading-tight min-w-0">
               <span className="block font-bold text-ink-900 truncate">川上牧場 酪農データバンク</span>
@@ -72,7 +73,9 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="mt-16 border-t border-cream-200 bg-cream-100">
+      <footer className="mt-16">
+        <GrassStrip />
+        <div className="border-t border-cream-200 bg-cream-100">
         <div className="mx-auto max-w-6xl px-4 py-10 grid gap-8 md:grid-cols-3 text-sm">
           <div>
             <p className="font-bold text-ink-900 mb-2">川上牧場</p>
@@ -105,6 +108,7 @@ export default function Layout() {
         </div>
         <div className="border-t border-cream-200 py-4 text-center text-xs text-ink-500">
           収録期間 {stats.earliest} 〜 {stats.latest} ／ 要約つき {stats.articles} 本
+        </div>
         </div>
       </footer>
     </div>

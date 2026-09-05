@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, SlidersHorizontal, X } from 'lucide-react'
 import SearchBox from '../components/SearchBox'
 import EpisodeCard from '../components/EpisodeCard'
 import { AUDIENCE_META, CATEGORY_META, EPISODES, SERIES, TOPICS, type Audience, type Category, type Episode } from '../lib/data'
@@ -10,6 +10,7 @@ const CATS = Object.keys(CATEGORY_META) as Category[]
 
 export default function Browse() {
   const [params, setParams] = useSearchParams()
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const q = params.get('q') ?? ''
   const audience = params.get('audience') as Audience | null
   const category = params.get('category') as Category | null
@@ -54,8 +55,24 @@ export default function Browse() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
-        <aside className="space-y-5">
-          <div className="flex items-center justify-between">
+        <aside>
+          {/* モバイルでは折りたたみ、PCでは常時表示 */}
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            className="lg:hidden w-full flex items-center justify-between rounded-2xl bg-white border border-cream-200 px-4 py-3 shadow-card"
+            aria-expanded={filtersOpen}
+          >
+            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-ink-900">
+              <SlidersHorizontal size={16} /> 絞り込み
+              {activeFilters > 0 && (
+                <span className="ml-1 rounded-full bg-moss-600 text-cream-50 text-[11px] px-2 py-0.5">{activeFilters}</span>
+              )}
+            </span>
+            {filtersOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+          <div className={`${filtersOpen ? 'block' : 'hidden'} lg:block space-y-5 mt-4 lg:mt-0`}>
+          <div className="hidden lg:flex items-center justify-between">
             <p className="inline-flex items-center gap-1.5 text-sm font-bold text-ink-900">
               <SlidersHorizontal size={16} /> 絞り込み
             </p>
@@ -68,6 +85,14 @@ export default function Browse() {
               </button>
             )}
           </div>
+          {activeFilters > 0 && (
+            <button
+              className="lg:hidden inline-flex items-center gap-1 text-xs text-ink-500 hover:text-ink-900"
+              onClick={() => setParams(q ? { q } : {}, { replace: true })}
+            >
+              <X size={14} /> 絞り込みを解除
+            </button>
+          )}
 
           <Filter label="読む人">
             {(Object.keys(AUDIENCE_META) as Audience[]).map((a) => (
@@ -111,6 +136,7 @@ export default function Browse() {
               </Chip>
             ))}
           </Filter>
+          </div>
         </aside>
 
         <div>

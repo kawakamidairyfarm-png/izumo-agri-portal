@@ -6,17 +6,17 @@ import EpisodeCard from '../components/EpisodeCard'
 import { ARTICLES, EPISODES, SERIES, stats } from '../lib/data'
 import { PATHS, resolvePath, seriesEpisodes } from '../lib/paths'
 import { LINKS } from '../lib/links'
+import { MilkArt, PastureScene, StudentCowArt } from '../components/FarmArt'
 
 export default function Home() {
   const latestArticles = ARTICLES.slice(0, 6)
   const latest = EPISODES.slice(0, 4)
   return (
     <>
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-moss-50 via-cream-50 to-cream-50" />
-        <div className="mx-auto max-w-6xl px-4 pt-14 pb-10 md:pt-20 md:pb-14">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#e9f2e6] via-moss-50 to-cream-50">
+        <div className="mx-auto max-w-6xl px-4 pt-12 md:pt-16 pb-4 relative z-10">
           <p className="text-sm font-bold text-moss-700 tracking-wide">島根県出雲市・川上牧場</p>
-          <h1 className="mt-2 font-serif text-3xl md:text-5xl font-bold leading-tight text-ink-900">
+          <h1 className="mt-2 font-serif text-3xl md:text-5xl font-bold leading-tight text-ink-900 [text-wrap:balance]">
             酪農家が毎日話してきたことを、
             <br className="hidden md:block" />
             学ぶ人と飲む人の知識バンクに。
@@ -26,20 +26,29 @@ export default function Home() {
             酪農を志す学生・研修生には現場の判断を、牛乳を飲む人には「なぜ？」への答えを。
             どちらも同じ一次情報から読めます。
           </p>
-          <div className="mt-8 max-w-2xl">
+          <div className="mt-7 max-w-2xl">
             <SearchBox large />
           </div>
+          <div className="mt-6 flex flex-wrap gap-2 text-xs font-bold text-moss-800">
+            <span className="rounded-full bg-white/80 border border-moss-100 px-3 py-1.5">全 {stats.episodes} 配信を検索</span>
+            <span className="rounded-full bg-white/80 border border-moss-100 px-3 py-1.5">要約・Q&A つき {stats.articles} 本</span>
+            <span className="rounded-full bg-white/80 border border-moss-100 px-3 py-1.5">{stats.earliest.slice(0, 4)}年から毎朝配信</span>
+          </div>
         </div>
+        <PastureScene className="w-full h-40 md:h-56 block mt-2" />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 grid gap-4 md:grid-cols-2">
         <Link
           to="/for-students"
-          className="group rounded-3xl bg-moss-700 text-cream-50 p-7 md:p-9 shadow-card hover:bg-moss-800 transition-colors"
+          className="group relative overflow-hidden rounded-3xl bg-moss-700 text-cream-50 p-7 md:p-9 shadow-card hover:bg-moss-800 transition-colors"
         >
+          <div className="absolute -right-3 -bottom-3 opacity-90 group-hover:scale-105 transition-transform" aria-hidden="true">
+            <StudentCowArt size={104} />
+          </div>
           <GraduationCap size={34} className="text-hay-300" />
           <h2 className="mt-4 font-serif text-2xl font-bold">酪農を学びたい人へ</h2>
-          <p className="mt-2 text-moss-100 leading-relaxed text-sm">
+          <p className="mt-2 text-moss-100 leading-relaxed text-sm pr-14 md:pr-16 relative z-10">
             就農前の準備、資金、資格、牛の健康管理、飼料設計、改良戦略。研修生に話してきた内容を、順番に読める形にしました。
           </p>
           <span className="mt-5 inline-flex items-center gap-1 font-bold text-hay-300 group-hover:gap-2 transition-all">
@@ -48,11 +57,14 @@ export default function Home() {
         </Link>
         <Link
           to="/for-consumers"
-          className="group rounded-3xl bg-white border border-cream-200 p-7 md:p-9 shadow-card hover:border-moss-300 transition-colors"
+          className="group relative overflow-hidden rounded-3xl bg-white border border-cream-200 p-7 md:p-9 shadow-card hover:border-moss-300 transition-colors"
         >
+          <div className="absolute -right-3 -bottom-3 opacity-90 group-hover:scale-105 transition-transform" aria-hidden="true">
+            <MilkArt size={104} />
+          </div>
           <Milk size={34} className="text-moss-600" />
           <h2 className="mt-4 font-serif text-2xl font-bold text-ink-900">牛乳を飲む人へ</h2>
-          <p className="mt-2 text-ink-700 leading-relaxed text-sm">
+          <p className="mt-2 text-ink-700 leading-relaxed text-sm pr-14 md:pr-16 relative z-10">
             原価はいくら？なぜバターだけ高い？雄の子牛はどうなる？牧場に届いた疑問と、酪農家の率直な答え。買う以外の応援の仕方も。
           </p>
           <span className="mt-5 inline-flex items-center gap-1 font-bold text-moss-700 group-hover:gap-2 transition-all">
