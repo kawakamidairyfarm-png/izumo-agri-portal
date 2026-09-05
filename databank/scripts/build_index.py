@@ -202,6 +202,7 @@ def summarize(rows: list[dict], limit: int, model: str) -> None:
             "quotes": data.get("quotes") or [],
             "experience": data.get("experience", ""),
             "caveats": data.get("caveats", ""),
+            "noteUrl": "",  # 分かったら note 記事URLを手で追記（サイトが直接リンクに切り替わる）
             "transcriptFile": f"{slug}.txt",
         }
         (TRANSCRIPTS / f"{slug}.txt").write_text(text, encoding="utf-8")

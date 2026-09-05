@@ -30,6 +30,8 @@ export interface Article {
   experience: string
   caveats: string
   transcriptFile: string
+  /** この回のnote記事URL（分かっている場合のみ） */
+  noteUrl?: string
 }
 
 /** Unified record used across the UI. Curated articles carry an `article`. */
