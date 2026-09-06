@@ -1,16 +1,25 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp, SlidersHorizontal, X } from 'lucide-react'
 import SearchBox from '../components/SearchBox'
 import EpisodeCard from '../components/EpisodeCard'
 import { AUDIENCE_META, CATEGORY_META, EPISODES, SERIES, TOPICS, type Audience, type Category, type Episode } from '../lib/data'
-import { search } from '../lib/search'
+import { ensureSearchReady, search, searchHasBodies } from '../lib/search'
 
 const CATS = Object.keys(CATEGORY_META) as Category[]
 
 export default function Browse() {
   const [params, setParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [bodiesReady, setBodiesReady] = useState(searchHasBodies())
+  useEffect(() => {
+    if (!q) return
+    let alive = true
+    ensureSearchReady().then(() => alive && setBodiesReady(true))
+    return () => {
+      alive = false
+    }
+  }, [q])
   const q = params.get('q') ?? ''
   const audience = params.get('audience') as Audience | null
   const category = params.get('category') as Category | null
@@ -39,7 +48,7 @@ export default function Browse() {
       if (year && !e.date.startsWith(year)) return false
       return true
     })
-  }, [q, audience, category, topic, series, hasArticle, year])
+  }, [q, audience, category, topic, series, hasArticle, year, bodiesReady])
 
   const years = useMemo(() => Array.from(new Set(EPISODES.map((e) => e.date.slice(0, 4)))).sort().reverse(), [])
   const activeFilters = [audience, category, topic, series, hasArticle ? 'article' : null, year].filter(Boolean).length
@@ -142,6 +151,7 @@ export default function Browse() {
         <div>
           <p className="text-sm text-ink-500 mb-3">
             {results.length} 件{q && <>（「{q}」）</>}
+            {q && !bodiesReady && <span className="ml-2">本文を読み込み中…</span>}
           </p>
           {results.length === 0 ? (
             <div className="rounded-2xl bg-white border border-cream-200 p-8 text-center text-ink-700">

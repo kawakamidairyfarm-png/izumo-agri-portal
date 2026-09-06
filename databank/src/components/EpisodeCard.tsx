@@ -60,7 +60,7 @@ export default function EpisodeCard({
             </p>
           ) : (
             <p className="mt-2 text-xs text-ink-500">
-              {episode.transcript
+              {episode.hasTranscript
                 ? '要約は準備中。全文（noteの記事）を読めます。'
                 : episode.paidNote
                   ? '要約は準備中。全文は note の有料記事で読めます。'
@@ -79,8 +79,8 @@ export default function EpisodeCard({
               </span>
             ))}
             <span className="ml-auto inline-flex items-center gap-1">
-              {episode.article || episode.transcript ? <FileText size={13} /> : <Headphones size={13} />}
-              {episode.article ? '要約・全文あり' : episode.transcript ? '全文あり' : '音声のみ'}
+              {episode.article || episode.hasTranscript ? <FileText size={13} /> : <Headphones size={13} />}
+              {episode.article ? '要約・全文あり' : episode.hasTranscript ? '全文あり' : '音声のみ'}
             </span>
           </div>
         </div>

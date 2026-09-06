@@ -1,15 +1,25 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, MessageCircle, Quote, Youtube } from 'lucide-react'
 import { Badge } from '../components/EpisodeCard'
 import EpisodeCard from '../components/EpisodeCard'
 import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate, paragraphs as toParagraphs } from '../lib/data'
 import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links'
+import { loadTranscript } from '../lib/transcripts'
 
 export default function EpisodePage() {
   const { id = '' } = useParams()
   const episode = findEpisode(id)
   const [showTranscript, setShowTranscript] = useState(false)
+  const [transcript, setTranscript] = useState<string | null>(null)
+  useEffect(() => {
+    let alive = true
+    setTranscript(null)
+    if (episode?.transcriptKey) loadTranscript(episode.transcriptKey).then((t) => alive && setTranscript(t))
+    return () => {
+      alive = false
+    }
+  }, [episode])
 
   const related = useMemo(() => {
     if (!episode) return []
@@ -34,7 +44,7 @@ export default function EpisodePage() {
   const idx = EPISODES.findIndex((e) => e.id === episode.id)
   const newer = idx > 0 ? EPISODES[idx - 1] : null
   const older = idx < EPISODES.length - 1 ? EPISODES[idx + 1] : null
-  const paragraphs = episode.transcript ? episode.transcript.split(/\n+/).filter((p) => p.trim()) : []
+  const paragraphs = transcript ? transcript.split(/\n+/).filter((p) => p.trim()) : []
   const note = noteLinkFor(episode)
   const youtube = youtubeLinkFor(episode)
   const spotify = spotifyLinkFor(episode)
@@ -139,7 +149,7 @@ export default function EpisodePage() {
         <section className="mt-8 rounded-2xl bg-white border border-cream-200 p-6 shadow-card">
           <p className="font-bold text-ink-900">この回の要約は準備中です。</p>
           <p className="mt-2 text-sm leading-relaxed text-ink-700">
-            {episode.transcript
+            {episode.hasTranscript
               ? 'この下で全文を読めます（noteの無料記事の本文）。配信本体は Pody で聴けます。'
               : episode.paidNote
                 ? 'この回の全文は、noteの有料記事として公開されています。配信本体は Pody で聴けます。'
@@ -162,7 +172,7 @@ export default function EpisodePage() {
                 {episode.transcriptSource === 'note'
                   ? 'noteで無料公開されている記事の本文です。AIによる文字起こしを含むため、固有名詞や数字に誤りが含まれることがあります。'
                   : '自動文字起こしのため、固有名詞や数字に誤りが含まれることがあります。'}
-                約 {Math.round(episode.transcript!.length / 100) * 100} 字
+                約 {Math.round(transcript!.length / 100) * 100} 字
               </span>
             </span>
             {showTranscript ? <ChevronUp /> : <ChevronDown />}

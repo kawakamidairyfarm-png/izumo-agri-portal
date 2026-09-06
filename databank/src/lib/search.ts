@@ -1,4 +1,5 @@
 import { EPISODES, type Episode } from './data'
+import { getCached, isAllLoaded, loadAllTranscripts } from './transcripts'
 
 // Common speech-to-text mistakes in the transcripts. Queries and text are both
 // normalised so that "楽能" and "酪農" match each other.
@@ -29,6 +30,23 @@ interface Doc {
 }
 
 let docs: Doc[] | null = null
+let docsWithBodies = false
+
+/** 全文を読み込んで検索の索引を作り直す。Browse ページが最初に呼ぶ */
+export async function ensureSearchReady(): Promise<void> {
+  await loadAllTranscripts()
+  if (!docsWithBodies) {
+    docs = null
+    docsWithBodies = true
+  }
+}
+
+export function searchHasBodies(): boolean {
+  return isAllLoaded()
+}
+
+const bodyOf = (e: Episode): string | null => (e.transcriptKey ? getCached(e.transcriptKey) : null)
+
 function getDocs(): Doc[] {
   if (docs) return docs
   docs = EPISODES.map((e) => ({
@@ -42,7 +60,7 @@ function getDocs(): Doc[] {
         ...(e.article?.qa.flatMap((p) => [p.q, p.a]) ?? []),
       ].join(' '),
     ),
-    body: e.transcript ? normalize(e.transcript) : '',
+    body: bodyOf(e) ? normalize(bodyOf(e)!) : '',
   }))
   return docs
 }
@@ -97,10 +115,10 @@ export function search(query: string, limit = 60): Hit[] {
 }
 
 function makeSnippet(e: Episode, idx: number, term: string): string | null {
-  if (idx < 0 || !e.transcript) return null
+  const raw = bodyOf(e)
+  if (idx < 0 || !raw) return null
   // The normalised body and the raw transcript have the same length in most
   // cases (NFKC/lowercase keep Japanese text stable), so index into the raw text.
-  const raw = e.transcript
   const start = Math.max(0, idx - 60)
   const end = Math.min(raw.length, idx + term.length + 90)
   const s = raw.slice(start, end).replace(/\s+/g, ' ')

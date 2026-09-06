@@ -1,4 +1,5 @@
 // Data layer: loads the episode index, the curated articles, and full transcripts
+import { TRANSCRIPT_URLS } from './transcripts'
 // that live under databank/data/. Everything is bundled at build time by Vite,
 // so the site is fully static.
 
@@ -51,7 +52,9 @@ export interface Episode {
   series: string | null
   audience: Audience[]
   article: Article | null
-  transcript: string | null
+  /** 本文（全文）のファイル名。本文は遅延読み込み（lib/transcripts.ts）。無ければ null */
+  transcriptKey: string | null
+  hasTranscript: boolean
   /** 本文の出典: drive=配信音声の自動文字起こし（要約つきの回）／note=noteの無料記事の本文 */
   transcriptSource: 'drive' | 'note' | null
   /** noteの該当記事が有料（全文はnoteで購読・購入して読む） */
@@ -79,17 +82,9 @@ const paidModules = import.meta.glob<Record<string, { title: string; date: strin
 })
 const PAID_NOTE_URLS = new Set(Object.keys(Object.values(paidModules)[0] ?? {}))
 
-const transcriptModules = import.meta.glob<string>('../../data/transcripts/*.txt', {
-  eager: true,
-  query: '?raw',
-  import: 'default',
-})
 
 const rawIndex: IndexEntry[] = Object.values(indexModules)[0] ?? []
 const articles: Article[] = Object.values(articleModules)
-const transcripts: Record<string, string> = Object.fromEntries(
-  Object.entries(transcriptModules).map(([path, text]) => [path.split('/').pop()!, text]),
-)
 
 // ---------- classification ----------
 
@@ -190,8 +185,9 @@ function toEpisode(
   const noteUrl = article?.noteUrl || indexEntry?.noteUrl || null
   const paidNote = Boolean(noteUrl && PAID_NOTE_URLS.has(noteUrl.split('?')[0]))
   // 有料記事の回は、noteの本文もDriveの文字起こしも載せない（要約・Q&Aだけ）
-  const driveText = !paidNote && article ? (transcripts[article.transcriptFile] ?? null) : null
-  const noteText = !paidNote ? (transcripts[`${id}.txt`] ?? null) : null
+  const driveKey = !paidNote && article && TRANSCRIPT_URLS[article.transcriptFile] ? article.transcriptFile : null
+  const noteKey = !paidNote && TRANSCRIPT_URLS[`${id}.txt`] ? `${id}.txt` : null
+  const transcriptKey = driveKey ?? noteKey
   return {
     id,
     date,
@@ -202,8 +198,9 @@ function toEpisode(
     series,
     audience,
     article,
-    transcript: driveText ?? noteText,
-    transcriptSource: driveText ? 'drive' : noteText ? 'note' : null,
+    transcriptKey,
+    hasTranscript: transcriptKey !== null,
+    transcriptSource: driveKey ? 'drive' : noteKey ? 'note' : null,
     paidNote,
     noteUrl,
     youtubeUrl: article?.youtubeUrl || indexEntry?.youtubeUrl || null,
@@ -301,7 +298,7 @@ export function formatDate(iso: string): string {
 export const stats = {
   episodes: EPISODES.length,
   articles: ARTICLES.length,
-  withText: EPISODES.filter((e) => e.transcript).length,
+  withText: EPISODES.filter((e) => e.hasTranscript).length,
   earliest: EPISODES.length ? EPISODES[EPISODES.length - 1].date : '',
   latest: EPISODES.length ? EPISODES[0].date : '',
 }
