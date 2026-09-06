@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
 import { FileText, Headphones } from 'lucide-react'
-import { AUDIENCE_META, CATEGORY_META, TOPICS, formatDate, type Episode } from '../lib/data'
+import { AUDIENCE_META, CATEGORY_META, TOPICS, formatDate, leadOf, type Episode } from '../lib/data'
 import { highlight } from '../lib/search'
 
 export function Badge({ children, tone = 'bg-cream-200 text-ink-700' }: { children: React.ReactNode; tone?: string }) {
-  return <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-bold tracking-wide ${tone}`}>{children}</span>
+  return <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-bold tracking-wide ${tone}`}>{children}</span>
 }
 
 export function Highlighted({ text, query }: { text: string; query?: string }) {
@@ -38,7 +38,7 @@ export default function EpisodeCard({
     >
       <div className="flex items-start gap-3">
         {index !== undefined && (
-          <span className="shrink-0 h-8 w-8 rounded-full bg-moss-600 text-cream-50 text-sm font-black flex items-center justify-center">
+          <span className="shrink-0 h-8 w-8 rounded-full bg-moss-700 text-white text-sm font-black flex items-center justify-center">
             {index}
           </span>
         )}
@@ -48,15 +48,15 @@ export default function EpisodeCard({
             {episode.audience.map((a) => (
               <Badge key={a}>{AUDIENCE_META[a].short}</Badge>
             ))}
-            <span className="text-[11px] text-ink-500 ml-auto">{formatDate(episode.date)}</span>
+            <span className="text-xs text-ink-500 ml-auto">{formatDate(episode.date)}</span>
           </div>
           <h3 className="font-bold text-ink-900 leading-snug group-hover:text-moss-700">
             <Highlighted text={episode.title} query={query} />
           </h3>
           {why && <p className="mt-1 text-sm text-moss-700">{why}</p>}
           {episode.article ? (
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed line-clamp-3">
-              <Highlighted text={episode.article.summary} query={query} />
+            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
+              <Highlighted text={query ? episode.article.summary : leadOf(episode.article.summary)} query={query} />
             </p>
           ) : (
             <p className="mt-2 text-xs text-ink-500">要約は準備中。配信本体は Pody で聴けます。</p>
@@ -66,7 +66,7 @@ export default function EpisodeCard({
               <Highlighted text={snippet} query={query} />
             </p>
           )}
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-500">
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-ink-500">
             {topicLabels.map((t) => (
               <span key={t} className="rounded-full bg-cream-100 px-2 py-0.5">
                 {t}

@@ -1,17 +1,35 @@
+import { MessageCircle } from 'lucide-react'
 import { stats } from '../lib/data'
 import { LINKS } from '../lib/links'
+import { PHOTOS } from '../lib/photos'
 
 export default function About() {
+  const photo = PHOTOS.about ?? PHOTOS.students
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="font-serif text-3xl font-bold text-ink-900">このサイトについて</h1>
-      <div className="mt-6 space-y-8 leading-relaxed text-ink-700">
+      <h1 className="font-serif text-3xl font-bold text-ink-900">牧場とこのサイトについて</h1>
+
+      <section className="mt-6 rounded-2xl bg-white border border-cream-200 shadow-card overflow-hidden">
+        {photo && <img src={photo} alt="川上牧場" className="h-56 w-full object-cover" />}
+        <div className="p-6">
+          <p className="text-sm font-bold text-moss-700">話しているのは</p>
+          <h2 className="mt-1 font-serif text-2xl font-bold text-ink-900">川上哲也（川上牧場）</h2>
+          <div className="mt-3 space-y-2 text-sm leading-relaxed text-ink-700">
+            <p>島根県出雲市で乳牛約80頭を飼う酪農家。非農家の出身で、10歳のときにゲーム『牧場物語』をきっかけに酪農家を志し、就農しました。</p>
+            <p>第31回 全農酪農経営体験発表会 優秀賞。島根県指導農業士。{stats.earliest.slice(0, 4)}年から毎朝の音声配信を続けています。</p>
+            <p>研修生や高校生・中学生の受け入れ、スポットワークを通じて、これまで400人以上を牧場に迎えてきました。</p>
+          </div>
+        </div>
+      </section>
+
+      <div className="mt-8 space-y-8 leading-relaxed text-ink-700">
         <section>
           <h2 className="font-serif text-xl font-bold text-ink-900">何のためのサイトか</h2>
           <p className="mt-2">
-            島根県出雲市の川上牧場は、{stats.earliest.slice(0, 4)}年から音声配信を続けてきました。配信は毎朝の作業の合間に、牛乳や酪農の疑問、研修生とのやりとり、
-            業界の動きを酪農家自身の言葉で話したものです。ここではその文字起こし {stats.episodes} 本を整理し、
-            酪農を志す人と牛乳を飲む人が、同じ一次情報から学べるようにしています。
+            配信は毎朝の作業の合間に、研修生とのやりとり、牛の健康や飼料、経営のお金、業界の動きを酪農家自身の言葉で話したものです。
+          </p>
+          <p className="mt-2">
+            ここではその文字起こし {stats.episodes} 本を整理し、酪農を志す人が、就農前に知っておきたいことを順番に読めるようにしています。
           </p>
         </section>
 
@@ -54,15 +72,20 @@ export default function About() {
               <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.note} target="_blank" rel="noreferrer">
                 note
               </a>
+              ／ 数字まで読める
+              <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.noteSubscribe} target="_blank" rel="noreferrer">
+                川上牧場🐮サブスク
+              </a>
             </li>
           </ul>
         </section>
 
-        <section>
-          <h2 className="font-serif text-xl font-bold text-ink-900">お問い合わせ・研修・取材</h2>
-          <p className="mt-2">
-            研修生の受け入れ、学校・自治体向けの教材利用、取材のご相談は、配信のコメント欄または note からご連絡ください。
-          </p>
+        <section className="rounded-2xl bg-moss-50 p-6">
+          <h2 className="font-serif text-xl font-bold text-ink-900">質問・研修・見学・取材</h2>
+          <p className="mt-2">研修生の受け入れ、見学、学校・自治体向けの教材利用、取材のご相談は、公式LINEから気軽に送ってください。</p>
+          <a href={LINKS.line} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-line px-5 py-3 text-sm font-bold text-white hover:bg-line-dark">
+            <MessageCircle size={18} /> LINEで質問する
+          </a>
         </section>
       </div>
     </div>

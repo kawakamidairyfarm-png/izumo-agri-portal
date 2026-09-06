@@ -66,7 +66,7 @@ export default function Browse() {
             <span className="inline-flex items-center gap-1.5 text-sm font-bold text-ink-900">
               <SlidersHorizontal size={16} /> 絞り込み
               {activeFilters > 0 && (
-                <span className="ml-1 rounded-full bg-moss-600 text-cream-50 text-[11px] px-2 py-0.5">{activeFilters}</span>
+                <span className="ml-1 rounded-full bg-moss-700 text-white text-xs px-2 py-0.5">{activeFilters}</span>
               )}
             </span>
             {filtersOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -176,7 +176,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       onClick={onClick}
       className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
-        active ? 'bg-moss-600 border-moss-600 text-cream-50' : 'bg-white border-cream-200 text-ink-700 hover:border-moss-300'
+        active ? 'bg-moss-700 border-moss-700 text-white' : 'bg-white border-cream-200 text-ink-700 hover:border-moss-300'
       }`}
     >
       {children}

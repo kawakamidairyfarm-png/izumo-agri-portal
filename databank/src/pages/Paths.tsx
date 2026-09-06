@@ -17,8 +17,8 @@ export function PathsIndex() {
               to={`/paths/${p.key}`}
               className="rounded-3xl bg-white border border-cream-200 p-6 shadow-card hover:border-moss-300 hover:-translate-y-0.5 transition-all"
             >
-              <p className="text-[11px] font-bold text-moss-700">
-                {p.audience === 'student' ? '学ぶ人向け' : p.audience === 'consumer' ? '飲む人向け' : '両方向け'} ・ {steps.length} 回
+              <p className="text-xs font-bold text-moss-700">
+                {p.audience === 'student' ? '志す人向け' : p.audience === 'consumer' ? '消費者の疑問' : '志す人・消費者の両方'} ・ {steps.length} 回
               </p>
               <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">{p.title}</h2>
               <p className="mt-2 text-sm text-ink-700 leading-relaxed">{p.lead}</p>
@@ -58,8 +58,8 @@ export function PathDetail() {
       <Link to="/paths" className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-900">
         <ArrowLeft size={16} /> 学びの道筋
       </Link>
-      <p className="mt-4 text-[11px] font-bold text-moss-700">
-        {path.audience === 'student' ? '学ぶ人向け' : path.audience === 'consumer' ? '飲む人向け' : '両方向け'} ・ {steps.length} 回
+      <p className="mt-4 text-xs font-bold text-moss-700">
+        {path.audience === 'student' ? '志す人向け' : path.audience === 'consumer' ? '消費者の疑問' : '志す人・消費者の両方'} ・ {steps.length} 回
       </p>
       <h1 className="mt-1 font-serif text-3xl font-bold text-ink-900">{path.title}</h1>
       <p className="mt-2 text-ink-700 leading-relaxed">{path.lead}</p>

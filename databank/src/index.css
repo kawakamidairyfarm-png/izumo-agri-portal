@@ -18,6 +18,10 @@ mark {
   @apply bg-hay-100 text-ink-900 rounded px-0.5;
 }
 
+p, h1, h2, h3, li, dt, dd, blockquote {
+  word-break: auto-phrase;
+}
+
 .prose-transcript p {
   @apply leading-relaxed;
 }

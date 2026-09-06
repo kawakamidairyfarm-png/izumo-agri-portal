@@ -2,7 +2,7 @@ import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const SUGGESTIONS = ['乳房炎', '原価', '資金', '子牛', '放牧', 'バター', '給食', '後継者', 'AI']
+const SUGGESTIONS = ['資金', '資格', '非農家', '研修', '乳房炎', '飼料設計', '改良', '後継者', '牛乳の原価']
 
 export default function SearchBox({
   initial = '',
@@ -35,13 +35,13 @@ export default function SearchBox({
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="川上牧場に聞く。例：乳房炎はなぜ起きる？"
+          placeholder="例：牧場を始めるのに資金はいくら？"
           className={`flex-1 min-w-0 bg-transparent outline-none ${large ? 'text-lg py-2' : 'text-sm py-1.5'}`}
           aria-label="検索"
         />
         <button
           type="submit"
-          className={`rounded-xl bg-moss-600 text-cream-50 font-bold hover:bg-moss-700 ${large ? 'px-5 py-2.5' : 'px-4 py-2 text-sm'}`}
+          className={`rounded-xl bg-moss-700 text-white text-sm font-bold hover:bg-moss-900 ${large ? 'px-5 py-2.5' : 'px-4 py-2'}`}
         >
           探す
         </button>
@@ -56,7 +56,7 @@ export default function SearchBox({
                 setQ(s)
                 submit(s)
               }}
-              className="rounded-full border border-cream-200 bg-white px-3 py-1 text-xs text-ink-700 hover:border-moss-300 hover:text-moss-700"
+              className="rounded-full border border-cream-200 bg-white px-3 py-1 text-sm text-ink-700 hover:border-moss-300 hover:text-moss-700"
             >
               {s}
             </button>

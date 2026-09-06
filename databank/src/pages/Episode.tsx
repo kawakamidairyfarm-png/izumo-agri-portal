@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, MessageCircle, Quote, Youtube } from 'lucide-react'
 import { Badge } from '../components/EpisodeCard'
 import EpisodeCard from '../components/EpisodeCard'
-import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate } from '../lib/data'
+import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate, paragraphs as toParagraphs } from '../lib/data'
 import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links'
 
 export default function EpisodePage() {
@@ -66,8 +66,10 @@ export default function EpisodePage() {
       {a ? (
         <>
           <section className="mt-8 rounded-2xl bg-white border border-cream-200 p-6 shadow-card">
-            <h2 className="text-xs font-bold text-moss-700 tracking-wide">要約</h2>
-            <p className="mt-2 leading-relaxed text-ink-900">{a.summary}</p>
+            <h2 className="text-sm font-bold text-moss-700 tracking-wide">要約</h2>
+            {toParagraphs(a.summary).map((t, i) => (
+              <p key={i} className="mt-2 leading-relaxed text-ink-900">{t}</p>
+            ))}
           </section>
 
           <section className="mt-6">
@@ -89,7 +91,9 @@ export default function EpisodePage() {
                 {a.qa.map((p, i) => (
                   <div key={i} className="rounded-2xl bg-cream-100 p-5">
                     <p className="font-bold text-ink-900">Q. {p.q}</p>
-                    <p className="mt-2 leading-relaxed text-ink-700">A. {p.a}</p>
+                    {toParagraphs(p.a).map((t, j) => (
+                      <p key={j} className="mt-2 leading-relaxed text-ink-700">{j === 0 ? 'A. ' : ''}{t}</p>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -111,16 +115,20 @@ export default function EpisodePage() {
             <section className="mt-8 grid gap-4 md:grid-cols-2">
               {a.experience && (
                 <div className="rounded-2xl bg-white border border-cream-200 p-5">
-                  <p className="text-xs font-bold text-moss-700">川上牧場の実体験</p>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-700">{a.experience}</p>
+                  <p className="text-sm font-bold text-moss-700">川上牧場の実体験</p>
+                  {toParagraphs(a.experience).map((t, i) => (
+                    <p key={i} className="mt-2 text-sm leading-relaxed text-ink-700">{t}</p>
+                  ))}
                 </div>
               )}
               {a.caveats && (
                 <div className="rounded-2xl bg-hay-100 border border-hay-300/60 p-5">
-                  <p className="inline-flex items-center gap-1 text-xs font-bold text-hay-700">
+                  <p className="inline-flex items-center gap-1 text-sm font-bold text-hay-700">
                     <Info size={14} /> 読むときの注意
                   </p>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-700">{a.caveats}</p>
+                  {toParagraphs(a.caveats).map((t, i) => (
+                    <p key={i} className="mt-2 text-sm leading-relaxed text-ink-700">{t}</p>
+                  ))}
                 </div>
               )}
             </section>
@@ -160,9 +168,9 @@ export default function EpisodePage() {
       )}
 
       <section className="mt-8">
-        <p className="text-xs font-bold text-ink-500 mb-2">この回を聴く・読む</p>
+        <p className="text-sm font-bold text-ink-500 mb-2">この回を聴く・読む</p>
         <div className="flex flex-wrap gap-2">
-          <a href={note.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-600 text-cream-50 px-4 py-2.5 text-sm font-bold hover:bg-moss-700">
+          <a href={note.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-700 text-white px-4 py-2.5 text-sm font-bold hover:bg-moss-900">
             <BookOpen size={16} /> {note.exact ? 'note で読む' : 'note で探す'}
           </a>
           <a href={youtube.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
@@ -175,17 +183,17 @@ export default function EpisodePage() {
             <Headphones size={16} /> Pody（番組ページ）
           </a>
         </div>
-        <p className="mt-2 text-xs text-ink-500">
+        <p className="mt-2 text-sm text-ink-500">
           「探す」のボタンは、この回のタイトルで各サービス内を検索します。通常は先頭に該当回が表示されます。Podyでは配信日（
           {formatDate(episode.date)} 前後）から探せます。
         </p>
       </section>
 
-      <section className="mt-8 rounded-3xl bg-[#e8f8ee] border border-[#b9e8cb] p-6 md:p-7">
+      <section className="mt-8 rounded-2xl bg-moss-50 border border-moss-100 p-6 md:p-7">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex-1">
-            <h2 className="inline-flex items-center gap-2 font-serif text-lg font-bold text-ink-900">
-              <MessageCircle size={20} className="text-[#06C755]" /> この回について質問してみる
+            <h2 className="inline-flex items-center gap-2 font-serif text-xl font-bold text-ink-900">
+              <MessageCircle size={20} className="text-line" /> この回について質問してみる
             </h2>
             <p className="mt-1 text-sm text-ink-700 leading-relaxed">
               読んで気になったこと、もっと知りたいことは、川上牧場の公式LINEから気軽に送れます。配信やnoteで答えてもらえることもあります。
@@ -195,7 +203,7 @@ export default function EpisodePage() {
             href={LINKS.line}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-[#06C755] text-white px-5 py-3 text-sm font-bold hover:bg-[#05b34c] transition-colors"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-line text-white px-5 py-3 text-sm font-bold hover:bg-line-dark transition-colors"
           >
             <MessageCircle size={18} /> LINEで質問する
           </a>

@@ -224,8 +224,54 @@ export const CATEGORY_META: Record<Category, { label: string; blurb: string; ton
 }
 
 export const AUDIENCE_META: Record<Audience, { label: string; short: string }> = {
-  student: { label: '酪農を志す人・研修生向け', short: '学ぶ人' },
-  consumer: { label: '牛乳を飲む人・消費者向け', short: '飲む人' },
+  student: { label: '酪農を志す人・研修生向け', short: '志す人' },
+  consumer: { label: '消費者に聞かれる質問', short: '消費者の疑問' },
+}
+
+/** 文を「。」で分ける（「」（）の中は分けない） */
+export function splitSentences(text: string): string[] {
+  const out: string[] = []
+  let buf = ''
+  let depth = 0
+  for (const ch of text) {
+    buf += ch
+    if ('「『（'.includes(ch)) depth++
+    else if ('」』）'.includes(ch)) depth = Math.max(0, depth - 1)
+    if (ch === '。' && depth === 0) {
+      out.push(buf.trim())
+      buf = ''
+    }
+  }
+  if (buf.trim()) out.push(buf.trim())
+  return out
+}
+
+/** 長い文章を、2文以内・約60字以内の段落に分ける（幅390pxで3行に収まる目安） */
+export function paragraphs(text: string, limit = 60): string[] {
+  const ss = splitSentences(text)
+  const res: string[] = []
+  let cur = ''
+  let n = 0
+  for (const s of ss) {
+    if (cur && (n >= 2 || (cur + s).length > limit)) {
+      res.push(cur)
+      cur = ''
+      n = 0
+    }
+    cur += s
+    n++
+  }
+  if (cur) res.push(cur)
+  return res
+}
+
+/** カード用の書き出し: 先頭の1〜2文（約90字まで） */
+export function leadOf(text: string, max = 90): string {
+  const ss = splitSentences(text)
+  if (!ss.length) return text
+  let out = ss[0]
+  if (ss[1] && (out + ss[1]).length <= max) out += ss[1]
+  return out
 }
 
 export function formatDate(iso: string): string {

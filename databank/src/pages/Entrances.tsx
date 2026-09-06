@@ -9,11 +9,11 @@ import { LINKS } from '../lib/links'
 
 function Hero({ eyebrow, title, lead, dark = false }: { eyebrow: string; title: string; lead: string; dark?: boolean }) {
   return (
-    <section className={dark ? 'bg-moss-800 text-cream-50' : 'bg-moss-50'}>
+    <section className={dark ? 'bg-moss-900 text-white' : 'bg-moss-50'}>
       <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <p className={`text-sm font-bold ${dark ? 'text-hay-300' : 'text-moss-700'}`}>{eyebrow}</p>
         <h1 className="mt-2 font-serif text-3xl md:text-4xl font-bold leading-tight">{title}</h1>
-        <p className={`mt-4 max-w-2xl leading-relaxed ${dark ? 'text-moss-100' : 'text-ink-700'}`}>{lead}</p>
+        <p className={`mt-4 max-w-2xl leading-relaxed ${dark ? 'text-white' : 'text-ink-700'}`}>{lead}</p>
         <div className="mt-6 max-w-xl">
           <SearchBox />
         </div>
@@ -30,9 +30,9 @@ export function ForStudents() {
     <>
       <Hero
         dark
-        eyebrow="酪農を志す人・研修生へ"
-        title="現場で本当に聞かれることを、先に読んでおく。"
-        lead="川上牧場は毎年、研修生と高校生・中学生を受け入れています。配信では、その人たちに実際に話してきたことをそのまま語っています。就農の準備、資金、牛の健康、飼料設計、改良。順番に読める道筋を用意しました。"
+        eyebrow="はじめに ── 酪農を志す人へ"
+        title="酪農家になるための、読む順番。"
+        lead="川上牧場は毎年、研修生と高校生・中学生を受け入れています。配信では、その人たちに実際に話してきたことをそのまま語っています。就農の準備、資金、資格、牛の健康、飼料設計、改良。迷わないように、読む順番を決めました。"
       />
 
       <Section title="学ぶ順番" lead="迷ったら、この順で。">
@@ -43,7 +43,7 @@ export function ForStudents() {
               to={`/paths/${p.key}`}
               className="rounded-3xl bg-white border border-cream-200 p-6 shadow-card hover:border-moss-300 hover:-translate-y-0.5 transition-all"
             >
-              <p className="text-[11px] font-bold text-moss-700">{resolvePath(p).length} 回</p>
+              <p className="text-xs font-bold text-moss-700">{resolvePath(p).length} 回</p>
               <h3 className="mt-1 font-serif text-xl font-bold text-ink-900">{p.title}</h3>
               <p className="mt-2 text-sm text-ink-700 leading-relaxed">{p.lead}</p>
               <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
@@ -85,18 +85,18 @@ export function ForStudents() {
       <section className="mx-auto max-w-6xl px-4 pb-4">
         <div className="rounded-3xl bg-white border border-cream-200 p-6 md:p-8 shadow-card">
           <div className="flex items-start gap-3">
-            <MapPin className="text-moss-600 shrink-0 mt-1" />
+            <MapPin className="text-moss-700 shrink-0 mt-1" />
             <div>
-              <h2 className="font-serif text-xl font-bold text-ink-900">現地で学ぶ</h2>
+              <h2 className="font-serif text-xl font-bold text-ink-900">現地で学ぶ・直接聞く</h2>
               <p className="mt-1 text-sm text-ink-700 leading-relaxed">
-                川上牧場では研修生・インターンシップを受け入れています。読んで気になったことは、配信のコメント欄や note から質問できます。
+                川上牧場では研修生・インターンシップを受け入れています。読んで気になったこと、研修や見学の相談は、公式LINEから気軽に送れます。
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <a href={LINKS.pody} target="_blank" rel="noreferrer" className="rounded-xl bg-moss-600 text-cream-50 px-4 py-2 text-sm font-bold hover:bg-moss-700">
-                  Pody で質問する
+                <a href={LINKS.line} target="_blank" rel="noreferrer" className="rounded-xl bg-line text-white px-4 py-2 text-sm font-bold hover:bg-line-dark">
+                  LINEで質問する
                 </a>
-                <a href={LINKS.note} target="_blank" rel="noreferrer" className="rounded-xl bg-white border border-cream-200 px-4 py-2 text-sm font-bold hover:border-moss-300">
-                  note を読む
+                <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="rounded-xl bg-white border border-cream-200 px-4 py-2 text-sm font-bold hover:border-moss-300">
+                  noteのサブスクを見る
                 </a>
               </div>
             </div>
@@ -116,9 +116,9 @@ export function ForConsumers() {
   return (
     <>
       <Hero
-        eyebrow="牛乳を飲む人へ"
-        title="牛乳の「なぜ？」に、酪農家が自分の言葉で答えます。"
-        lead="原価はいくら？給食の牛乳とスーパーの牛乳は何が違う？雄の子牛はどうなる？牧場に届いた質問に、出雲の酪農家が毎朝答えてきました。ここでは、その答えを読める形にしています。"
+        eyebrow="消費者に聞かれる質問"
+        title="牛乳の「なぜ？」に、答えられる酪農家になる。"
+        lead="就農すると、家族や友人、お客さんから必ず聞かれます。原価はいくら？給食の牛乳とスーパーの牛乳は何が違う？雄の子牛はどうなる？牧場に届いた質問に出雲の酪農家が答えてきた記録を、先に読んでおけます。"
       />
 
       <Section title="よくある質問" lead="配信で実際に答えた質問から。">
@@ -126,7 +126,7 @@ export function ForConsumers() {
           {qas.map((x, i) => (
             <Link key={i} to={`/e/${x.episode.id}`} className="rounded-2xl bg-white border border-cream-200 p-5 shadow-card hover:border-moss-300 transition-colors">
               <p className="inline-flex items-start gap-2 font-bold text-ink-900">
-                <HelpCircle size={18} className="shrink-0 mt-0.5 text-moss-600" />
+                <HelpCircle size={18} className="shrink-0 mt-0.5 text-moss-700" />
                 {x.q}
               </p>
               <p className="mt-2 text-sm text-ink-700 leading-relaxed line-clamp-3">{x.a}</p>
@@ -144,7 +144,7 @@ export function ForConsumers() {
               to={`/paths/${p.key}`}
               className="rounded-3xl bg-white border border-cream-200 p-6 shadow-card hover:border-moss-300 hover:-translate-y-0.5 transition-all"
             >
-              <p className="text-[11px] font-bold text-moss-700">{resolvePath(p).length} 回</p>
+              <p className="text-xs font-bold text-moss-700">{resolvePath(p).length} 回</p>
               <h3 className="mt-1 font-serif text-xl font-bold text-ink-900">{p.title}</h3>
               <p className="mt-2 text-sm text-ink-700 leading-relaxed">{p.lead}</p>
             </Link>

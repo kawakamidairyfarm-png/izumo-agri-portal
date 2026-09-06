@@ -3,6 +3,8 @@ import type { Episode } from './data'
 export const LINKS = {
   pody: 'https://pody.jp/player/OT1nXl6WW61B8vjQ98ru',
   note: 'https://note.com/kawakamifarm',
+  /** 川上牧場🐮サブスク（noteのメンバーシップ・有料マガジン） */
+  noteSubscribe: 'https://note.com/kawakamifarm/m/md448972b533b',
   youtube: 'https://www.youtube.com/channel/UC7biWU5T2H9H6mmzgaNV2Bw',
   spotify: 'https://open.spotify.com/show/5VP7uC8prZ3wjoYDLHSUmj',
   /** 川上牧場 公式LINE（質問受付） */
