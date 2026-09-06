@@ -48,7 +48,7 @@ export default function Browse() {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="font-serif text-3xl font-bold text-ink-900">全配信を探す</h1>
       <p className="mt-1 text-sm text-ink-700">
-        タイトル、要約、全文（要約つきの回）を横断して検索します。文字起こしの誤変換（楽能→酪農 など）は自動で吸収します。
+        タイトル、要約、全文（noteの記事・文字起こし）を横断して検索します。文字起こしの誤変換（楽能→酪農 など）は自動で吸収します。
       </p>
       <div className="mt-5">
         <SearchBox initial={q} onSearch={(v) => set('q', v || null)} />
