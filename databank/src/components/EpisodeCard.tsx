@@ -60,7 +60,11 @@ export default function EpisodeCard({
             </p>
           ) : (
             <p className="mt-2 text-xs text-ink-500">
-              {episode.transcript ? '要約は準備中。全文（noteの記事）を読めます。' : '要約は準備中。配信本体は Pody で聴けます。'}
+              {episode.transcript
+                ? '要約は準備中。全文（noteの記事）を読めます。'
+                : episode.paidNote
+                  ? '要約は準備中。全文は note の有料記事で読めます。'
+                  : '要約は準備中。配信本体は Pody で聴けます。'}
             </p>
           )}
           {snippet && (

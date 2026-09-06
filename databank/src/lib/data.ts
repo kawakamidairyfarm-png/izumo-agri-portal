@@ -54,6 +54,8 @@ export interface Episode {
   transcript: string | null
   /** 本文の出典: drive=配信音声の自動文字起こし（要約つきの回）／note=noteの無料記事の本文 */
   transcriptSource: 'drive' | 'note' | null
+  /** noteの該当記事が有料（全文はnoteで購読・購入して読む） */
+  paidNote: boolean
   /** 各プラットフォームの該当回URL（記事データまたは索引に登録があるとき） */
   noteUrl: string | null
   youtubeUrl: string | null
@@ -70,6 +72,13 @@ const articleModules = import.meta.glob<Article>('../../data/articles/*.json', {
   eager: true,
   import: 'default',
 })
+/** noteで有料販売している記事（URL→{title,date,price}）。該当する回は全文を載せない */
+const paidModules = import.meta.glob<Record<string, { title: string; date: string; price: number }>>('../../data/note_paid.json', {
+  eager: true,
+  import: 'default',
+})
+const PAID_NOTE_URLS = new Set(Object.keys(Object.values(paidModules)[0] ?? {}))
+
 const transcriptModules = import.meta.glob<string>('../../data/transcripts/*.txt', {
   eager: true,
   query: '?raw',
@@ -178,8 +187,11 @@ function toEpisode(
   const series = seriesFor(title)
   const audience: Audience[] = article?.audience ?? defaultAudience(category, topics)
   const id = article?.id ?? `${date}_${driveId.slice(0, 8)}`
-  const driveText = article ? (transcripts[article.transcriptFile] ?? null) : null
-  const noteText = transcripts[`${id}.txt`] ?? null
+  const noteUrl = article?.noteUrl || indexEntry?.noteUrl || null
+  const paidNote = Boolean(noteUrl && PAID_NOTE_URLS.has(noteUrl.split('?')[0]))
+  // 有料記事の回は、noteの本文もDriveの文字起こしも載せない（要約・Q&Aだけ）
+  const driveText = !paidNote && article ? (transcripts[article.transcriptFile] ?? null) : null
+  const noteText = !paidNote ? (transcripts[`${id}.txt`] ?? null) : null
   return {
     id,
     date,
@@ -192,7 +204,8 @@ function toEpisode(
     article,
     transcript: driveText ?? noteText,
     transcriptSource: driveText ? 'drive' : noteText ? 'note' : null,
-    noteUrl: article?.noteUrl || indexEntry?.noteUrl || null,
+    paidNote,
+    noteUrl,
     youtubeUrl: article?.youtubeUrl || indexEntry?.youtubeUrl || null,
     spotifyUrl: article?.spotifyUrl || indexEntry?.spotifyUrl || null,
   }

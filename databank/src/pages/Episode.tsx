@@ -141,7 +141,9 @@ export default function EpisodePage() {
           <p className="mt-2 text-sm leading-relaxed text-ink-700">
             {episode.transcript
               ? 'この下で全文を読めます（noteの無料記事の本文）。配信本体は Pody で聴けます。'
-              : '配信本体は Pody で聴けます。要約と全文は、順次このサイトに追加していきます。'}
+              : episode.paidNote
+                ? 'この回の全文は、noteの有料記事として公開されています。配信本体は Pody で聴けます。'
+                : '配信本体は Pody で聴けます。要約と全文は、順次このサイトに追加していきます。'}
           </p>
         </section>
       )}
@@ -187,7 +189,7 @@ export default function EpisodePage() {
         <p className="text-sm font-bold text-ink-500 mb-2">この回を聴く・読む</p>
         <div className="flex flex-wrap gap-2">
           <a href={note.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-700 text-white px-4 py-2.5 text-sm font-bold hover:bg-moss-900">
-            <BookOpen size={16} /> {note.exact ? 'note で読む' : 'note で探す'}
+            <BookOpen size={16} /> {note.exact ? (episode.paidNote ? 'note で読む（有料記事）' : 'note で読む') : 'note で探す'}
           </a>
           <a href={youtube.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
             <Youtube size={16} className="text-red-600" /> {youtube.exact ? 'YouTube で聴く' : 'YouTube で探す'}
