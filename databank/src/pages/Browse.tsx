@@ -11,6 +11,13 @@ const CATS = Object.keys(CATEGORY_META) as Category[]
 export default function Browse() {
   const [params, setParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const q = params.get('q') ?? ''
+  const audience = params.get('audience') as Audience | null
+  const category = params.get('category') as Category | null
+  const topic = params.get('topic')
+  const series = params.get('series')
+  const hasArticle = params.get('has') === 'article'
+  const year = params.get('year')
   const [bodiesReady, setBodiesReady] = useState(searchHasBodies())
   useEffect(() => {
     if (!q) return
@@ -20,13 +27,6 @@ export default function Browse() {
       alive = false
     }
   }, [q])
-  const q = params.get('q') ?? ''
-  const audience = params.get('audience') as Audience | null
-  const category = params.get('category') as Category | null
-  const topic = params.get('topic')
-  const series = params.get('series')
-  const hasArticle = params.get('has') === 'article'
-  const year = params.get('year')
 
   const set = (key: string, value: string | null) => {
     const next = new URLSearchParams(params)
