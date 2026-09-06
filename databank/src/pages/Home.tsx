@@ -70,7 +70,7 @@ export default function Home() {
       {/* 話しているのは（実名・実物・時間） */}
       <section className="mx-auto max-w-6xl px-4 mt-10">
         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center rounded-2xl bg-white border border-cream-200 shadow-card overflow-hidden">
-          {profilePhoto && <img src={profilePhoto} alt="川上牧場の牛" className="h-56 md:h-full w-full object-cover" />}
+          {profilePhoto && <img src={profilePhoto} alt={PHOTOS.about ? '川上哲也' : '川上牧場の牛'} className="h-64 md:h-full w-full object-cover object-top" />}
           <div className="p-6 md:p-8">
             <p className="text-sm font-bold text-moss-700">話しているのは</p>
             <h2 className="mt-1 font-serif text-2xl font-bold text-ink-900">川上哲也（川上牧場）</h2>

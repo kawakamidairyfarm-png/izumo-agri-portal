@@ -10,7 +10,7 @@ export default function About() {
       <h1 className="font-serif text-3xl font-bold text-ink-900">牧場とこのサイトについて</h1>
 
       <section className="mt-6 rounded-2xl bg-white border border-cream-200 shadow-card overflow-hidden">
-        {photo && <img src={photo} alt="川上牧場" className="h-56 w-full object-cover" />}
+        {photo && <img src={photo} alt={PHOTOS.about ? '川上哲也' : '川上牧場'} className="h-72 w-full object-cover object-top" />}
         <div className="p-6">
           <p className="text-sm font-bold text-moss-700">話しているのは</p>
           <h2 className="mt-1 font-serif text-2xl font-bold text-ink-900">川上哲也（川上牧場）</h2>
