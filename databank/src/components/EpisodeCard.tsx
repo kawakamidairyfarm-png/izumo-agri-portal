@@ -59,7 +59,9 @@ export default function EpisodeCard({
               <Highlighted text={query ? episode.article.summary : leadOf(episode.article.summary)} query={query} />
             </p>
           ) : (
-            <p className="mt-2 text-xs text-ink-500">要約は準備中。配信本体は Pody で聴けます。</p>
+            <p className="mt-2 text-xs text-ink-500">
+              {episode.transcript ? '要約は準備中。全文（noteの記事）を読めます。' : '要約は準備中。配信本体は Pody で聴けます。'}
+            </p>
           )}
           {snippet && (
             <p className="mt-2 text-xs text-ink-500 leading-relaxed border-l-2 border-hay-300 pl-2">
@@ -73,8 +75,8 @@ export default function EpisodeCard({
               </span>
             ))}
             <span className="ml-auto inline-flex items-center gap-1">
-              {episode.article ? <FileText size={13} /> : <Headphones size={13} />}
-              {episode.article ? '要約・全文あり' : '音声のみ'}
+              {episode.article || episode.transcript ? <FileText size={13} /> : <Headphones size={13} />}
+              {episode.article ? '要約・全文あり' : episode.transcript ? '全文あり' : '音声のみ'}
             </span>
           </div>
         </div>

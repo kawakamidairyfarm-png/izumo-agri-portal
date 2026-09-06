@@ -133,7 +133,7 @@ export default function Layout() {
             </div>
           </div>
           <div className="border-t border-cream-200 py-4 text-center text-xs text-ink-500">
-            収録期間 {formatDate(stats.earliest)} 〜 {formatDate(stats.latest)} ／ 要約つき {stats.articles} 本
+            収録期間 {formatDate(stats.earliest)} 〜 {formatDate(stats.latest)} ／ 全文 {stats.withText} 本 ／ 要約つき {stats.articles} 本
           </div>
         </div>
       </footer>

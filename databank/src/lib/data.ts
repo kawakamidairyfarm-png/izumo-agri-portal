@@ -52,6 +52,8 @@ export interface Episode {
   audience: Audience[]
   article: Article | null
   transcript: string | null
+  /** 本文の出典: drive=配信音声の自動文字起こし（要約つきの回）／note=noteの無料記事の本文 */
+  transcriptSource: 'drive' | 'note' | null
   /** 各プラットフォームの該当回URL（記事データまたは索引に登録があるとき） */
   noteUrl: string | null
   youtubeUrl: string | null
@@ -175,8 +177,11 @@ function toEpisode(
   const topics = topicsFor(title, article?.tags ?? [])
   const series = seriesFor(title)
   const audience: Audience[] = article?.audience ?? defaultAudience(category, topics)
+  const id = article?.id ?? `${date}_${driveId.slice(0, 8)}`
+  const driveText = article ? (transcripts[article.transcriptFile] ?? null) : null
+  const noteText = transcripts[`${id}.txt`] ?? null
   return {
-    id: article?.id ?? `${date}_${driveId.slice(0, 8)}`,
+    id,
     date,
     title: article?.title ?? title,
     driveId,
@@ -185,7 +190,8 @@ function toEpisode(
     series,
     audience,
     article,
-    transcript: article ? (transcripts[article.transcriptFile] ?? null) : null,
+    transcript: driveText ?? noteText,
+    transcriptSource: driveText ? 'drive' : noteText ? 'note' : null,
     noteUrl: article?.noteUrl || indexEntry?.noteUrl || null,
     youtubeUrl: article?.youtubeUrl || indexEntry?.youtubeUrl || null,
     spotifyUrl: article?.spotifyUrl || indexEntry?.spotifyUrl || null,
@@ -282,6 +288,7 @@ export function formatDate(iso: string): string {
 export const stats = {
   episodes: EPISODES.length,
   articles: ARTICLES.length,
+  withText: EPISODES.filter((e) => e.transcript).length,
   earliest: EPISODES.length ? EPISODES[EPISODES.length - 1].date : '',
   latest: EPISODES.length ? EPISODES[0].date : '',
 }

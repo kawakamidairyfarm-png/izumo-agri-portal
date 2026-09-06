@@ -62,7 +62,7 @@ export default function Home() {
             <SearchBox large />
           </div>
           <p className="mt-6 text-sm text-hay-300">
-            {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。要約・Q&Aつきの回は {stats.articles} 本、順次増やしています。
+            {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約・Q&Aつきの回は {stats.articles} 本。
           </p>
         </div>
       </section>

@@ -134,36 +134,52 @@ export default function EpisodePage() {
             </section>
           )}
 
-          {paragraphs.length > 0 && (
-            <section className="mt-10">
-              <button
-                onClick={() => setShowTranscript((v) => !v)}
-                className="w-full flex items-center justify-between rounded-2xl bg-white border border-cream-200 px-5 py-4 text-left hover:border-moss-300"
-              >
-                <span>
-                  <span className="font-bold text-ink-900">配信の全文（文字起こし）</span>
-                  <span className="block text-xs text-ink-500 mt-0.5">
-                    自動文字起こしのため、固有名詞や数字に誤りが含まれることがあります。約 {Math.round(episode.transcript!.length / 100) * 100} 字
-                  </span>
-                </span>
-                {showTranscript ? <ChevronUp /> : <ChevronDown />}
-              </button>
-              {showTranscript && (
-                <div className="prose-transcript mt-4 rounded-2xl bg-white border border-cream-200 p-6 text-[15px] text-ink-700 space-y-3">
-                  {paragraphs.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
         </>
       ) : (
         <section className="mt-8 rounded-2xl bg-white border border-cream-200 p-6 shadow-card">
           <p className="font-bold text-ink-900">この回の要約は準備中です。</p>
           <p className="mt-2 text-sm leading-relaxed text-ink-700">
-            配信本体は Pody で聴けます。要約と全文は、順次このサイトに追加していきます。
+            {episode.transcript
+              ? 'この下で全文を読めます（noteの無料記事の本文）。配信本体は Pody で聴けます。'
+              : '配信本体は Pody で聴けます。要約と全文は、順次このサイトに追加していきます。'}
           </p>
+        </section>
+      )}
+
+      {paragraphs.length > 0 && (
+        <section className="mt-10">
+          <button
+            onClick={() => setShowTranscript((v) => !v)}
+            className="w-full flex items-center justify-between rounded-2xl bg-white border border-cream-200 px-5 py-4 text-left hover:border-moss-300"
+          >
+            <span>
+              <span className="font-bold text-ink-900">
+                {episode.transcriptSource === 'note' ? '配信の全文（noteの記事より）' : '配信の全文（文字起こし）'}
+              </span>
+              <span className="block text-sm text-ink-500 mt-0.5">
+                {episode.transcriptSource === 'note'
+                  ? 'noteで無料公開されている記事の本文です。AIによる文字起こしを含むため、固有名詞や数字に誤りが含まれることがあります。'
+                  : '自動文字起こしのため、固有名詞や数字に誤りが含まれることがあります。'}
+                約 {Math.round(episode.transcript!.length / 100) * 100} 字
+              </span>
+            </span>
+            {showTranscript ? <ChevronUp /> : <ChevronDown />}
+          </button>
+          {showTranscript && (
+            <div className="prose-transcript mt-4 rounded-2xl bg-white border border-cream-200 p-6 text-[15px] text-ink-700 space-y-3">
+              {paragraphs.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+              {episode.transcriptSource === 'note' && episode.noteUrl && (
+                <p className="pt-2 text-sm text-ink-500">
+                  出典：
+                  <a href={episode.noteUrl} target="_blank" rel="noreferrer" className="underline decoration-moss-300 hover:text-moss-700">
+                    noteの記事を開く
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
         </section>
       )}
 
