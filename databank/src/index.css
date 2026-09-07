@@ -3,7 +3,24 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: only light;
+}
+
+/* 検索窓: Android の「ダークモード強制」や iOS の自動反転で文字が白くなるのを防ぐ */
+input, textarea, select {
+  color: #172a19;
+  -webkit-text-fill-color: #172a19;
+  background-color: #fff;
+  color-scheme: only light;
+}
+input::placeholder, textarea::placeholder {
+  color: #5f665a;
+  -webkit-text-fill-color: #5f665a;
+  opacity: 1;
+}
+input:-webkit-autofill {
+  -webkit-text-fill-color: #172a19;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
 }
 
 html {

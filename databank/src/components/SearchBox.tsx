@@ -36,7 +36,8 @@ export default function SearchBox({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="例：牧場を始めるのに資金はいくら？"
-          className={`flex-1 min-w-0 bg-transparent outline-none ${large ? 'text-lg py-2' : 'text-sm py-1.5'}`}
+          className={`search-input flex-1 min-w-0 bg-white text-ink-900 placeholder:text-ink-500 caret-moss-700 outline-none ${large ? 'text-lg py-2' : 'text-sm py-1.5'}`}
+          autoComplete="off"
           aria-label="検索"
         />
         <button
