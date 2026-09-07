@@ -297,12 +297,23 @@ async function ingestInbox(index) {
 
 // ---------- 2. note の新着 ----------
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/** note に負担をかけないよう、1 リクエストずつ少し間を置き、20 秒で諦める */
 async function fetchJson(url) {
-  const res = await fetch(url, {
-    headers: { accept: 'application/json', 'user-agent': 'kawakami-databank-ingest/1.0 (+https://databank.kawakamifarm.net)' },
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`)
-  return res.json()
+  await sleep(400)
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(url, {
+      headers: { accept: 'application/json', 'user-agent': 'kawakami-databank-ingest/1.0 (+https://databank.kawakamifarm.net)' },
+      signal: AbortSignal.timeout(20_000),
+    })
+    if (res.ok) return res.json()
+    if ((res.status === 429 || res.status >= 500) && attempt < 3) {
+      await sleep(3000 * attempt)
+      continue
+    }
+    throw new Error(`HTTP ${res.status} ${url}`)
+  }
 }
 
 /** note の記事一覧（新しい順）。ページごとに配列を返す非同期ジェネレータ */
