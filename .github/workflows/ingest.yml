@@ -1,0 +1,73 @@
+# 新しい配信を取り込む
+#  - 毎日 12:00（日本時間）に note の新着記事を確認して取り込む
+#  - databank/inbox/ にファイルが置かれたら取り込む
+#  - Actions タブの「Run workflow」で手動でも動かせる（下見だけの dry run も可）
+# 取り込みがあれば main にコミットし、サイトの再公開（pages.yml）を起動する
+name: 新しい配信を取り込む
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # 03:00 UTC = 12:00 JST
+  push:
+    branches: [main]
+    paths: ['databank/inbox/**']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '下見だけ（ファイルを変えない）'
+        type: boolean
+        default: false
+      full:
+        description: 'note の全記事を見直す'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: databank
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: databank/package-lock.json
+
+      - name: 取り込み
+        id: ingest
+        run: node scripts/ingest.mjs ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.full && '--full' || '' }}
+
+      - name: 変更の有無
+        id: diff
+        run: |
+          if [ -n "$(git status --porcelain -- .)" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; else echo "changed=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: 壊れていないか確認（ビルド）
+        if: steps.diff.outputs.changed == 'true'
+        run: npm ci && npm run build
+
+      - name: コミットして push
+        if: steps.diff.outputs.changed == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- .
+          git commit -m "配信を取り込み（${{ steps.ingest.outputs.count }}件）"
+          git push origin HEAD:main
+
+      - name: サイトを再公開
+        if: steps.diff.outputs.changed == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main

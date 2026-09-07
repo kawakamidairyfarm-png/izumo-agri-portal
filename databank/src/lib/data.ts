@@ -11,7 +11,8 @@ export interface IndexEntry {
   title: string
   driveId: string
   bytes: number
-  source: 'root' | 'archive'
+  /** root/archive=Driveの文字起こしフォルダ、note=noteの記事から自動取り込み、inbox=inboxフォルダから取り込み */
+  source: 'root' | 'archive' | 'note' | 'inbox'
   /** Optional: category carried over from the ledger spreadsheet. Wins over title rules. */
   category?: Category
   /** Optional: この回のnote記事URL */
