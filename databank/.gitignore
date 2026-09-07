@@ -1,3 +1,5 @@
 
 # 生成物（prebuild で作る）
 public/transcripts-all.json
+# noteで有料の回の文字起こし（公開ビルドに含めない・git管理外）
+data/transcripts_private/
