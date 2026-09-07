@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+__pycache__/
+*.pyc
+
+# 購入したスキル（再配布不可）はリポジトリに入れない
+.claude/skills/kintsugi/
+# 環境変数・鍵
+.env
+.env.*

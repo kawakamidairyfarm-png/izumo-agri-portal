@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream-50 text-ink-900 font-sans antialiased;
+}
+
+mark {
+  @apply bg-hay-100 text-ink-900 rounded px-0.5;
+}
+
+p, h1, h2, h3, li, dt, dd, blockquote {
+  word-break: auto-phrase;
+}
+
+.prose-transcript p {
+  @apply leading-relaxed;
+}
