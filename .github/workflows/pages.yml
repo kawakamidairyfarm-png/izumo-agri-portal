@@ -4,7 +4,7 @@ name: Deploy databank to GitHub Pages
 
 on:
   push:
-    branches: [main, claude/earn-100k-monthly-u0mbzs]
+    branches: [main]
     paths: ['databank/**', '!databank/inbox/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
