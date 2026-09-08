@@ -75,7 +75,7 @@ export default function About() {
               </a>
               ／ 数字まで読める
               <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.noteSubscribe} target="_blank" rel="noreferrer">
-                川上牧場🐮サブスク
+                noteのメンバーシップ
               </a>
             </li>
           </ul>

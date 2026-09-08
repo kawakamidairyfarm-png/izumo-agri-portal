@@ -176,10 +176,10 @@ export default function Home() {
               <FileText size={22} className="text-hay-700" /> 数字まで深掘りする
             </h2>
             <p className="mt-2 text-sm text-ink-700 leading-relaxed flex-1">
-              noteの「川上牧場🐮サブスク」では、牛群検定の成績や経営の数字、配信の全文まで読めます。就農を本気で考える人向けです。
+              noteのメンバーシップでは、牛群検定の成績や経営の数字、限定記事まで読めます。就農を本気で考える人向けです。
             </p>
             <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900 transition-colors">
-              <BookOpen size={18} /> noteのサブスクを見る
+              <BookOpen size={18} /> noteのメンバーシップを見る
             </a>
           </div>
         </div>

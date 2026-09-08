@@ -3,7 +3,7 @@ import type { Episode } from './data'
 export const LINKS = {
   pody: 'https://pody.jp/player/OT1nXl6WW61B8vjQ98ru',
   note: 'https://note.com/kawakamifarm',
-  /** 川上牧場🐮サブスク（noteのメンバーシップ） */
+  /** noteのメンバーシップ（限定記事・数字まで読める） */
   noteSubscribe: 'https://note.com/kawakamifarm/membership/boards',
   youtube: 'https://www.youtube.com/channel/UC7biWU5T2H9H6mmzgaNV2Bw',
   spotify: 'https://open.spotify.com/show/5VP7uC8prZ3wjoYDLHSUmj',

@@ -96,7 +96,7 @@ export function ForStudents() {
                   LINEで質問する
                 </a>
                 <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="rounded-xl bg-white border border-cream-200 px-4 py-2 text-sm font-bold hover:border-moss-300">
-                  noteのサブスクを見る
+                  noteのメンバーシップを見る
                 </a>
               </div>
             </div>

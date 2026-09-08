@@ -115,7 +115,7 @@ export default function Layout() {
                 </li>
                 <li>
                   <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.noteSubscribe} target="_blank" rel="noreferrer">
-                    川上牧場🐮サブスク（note）
+                    noteのメンバーシップ
                   </a>
                 </li>
                 <li>
