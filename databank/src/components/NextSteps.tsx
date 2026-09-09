@@ -1,6 +1,8 @@
 import { BookOpen, FileText, Mail, MapPin, MessageCircle } from 'lucide-react'
 import type { Audience } from '../lib/data'
 import { LINKS } from '../lib/links'
+import { Link } from 'react-router-dom'
+import training from '../../data/training.json'
 
 /**
  * 読んだあとの「次の一歩」。
@@ -35,13 +37,21 @@ export default function NextSteps({
           href: LINKS.noteSubscribe,
           cta: 'メンバーシップを見る',
         },
-        {
-          icon: MapPin,
-          label: '現地で学ぶ・直接聞く',
-          text: '研修生・インターンシップの受け入れ、見学、質問は公式LINEから。読んで気になったことを、そのまま送れます。',
-          href: LINKS.line,
-          cta: 'LINEで相談する',
-        },
+        training.enabled
+          ? {
+              icon: MapPin,
+              label: '現地で確かめる',
+              text: `${training.title}。定員${training.capacity}名。日程と参加費は研修ページに。`,
+              to: '/training',
+              cta: '研修ページを見る',
+            }
+          : {
+              icon: MapPin,
+              label: '現地で学ぶ・直接聞く',
+              text: '研修生・インターンシップの受け入れ、見学、質問は公式LINEから。読んで気になったことを、そのまま送れます。',
+              href: LINKS.line,
+              cta: 'LINEで相談する',
+            },
       ]
     : [
         {
@@ -92,14 +102,20 @@ export default function NextSteps({
                 <div className="min-w-0">
                   <p className="font-bold text-ink-900">{s.label}</p>
                   <p className="mt-1 text-sm text-ink-700 leading-relaxed">{s.text}</p>
-                  <a
-                    href={s.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1.5 inline-block text-sm font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900"
-                  >
-                    {s.cta}
-                  </a>
+                  {'to' in s && s.to ? (
+                    <Link to={s.to} className="mt-1.5 inline-block text-sm font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">
+                      {s.cta}
+                    </Link>
+                  ) : (
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1.5 inline-block text-sm font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900"
+                    >
+                      {s.cta}
+                    </a>
+                  )}
                 </div>
               </li>
             ))}
