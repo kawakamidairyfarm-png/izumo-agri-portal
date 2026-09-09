@@ -100,15 +100,15 @@ export default function About() {
           <ul className="mt-3 space-y-3">
             <li>
               <p><span className="font-bold text-ink-900">酪農DX・タイミー活用 伴走サポート</span> 月額 10,000円</p>
-              <p className="text-sm text-ink-500">月1回の個別オンライン面談。求人票の改善やAIでのマニュアル作成を一緒に進めます（川上牧場ではタイミーのGood率98%）。</p>
+              <p className="text-sm text-ink-500">月1回の個別オンライン面談。求人票の改善やAIでのマニュアル作成を一緒に進めます（川上牧場ではタイミーのGood率98%）。 <a href={LINKS.notePlanBanso} target="_blank" rel="noreferrer" className="text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">記事を読む</a></p>
             </li>
             <li>
               <p><span className="font-bold text-ink-900">FarmEcho ライトプラン</span> 月額 30,000円・定員10牧場</p>
-              <p className="text-sm text-ink-500">乳成分・牛の状態・給餌設計を毎月分析してPDFレポートに。LINE相談とZoomの枠つき。</p>
+              <p className="text-sm text-ink-500">乳成分・牛の状態・給餌設計を毎月分析してPDFレポートに。LINE相談とZoomの枠つき。 <a href={LINKS.notePlanFarmEcho} target="_blank" rel="noreferrer" className="text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">記事を読む</a></p>
             </li>
             <li>
               <p><span className="font-bold text-ink-900">FarmEcho プロプラン</span> 月額 50,000円・定員5牧場</p>
-              <p className="text-sm text-ink-500">ChatGPT分析にオーダーメイドの助言を添えて、月5件までのヒアリングレポート。LINE・メールは随時、月1回30分のZoom。</p>
+              <p className="text-sm text-ink-500">ChatGPT分析にオーダーメイドの助言を添えて、月5件までのヒアリングレポート。LINE・メールは随時、月1回30分のZoom。 <a href={LINKS.notePlanFarmEcho} target="_blank" rel="noreferrer" className="text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">記事を読む</a></p>
             </li>
           </ul>
           <p className="mt-3 text-sm text-ink-500">申込はnoteのメンバーシップページから。どのプランが合うか迷う方は、先に公式LINEで状況を送ってください。</p>

@@ -5,6 +5,10 @@ export const LINKS = {
   note: 'https://note.com/kawakamifarm',
   /** noteのメンバーシップ（限定記事・数字まで読める） */
   noteSubscribe: 'https://note.com/kawakamifarm/membership/boards',
+  /** 酪農DX・タイミー活用 伴走サポートの紹介記事 */
+  notePlanBanso: 'https://note.com/kawakamifarm/n/ndf5ea5a0bd27',
+  /** FarmEcho（酪農×AI）の紹介記事 */
+  notePlanFarmEcho: 'https://note.com/kawakamifarm/n/nbf0a8d7a7a3e',
   youtube: 'https://www.youtube.com/channel/UC7biWU5T2H9H6mmzgaNV2Bw',
   spotify: 'https://open.spotify.com/show/5VP7uC8prZ3wjoYDLHSUmj',
   /** 川上牧場 公式LINE（質問受付） */
