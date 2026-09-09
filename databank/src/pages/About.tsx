@@ -94,10 +94,15 @@ export default function About() {
 
         <section className="rounded-2xl bg-moss-50 p-6">
           <h2 className="font-serif text-xl font-bold text-ink-900">質問・研修・見学・取材</h2>
-          <p className="mt-2">研修生の受け入れ、見学、学校・自治体向けの教材利用、取材のご相談は、公式LINEから気軽に送ってください。</p>
-          <a href={LINKS.line} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-line px-5 py-3 text-sm font-bold text-white hover:bg-line-dark">
-            <MessageCircle size={18} /> LINEで質問する
-          </a>
+          <p className="mt-2">研修生の受け入れ、見学、学校・自治体向けの教材利用、取材のご相談は、公式LINEから気軽に送ってください。研修生の募集要項は牧場の公式サイトにあります。</p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <a href={LINKS.line} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-line px-5 py-3 text-sm font-bold text-white hover:bg-line-dark">
+              <MessageCircle size={18} /> LINEで質問する
+            </a>
+            <a href={LINKS.recruit} target="_blank" rel="noreferrer" className="text-sm font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">
+              研修生募集ページを見る
+            </a>
+          </div>
         </section>
       </div>
     </div>
