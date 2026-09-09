@@ -1,0 +1,30 @@
+# 外部ページの中身を GitHub Actions から取得して、ログに出す（調査用）
+name: ページ取得（調査用）
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 取得する URL
+        required: true
+      limit:
+        description: ログに出す最大バイト数
+        required: false
+        default: "120000"
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 取得
+        env:
+          URL: ${{ inputs.url }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          curl -sS -L -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36" \
+            -D headers.txt -o body.bin --max-time 40 "$URL" || true
+          echo "=== HEADERS ==="; cat headers.txt
+          echo "=== SIZE ==="; wc -c body.bin
+          echo "=== LINKS ==="; grep -oE 'https?://[^"'"'"' <>)]+' body.bin | sort -u | head -200 || true
+          echo "=== BODY ==="; head -c "$LIMIT" body.bin; echo
