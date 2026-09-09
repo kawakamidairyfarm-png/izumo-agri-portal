@@ -133,6 +133,11 @@ export default function Layout() {
                     公式LINEで質問する
                   </a>
                 </li>
+                <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/about#farmers">
+                    酪農家・牧場の方へ（相談・伴走）
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
