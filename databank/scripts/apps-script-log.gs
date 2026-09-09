@@ -119,7 +119,7 @@ function setup_(ss) {
       ['過去30日の表示', '=COUNTIFS(' + L.replace('A:F', 'B:B') + ',"view",' + L.replace('A:F', 'A:A') + ',">="&(TODAY()-30))'],
       ['過去30日のメルマガ登録ボタン', '=COUNTIFS(' + L.replace('A:F', 'B:B') + ',"click",' + L.replace('A:F', 'E:E') + ',"*kawakamifarm.net*",' + L.replace('A:F', 'A:A') + ',">="&(TODAY()-30))'],
       ['', ''],
-      ['日別の表示（新しい順・30日）', '=IFERROR(QUERY(' + L + ',"select toDate(A), count(A) where B=\'view\' group by toDate(A) order by toDate(A) desc limit 30 label toDate(A) \'日\', count(A) \'表示\'",1),"まだデータがありません")'],
+      ['日別の表示（新しい順・30日）', '=IFERROR(QUERY(' + L + ',"select toDate(A), count(A) where B=\'view\' group by toDate(A) order by toDate(A) desc limit 30 label toDate(A) \'日\', count(A) \'表示\' format toDate(A) \'yyyy-mm-dd\'",1),"まだデータがありません")'],
     ];
     sm.getRange(1, 1, rows.length, 2).setValues(rows);
     sm.getRange('D1').setValue('よく見られたページ（30日）');
