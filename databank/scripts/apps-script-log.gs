@@ -17,6 +17,7 @@
  *   l = クリックしたリンク（例: メルマガに登録する（無料） → kawakamifarm.net）
  *   d = sp（スマホ幅）/ pc
  * シートが無ければ最初の1件で自動で作る。集計シートの式も同時に作る。
+ * 安全のため: 先頭が = などの値は式として評価されないよう ' を付けて保存し、サイトから来た形でない送信は記録しない。
  */
 
 var LOG_SHEET = 'ログ';
@@ -41,6 +42,7 @@ function parse_(e) {
 }
 
 function record_(d) {
+  if (!valid_(d)) return ContentService.createTextOutput('ignored');
   var lock = LockService.getScriptLock();
   lock.tryLock(5000);
   try {
@@ -60,8 +62,36 @@ function record_(d) {
   return ContentService.createTextOutput('ok');
 }
 
+var ALLOWED_T = { view: 1, click: 1 };
+var ALLOWED_D = { sp: 1, pc: 1, '': 1 };
+
+/** 文字列を安全な形に整える: 改行を除き、長さを切り、先頭が = + - @ なら式として評価されないよう ' を付ける */
 function clip_(v, n) {
-  return String(v).replace(/[\r\n\t]/g, ' ').slice(0, n);
+  var s = String(v).replace(/[\r\n\t]/g, ' ').slice(0, n);
+  if (/^[=+\-@]/.test(s)) s = "'" + s;
+  return s;
+}
+
+/** サイトから来た形でないものは記録しない（いたずらの行を減らす） */
+function valid_(d) {
+  if (!ALLOWED_T[d.t]) return false;
+  if (!ALLOWED_D[d.d || '']) return false;
+  if (d.p != null && !/^\/[\w\-\/\.%:]*$/.test(String(d.p))) return false;
+  if (d.r != null && String(d.r).length > 120) return false;
+  if (d.l != null && String(d.l).length > 200) return false;
+  return true;
+}
+
+/** 1年より古い行を消す（任意。Apps Script の画面で「トリガー」→ 月1回 trimOldRows を実行、と設定すると自動になる） */
+function trimOldRows() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LOG_SHEET);
+  if (!sh || sh.getLastRow() < 2) return;
+  var limit = new Date();
+  limit.setFullYear(limit.getFullYear() - 1);
+  var dates = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues();
+  var n = 0;
+  while (n < dates.length && dates[n][0] instanceof Date && dates[n][0] < limit) n++;
+  if (n > 0) sh.deleteRows(2, n);
 }
 
 /** シートと集計の式を作る（自動で呼ばれる。手で作り直したいときは Apps Script の画面で setup を実行） */
