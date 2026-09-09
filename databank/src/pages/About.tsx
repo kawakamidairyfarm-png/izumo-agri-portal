@@ -92,9 +92,30 @@ export default function About() {
           </ul>
         </section>
 
+        <section id="farmers" className="rounded-2xl bg-white border border-cream-200 shadow-card p-6">
+          <h2 className="font-serif text-xl font-bold text-ink-900">酪農家・牧場の方へ</h2>
+          <p className="mt-2">
+            牧場の人手・仕組み・AI活用の相談は、noteのメンバーシップで受けています。配信で話している「酪農DX」「タイミー活用」「AIで牛群の数字を読む」を、自分の牧場に当てはめる伴走です。
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            <li><span className="font-bold text-ink-900">酪農DX・タイミー活用 伴走サポート</span>（月1回の面談つき）月額 10,000円</li>
+            <li><span className="font-bold text-ink-900">FarmEcho ライトプラン</span> 月額 30,000円</li>
+            <li><span className="font-bold text-ink-900">FarmEcho プロプラン</span> 月額 50,000円</li>
+          </ul>
+          <p className="mt-3 text-sm text-ink-500">各プランの内容と申込は note のメンバーシップページに。まず話を聞きたい方は公式LINEからどうぞ。</p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900">
+              プランを見る（note）
+            </a>
+            <a href={LINKS.line} target="_blank" rel="noreferrer" className="text-sm font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">
+              LINEで相談する
+            </a>
+          </div>
+        </section>
+
         <section className="rounded-2xl bg-moss-50 p-6">
           <h2 className="font-serif text-xl font-bold text-ink-900">質問・研修・見学・取材</h2>
-          <p className="mt-2">研修生の受け入れ、見学、学校・自治体向けの教材利用、取材のご相談は、公式LINEから気軽に送ってください。研修生の募集要項は牧場の公式サイトにあります。</p>
+          <p className="mt-2">研修生の受け入れ、見学、学校・自治体向けの教材利用、講演・執筆・取材のご相談は、公式LINEから気軽に送ってください。研修生の募集要項は牧場の公式サイトにあります。</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <a href={LINKS.line} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-line px-5 py-3 text-sm font-bold text-white hover:bg-line-dark">
               <MessageCircle size={18} /> LINEで質問する
