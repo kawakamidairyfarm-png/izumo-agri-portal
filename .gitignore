@@ -30,3 +30,5 @@ __pycache__/
 # 環境変数・鍵
 .env
 .env.*
+.claude/skills/pro-marketing-director/
+.claude/skills/meikyo/

@@ -92,3 +92,13 @@ npm run build
 - 配信は川上牧場の経験・問題意識として扱い、医学・栄養・制度の事実は最新の一次資料で確認する
 - 価格・制度・製品仕様は配信日時点のもの
 - 逐語引用は配信本体で確認する
+
+
+## 計測（アクセス数）
+
+サイトは初期状態では何も計測していません。導線のどこで人が落ちているかを見るには、次のどちらかを有効にします（どちらもクッキーを使わない匿名の集計です）。
+
+1. [GoatCounter](https://www.goatcounter.com/) でアカウントを作り、コード（`xxxx.goatcounter.com` の xxxx）を GitHub の Settings → Secrets and variables → Actions → **Variables** に `GOATCOUNTER_CODE` として登録する
+2. または Cloudflare Web Analytics のトークンを `CF_ANALYTICS_TOKEN` として登録する
+
+次の公開（デプロイ）から計測が始まります。ローカルで試すときは `VITE_GOATCOUNTER=xxxx npm run dev`。

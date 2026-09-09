@@ -60,6 +60,8 @@ export interface Episode {
   transcriptSource: 'drive' | 'note' | null
   /** noteの該当記事が有料（全文はnoteで購読・購入して読む） */
   paidNote: boolean
+  /** 有料記事の価格（円）。メンバーシップ限定は 0、無料・不明は null */
+  notePrice: number | null
   /** 各プラットフォームの該当回URL（記事データまたは索引に登録があるとき） */
   noteUrl: string | null
   youtubeUrl: string | null
@@ -81,7 +83,7 @@ const paidModules = import.meta.glob<Record<string, { title: string; date: strin
   eager: true,
   import: 'default',
 })
-const PAID_NOTE_URLS = new Set(Object.keys(Object.values(paidModules)[0] ?? {}))
+const PAID_NOTE: Record<string, { title: string; date: string; price: number }> = Object.values(paidModules)[0] ?? {}
 
 
 const rawIndex: IndexEntry[] = Object.values(indexModules)[0] ?? []
@@ -184,7 +186,8 @@ function toEpisode(
   const audience: Audience[] = article?.audience ?? defaultAudience(category, topics)
   const id = article?.id ?? `${date}_${driveId.slice(0, 8)}`
   const noteUrl = article?.noteUrl || indexEntry?.noteUrl || null
-  const paidNote = Boolean(noteUrl && PAID_NOTE_URLS.has(noteUrl.split('?')[0]))
+  const paidInfo = noteUrl ? PAID_NOTE[noteUrl.split('?')[0]] : undefined
+  const paidNote = Boolean(paidInfo)
   // 有料記事の回は、noteの本文もDriveの文字起こしも載せない（要約・Q&Aだけ）
   const driveKey = !paidNote && article && TRANSCRIPT_URLS[article.transcriptFile] ? article.transcriptFile : null
   const noteKey = !paidNote && TRANSCRIPT_URLS[`${id}.txt`] ? `${id}.txt` : null
@@ -203,6 +206,7 @@ function toEpisode(
     hasTranscript: transcriptKey !== null,
     transcriptSource: driveKey ? 'drive' : noteKey ? 'note' : null,
     paidNote,
+    notePrice: paidInfo ? paidInfo.price : null,
     noteUrl,
     youtubeUrl: article?.youtubeUrl || indexEntry?.youtubeUrl || null,
     spotifyUrl: article?.spotifyUrl || indexEntry?.spotifyUrl || null,

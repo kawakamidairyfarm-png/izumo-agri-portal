@@ -69,6 +69,16 @@ export default function About() {
               </a>
             </li>
             <li>
+              本：
+              <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.kindle} target="_blank" rel="noreferrer">
+                Kindle『酪農未経験者のために』
+              </a>
+              ／ メール：
+              <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.newsletter} target="_blank" rel="noreferrer">
+                無料メルマガ
+              </a>
+            </li>
+            <li>
               記事：
               <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.note} target="_blank" rel="noreferrer">
                 note

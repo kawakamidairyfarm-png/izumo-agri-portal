@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, MessageCircle, Quote, Youtube } from 'lucide-react'
+import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, Quote, Youtube } from 'lucide-react'
 import { Badge } from '../components/EpisodeCard'
 import EpisodeCard from '../components/EpisodeCard'
 import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate, paragraphs as toParagraphs } from '../lib/data'
 import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links'
 import { loadTranscript } from '../lib/transcripts'
+import NextSteps from '../components/NextSteps'
 
 export default function EpisodePage() {
   const { id = '' } = useParams()
@@ -152,7 +153,9 @@ export default function EpisodePage() {
             {episode.hasTranscript
               ? 'この下で全文を読めます（noteの無料記事の本文）。配信本体は Pody で聴けます。'
               : episode.paidNote
-                ? 'この回の全文は、noteの有料記事として公開されています。配信本体は Pody で聴けます。'
+                ? episode.notePrice
+                  ? `この回の全文は、noteの有料記事（${episode.notePrice.toLocaleString()}円）として公開されています。配信本体は Pody で聴けます。`
+                  : 'この回の全文は、noteのメンバーシップ限定記事として公開されています。配信本体は Pody で聴けます。'
                 : '配信本体は Pody で聴けます。要約と全文は、順次このサイトに追加していきます。'}
           </p>
         </section>
@@ -199,7 +202,14 @@ export default function EpisodePage() {
         <p className="text-sm font-bold text-ink-500 mb-2">この回を聴く・読む</p>
         <div className="flex flex-wrap gap-2">
           <a href={note.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-700 text-white px-4 py-2.5 text-sm font-bold hover:bg-moss-900">
-            <BookOpen size={16} /> {note.exact ? (episode.paidNote ? 'note で読む（有料記事）' : 'note で読む') : 'note で探す'}
+            <BookOpen size={16} />{' '}
+            {note.exact
+              ? episode.paidNote
+                ? episode.notePrice
+                  ? `note で読む（${episode.notePrice.toLocaleString()}円）`
+                  : 'note で読む（メンバーシップ限定）'
+                : 'note で読む'
+              : 'note で探す'}
           </a>
           <a href={youtube.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
             <Youtube size={16} className="text-red-600" /> {youtube.exact ? 'YouTube で聴く' : 'YouTube で探す'}
@@ -217,26 +227,7 @@ export default function EpisodePage() {
         </p>
       </section>
 
-      <section className="mt-8 rounded-2xl bg-moss-50 border border-moss-100 p-6 md:p-7">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex-1">
-            <h2 className="inline-flex items-center gap-2 font-serif text-xl font-bold text-ink-900">
-              <MessageCircle size={20} className="text-line" /> この回について質問してみる
-            </h2>
-            <p className="mt-1 text-sm text-ink-700 leading-relaxed">
-              読んで気になったこと、もっと知りたいことは、川上牧場の公式LINEから気軽に送れます。配信やnoteで答えてもらえることもあります。
-            </p>
-          </div>
-          <a
-            href={LINKS.line}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-line text-white px-5 py-3 text-sm font-bold hover:bg-line-dark transition-colors"
-          >
-            <MessageCircle size={18} /> LINEで質問する
-          </a>
-        </div>
-      </section>
+      <NextSteps compact audience={episode.audience.includes('student') ? 'student' : 'consumer'} />
 
       <nav className="mt-10 grid gap-3 sm:grid-cols-2 text-sm">
         {older && (

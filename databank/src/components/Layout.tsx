@@ -114,6 +114,16 @@ export default function Layout() {
                   </a>
                 </li>
                 <li>
+                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.newsletter} target="_blank" rel="noreferrer">
+                    無料メルマガに登録する
+                  </a>
+                </li>
+                <li>
+                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.kindle} target="_blank" rel="noreferrer">
+                    Kindle本『酪農未経験者のために』
+                  </a>
+                </li>
+                <li>
                   <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.noteSubscribe} target="_blank" rel="noreferrer">
                     noteのメンバーシップ
                   </a>

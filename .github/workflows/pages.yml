@@ -32,6 +32,10 @@ jobs:
           cache-dependency-path: databank/package-lock.json
       - run: npm ci
       - run: npm run build
+        env:
+          # 計測（任意）。リポジトリの Settings → Secrets and variables → Actions → Variables に置くと有効になる
+          VITE_GOATCOUNTER: ${{ vars.GOATCOUNTER_CODE }}
+          VITE_CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: databank/dist

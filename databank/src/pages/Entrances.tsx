@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, HandHeart, HelpCircle, MapPin } from 'lucide-react'
+import { ArrowRight, HandHeart, HelpCircle } from 'lucide-react'
 import Section from '../components/Section'
 import EpisodeCard from '../components/EpisodeCard'
 import SearchBox from '../components/SearchBox'
-import { ARTICLES, EPISODES, TOPICS } from '../lib/data'
+import NextSteps from '../components/NextSteps'
+import { ARTICLES, EPISODES, TOPICS, leadOf, paragraphs } from '../lib/data'
 import { PATHS, resolvePath } from '../lib/paths'
-import { LINKS } from '../lib/links'
 
 function Hero({ eyebrow, title, lead, dark = false }: { eyebrow: string; title: string; lead: string; dark?: boolean }) {
   return (
@@ -13,7 +13,11 @@ function Hero({ eyebrow, title, lead, dark = false }: { eyebrow: string; title: 
       <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <p className={`text-sm font-bold ${dark ? 'text-hay-300' : 'text-moss-700'}`}>{eyebrow}</p>
         <h1 className="mt-2 font-serif text-3xl md:text-4xl font-bold leading-tight">{title}</h1>
-        <p className={`mt-4 max-w-2xl leading-relaxed ${dark ? 'text-white' : 'text-ink-700'}`}>{lead}</p>
+        {paragraphs(lead).map((t, i) => (
+          <p key={i} className={`${i === 0 ? 'mt-4' : 'mt-2'} max-w-2xl leading-relaxed ${dark ? 'text-white' : 'text-ink-700'}`}>
+            {t}
+          </p>
+        ))}
         <div className="mt-6 max-w-xl">
           <SearchBox />
         </div>
@@ -82,27 +86,7 @@ export function ForStudents() {
         </div>
       </Section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-4">
-        <div className="rounded-3xl bg-white border border-cream-200 p-6 md:p-8 shadow-card">
-          <div className="flex items-start gap-3">
-            <MapPin className="text-moss-700 shrink-0 mt-1" />
-            <div>
-              <h2 className="font-serif text-xl font-bold text-ink-900">現地で学ぶ・直接聞く</h2>
-              <p className="mt-1 text-sm text-ink-700 leading-relaxed">
-                川上牧場では研修生・インターンシップを受け入れています。読んで気になったこと、研修や見学の相談は、公式LINEから気軽に送れます。
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a href={LINKS.line} target="_blank" rel="noreferrer" className="rounded-xl bg-line text-white px-4 py-2 text-sm font-bold hover:bg-line-dark">
-                  LINEで質問する
-                </a>
-                <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="rounded-xl bg-white border border-cream-200 px-4 py-2 text-sm font-bold hover:border-moss-300">
-                  noteのメンバーシップを見る
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <NextSteps audience="student" />
     </>
   )
 }
@@ -129,7 +113,7 @@ export function ForConsumers() {
                 <HelpCircle size={18} className="shrink-0 mt-0.5 text-moss-700" />
                 {x.q}
               </p>
-              <p className="mt-2 text-sm text-ink-700 leading-relaxed line-clamp-3">{x.a}</p>
+              <p className="mt-2 text-sm text-ink-700 leading-relaxed">{leadOf(x.a)}</p>
               <p className="mt-2 text-xs text-ink-500">出典：{x.episode.title}</p>
             </Link>
           ))}
@@ -159,6 +143,8 @@ export function ForConsumers() {
           ))}
         </div>
       </Section>
+
+      <NextSteps audience="consumer" />
 
       <section className="mx-auto max-w-6xl px-4 pb-4">
         <div className="rounded-3xl bg-hay-100 border border-hay-300/60 p-6 md:p-8">

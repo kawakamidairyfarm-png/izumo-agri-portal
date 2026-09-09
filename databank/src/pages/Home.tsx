@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen, ChevronRight, FileText, Headphones, MessageCircle } from 'lucide-react'
+import NextSteps from '../components/NextSteps'
 import SearchBox from '../components/SearchBox'
 import Section from '../components/Section'
 import { ARTICLES, EPISODES, SERIES, formatDate, stats } from '../lib/data'
@@ -26,11 +27,11 @@ export default function Home() {
         {PHOTOS.hero && (
           <>
             <img src={PHOTOS.hero} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-b from-moss-900/90 to-moss-900/80 md:bg-gradient-to-r md:from-moss-900/90 md:via-moss-900/70 md:to-moss-900/30" />
+            <div className="absolute inset-0 bg-gradient-to-b from-moss-900/95 to-moss-900/85 md:bg-gradient-to-r md:from-moss-900/95 md:via-moss-900/92 md:to-moss-900/60" />
           </>
         )}
         <div className="relative mx-auto max-w-6xl px-4 py-14 md:py-24">
-          <p className="text-sm font-bold tracking-[0.2em] text-hay-300">島根県出雲市・川上牧場</p>
+          <p className="text-sm font-bold tracking-[0.2em] text-hay-100">島根県出雲市・川上牧場</p>
           <h1 className="mt-3 font-serif text-3xl md:text-5xl font-bold leading-tight [text-wrap:balance]">
             酪農家になりたい。
             <br />
@@ -53,15 +54,15 @@ export default function Home() {
               href={LINKS.line}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/70 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 transition-colors"
+              className="inline-flex items-center gap-2 px-2 py-3 text-sm font-bold text-white underline decoration-white/60 underline-offset-4 hover:decoration-white"
             >
-              <MessageCircle size={18} /> LINEで質問する
+              <MessageCircle size={18} /> 質問はLINEで
             </a>
           </div>
           <div className="mt-8 max-w-2xl">
             <SearchBox large />
           </div>
-          <p className="mt-6 text-sm text-hay-300">
+          <p className="mt-6 text-sm leading-relaxed text-white">
             {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約・Q&Aつきの回は {stats.articles} 本。
           </p>
         </div>
@@ -157,33 +158,8 @@ export default function Home() {
         </ul>
       </Section>
 
-      {/* 受け皿: 質問と深掘り */}
-      <section className="mx-auto max-w-6xl px-4 py-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl bg-moss-50 p-6 md:p-8 flex flex-col">
-            <h2 className="inline-flex items-center gap-2 font-serif text-xl font-bold text-ink-900">
-              <MessageCircle size={22} className="text-line" /> 気軽に質問する
-            </h2>
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed flex-1">
-              読んで気になったことを、そのまま公式LINEに送れます。配信やnoteで答えることもあります。研修や見学の相談も、ここから。
-            </p>
-            <a href={LINKS.line} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-line px-5 py-3 text-sm font-bold text-white hover:bg-line-dark transition-colors">
-              <MessageCircle size={18} /> LINEで質問する
-            </a>
-          </div>
-          <div className="rounded-2xl bg-hay-100 p-6 md:p-8 flex flex-col">
-            <h2 className="inline-flex items-center gap-2 font-serif text-xl font-bold text-ink-900">
-              <FileText size={22} className="text-hay-700" /> 数字まで深掘りする
-            </h2>
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed flex-1">
-              noteのメンバーシップでは、牛群検定の成績や経営の数字、限定記事まで読めます。就農を本気で考える人向けです。
-            </p>
-            <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900 transition-colors">
-              <BookOpen size={18} /> noteのメンバーシップを見る
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* 読んだあとの次の一歩（無料の受け皿はメルマガ1つ。本・note・現地は段として並べる） */}
+      <NextSteps audience="student" />
 
       {/* 最近の配信（一覧） */}
       <Section title="最近の配信" lead="毎朝の配信から。要約がない回も、タイトルで探せます。" more={{ to: '/browse', label: '全配信を探す' }}>
