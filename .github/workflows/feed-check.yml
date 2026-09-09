@@ -1,0 +1,22 @@
+# 配信の RSS フィードを外から点検する（YouTube から「RSS を取得できない」メールが来たときに手で実行）
+# Actions → 「RSS フィード点検」 → Run workflow。結果はジョブのログに出る。
+name: RSS フィード点検
+
+on:
+  workflow_dispatch:
+    inputs:
+      feed:
+        description: RSS の URL
+        required: true
+        default: https://anchor.fm/s/5700b4e4/podcast/rss
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: フィードを取得して中身を確認
+        env:
+          FEED: ${{ inputs.feed }}
+        run: python3 databank/scripts/feed-check.py "$FEED"
