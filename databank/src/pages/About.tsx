@@ -95,14 +95,23 @@ export default function About() {
         <section id="farmers" className="rounded-2xl bg-white border border-cream-200 shadow-card p-6">
           <h2 className="font-serif text-xl font-bold text-ink-900">酪農家・牧場の方へ</h2>
           <p className="mt-2">
-            牧場の人手・仕組み・AI活用の相談は、noteのメンバーシップで受けています。配信で話している「酪農DX」「タイミー活用」「AIで牛群の数字を読む」を、自分の牧場に当てはめる伴走です。
+            牧場の人手・仕組み・AI活用の相談は、noteのメンバーシップで受けています。配信で話している「酪農DX」「タイミー活用」「AIで牛群の数字を読む」を、自分の牧場に当てはめる伴走です。まず月1回の面談から始めて、数字を毎月見ていく段階でFarmEchoに進む、という順番を想定しています。
           </p>
-          <ul className="mt-3 space-y-1.5">
-            <li><span className="font-bold text-ink-900">酪農DX・タイミー活用 伴走サポート</span>（月1回の面談つき）月額 10,000円</li>
-            <li><span className="font-bold text-ink-900">FarmEcho ライトプラン</span> 月額 30,000円</li>
-            <li><span className="font-bold text-ink-900">FarmEcho プロプラン</span> 月額 50,000円</li>
+          <ul className="mt-3 space-y-3">
+            <li>
+              <p><span className="font-bold text-ink-900">酪農DX・タイミー活用 伴走サポート</span> 月額 10,000円</p>
+              <p className="text-sm text-ink-500">月1回の個別オンライン面談。求人票の改善やAIでのマニュアル作成を一緒に進めます（川上牧場ではタイミーのGood率98%）。</p>
+            </li>
+            <li>
+              <p><span className="font-bold text-ink-900">FarmEcho ライトプラン</span> 月額 30,000円・定員10牧場</p>
+              <p className="text-sm text-ink-500">乳成分・牛の状態・給餌設計を毎月分析してPDFレポートに。LINE相談とZoomの枠つき。</p>
+            </li>
+            <li>
+              <p><span className="font-bold text-ink-900">FarmEcho プロプラン</span> 月額 50,000円・定員5牧場</p>
+              <p className="text-sm text-ink-500">ChatGPT分析にオーダーメイドの助言を添えて、月5件までのヒアリングレポート。LINE・メールは随時、月1回30分のZoom。</p>
+            </li>
           </ul>
-          <p className="mt-3 text-sm text-ink-500">各プランの内容と申込は note のメンバーシップページに。まず話を聞きたい方は公式LINEからどうぞ。</p>
+          <p className="mt-3 text-sm text-ink-500">申込はnoteのメンバーシップページから。どのプランが合うか迷う方は、先に公式LINEで状況を送ってください。</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900">
               プランを見る（note）
