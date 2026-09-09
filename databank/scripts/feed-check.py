@@ -22,7 +22,7 @@ def fetch(url, method='GET', limit=None):
     t0 = time.time()
     with urllib.request.urlopen(req, timeout=30) as r:
         body = r.read(limit) if limit else r.read()
-        return r.status, dict(r.headers), body, time.time() - t0
+        return r.status, {k.lower(): v for k, v in r.headers.items()}, body, time.time() - t0
 
 
 def image_size(data):
@@ -61,8 +61,8 @@ def main(url):
     if body is None:
         print('結論: フィードを取得できない。ホスティング側（Spotify for Creators）の問題。')
         return 1
-    print(f'  HTTP {status}  {len(body):,} bytes  {sec:.1f}秒  content-type={headers.get("Content-Type")}')
-    print(f'  last-modified={headers.get("Last-Modified")}  cache-control={headers.get("Cache-Control")}')
+    print(f'  HTTP {status}  {len(body):,} bytes  {sec:.1f}秒  content-type={headers.get("content-type")}')
+    print(f'  last-modified={headers.get("last-modified")}  cache-control={headers.get("cache-control")}')
 
     try:
         root = ET.fromstring(body)
@@ -84,7 +84,7 @@ def main(url):
         try:
             s, h, data, sec = fetch(href)
             kind, w, hgt = image_size(data)
-            print(f'    HTTP {s}  {len(data):,} bytes  {kind} {w}x{hgt}  content-type={h.get("Content-Type")}')
+            print(f'    HTTP {s}  {len(data):,} bytes  {kind} {w}x{hgt}  content-type={h.get("content-type")}')
             if w and (w != hgt or w < 1400 or w > 3000):
                 print('    注意: YouTube は 1400〜3000px の正方形のみ受け付ける')
                 ok = False
@@ -107,7 +107,7 @@ def main(url):
         if enc is not None and enc.get('url'):
             try:
                 s, h, data, sec = fetch(enc.get('url'), limit=1024)
-                print(f'  最新エピソードの音声: HTTP {s}  content-type={h.get("Content-Type")}  content-length={h.get("Content-Length")}')
+                print(f'  最新エピソードの音声: HTTP {s}  content-type={h.get("content-type")}  content-length={h.get("content-length")}')
             except Exception as e:  # noqa: BLE001
                 print(f'  最新エピソードの音声: 取得失敗 {e}')
                 ok = False
