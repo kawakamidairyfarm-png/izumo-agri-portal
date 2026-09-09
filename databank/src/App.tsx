@@ -7,7 +7,6 @@ import EpisodePage from './pages/Episode'
 import { PathsIndex, PathDetail } from './pages/Paths'
 import { ForStudents, ForConsumers } from './pages/Entrances'
 import About from './pages/About'
-import Training from './pages/Training'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -31,7 +30,6 @@ export default function App() {
           <Route path="for-students" element={<ForStudents />} />
           <Route path="for-consumers" element={<ForConsumers />} />
           <Route path="about" element={<About />} />
-          <Route path="training" element={<Training />} />
           <Route path="*" element={<Home />} />
         </Route>
       </Routes>

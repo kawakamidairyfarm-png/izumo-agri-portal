@@ -11,6 +11,8 @@ export const LINKS = {
   line: 'https://line.me/R/ti/p/@imb8734o?ts=04142028&oat_content=url',
   /** 無料メルマガ「牛乳の見方が変わる川上牧場メルマガ」の登録ページ（配信本文で案内している登録URL） */
   newsletter: 'https://kawakamifarm.net/p/r/VrTCygLJ',
+  /** 川上牧場 研修生募集ページ（牧場の公式サイト） */
+  recruit: 'https://kawakamibokuzyou.hp.peraichi.com/recruit/',
   /** Kindle本『酪農未経験者のために』（Kindle Unlimited 対象） */
   kindle: 'https://www.amazon.co.jp/dp/B0FBQWGSK6',
 }
