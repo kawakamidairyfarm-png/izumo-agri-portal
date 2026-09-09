@@ -96,9 +96,10 @@ npm run build
 
 ## 計測（アクセス数）
 
-サイトは初期状態では何も計測していません。導線のどこで人が落ちているかを見るには、次のどちらかを有効にします（どちらもクッキーを使わない匿名の集計です）。
+サイトは初期状態では何も計測していません。導線のどこで人が落ちているかを見るには、次のどれかを有効にします。個人を特定する情報は送りません。ブラウザの「追跡しない」設定があれば何も送りません。
 
-1. [GoatCounter](https://www.goatcounter.com/) でアカウントを作り、コード（`xxxx.goatcounter.com` の xxxx）を GitHub の Settings → Secrets and variables → Actions → **Variables** に `GOATCOUNTER_CODE` として登録する
-2. または Cloudflare Web Analytics のトークンを `CF_ANALYTICS_TOKEN` として登録する
+1. **自前（おすすめ・データは自分の Google ドライブに残る）**: Google スプレッドシートに `scripts/apps-script-log.gs` を Apps Script として貼り付けてウェブアプリとして公開し、その URL を GitHub の Settings → Secrets and variables → Actions → **Variables** に `LOG_ENDPOINT` として登録する（手順はその .gs ファイルの先頭に書いてあります）
+2. [GoatCounter](https://www.goatcounter.com/) のコード（`xxxx.goatcounter.com` の xxxx）を `GOATCOUNTER_CODE` として登録する
+3. Cloudflare Web Analytics のトークンを `CF_ANALYTICS_TOKEN` として登録する
 
-次の公開（デプロイ）から計測が始まります。ローカルで試すときは `VITE_GOATCOUNTER=xxxx npm run dev`。
+次の公開（デプロイ）から計測が始まります。ローカルで試すときは `VITE_LOG_ENDPOINT=<URL> npm run dev`。
