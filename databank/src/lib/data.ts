@@ -11,14 +11,18 @@ export interface IndexEntry {
   title: string
   driveId: string
   bytes: number
-  /** root/archive=Driveの文字起こしフォルダ、note=noteの記事から自動取り込み、inbox=inboxフォルダから取り込み */
-  source: 'root' | 'archive' | 'note' | 'inbox'
+  /** root/archive=Driveの文字起こしフォルダ、note=noteの記事から自動取り込み、inbox=inboxフォルダから取り込み、pody=podyの記事から自動取り込み */
+  source: 'root' | 'archive' | 'note' | 'inbox' | 'pody'
+  /** 本文（data/transcripts/）をどこから取り込んだか。無ければ note か inbox */
+  bodySource?: 'note' | 'inbox' | 'pody'
   /** Optional: category carried over from the ledger spreadsheet. Wins over title rules. */
   category?: Category
   /** Optional: この回のnote記事URL */
   noteUrl?: string
   youtubeUrl?: string
   spotifyUrl?: string
+  /** podyのこの回のページ（AIが音声から起こした記事と再生） */
+  podyUrl?: string
 }
 
 export interface Article {
@@ -56,8 +60,8 @@ export interface Episode {
   /** 本文（全文）のファイル名。本文は遅延読み込み（lib/transcripts.ts）。無ければ null */
   transcriptKey: string | null
   hasTranscript: boolean
-  /** 本文の出典: drive=配信音声の自動文字起こし（要約つきの回）／note=noteの無料記事の本文 */
-  transcriptSource: 'drive' | 'note' | null
+  /** 本文の出典: drive=配信音声の自動文字起こし（要約つきの回）／note=noteの無料記事の本文／pody=podyがAIで音声から起こした記事 */
+  transcriptSource: 'drive' | 'note' | 'pody' | null
   /** noteの該当記事が有料（全文はnoteで購読・購入して読む） */
   paidNote: boolean
   /** 有料記事の価格（円）。メンバーシップ限定は 0、無料・不明は null */
@@ -66,6 +70,7 @@ export interface Episode {
   noteUrl: string | null
   youtubeUrl: string | null
   spotifyUrl: string | null
+  podyUrl: string | null
 }
 
 // ---------- raw loading ----------
@@ -204,12 +209,13 @@ function toEpisode(
     article,
     transcriptKey,
     hasTranscript: transcriptKey !== null,
-    transcriptSource: driveKey ? 'drive' : noteKey ? 'note' : null,
+    transcriptSource: driveKey ? 'drive' : noteKey ? (indexEntry?.bodySource === 'pody' ? 'pody' : 'note') : null,
     paidNote,
     notePrice: paidInfo ? paidInfo.price : null,
     noteUrl,
     youtubeUrl: article?.youtubeUrl || indexEntry?.youtubeUrl || null,
     spotifyUrl: article?.spotifyUrl || indexEntry?.spotifyUrl || null,
+    podyUrl: indexEntry?.podyUrl || null,
   }
 }
 

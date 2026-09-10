@@ -169,12 +169,18 @@ export default function EpisodePage() {
           >
             <span>
               <span className="font-bold text-ink-900">
-                {episode.transcriptSource === 'note' ? '配信の全文（noteの記事より）' : '配信の全文（文字起こし）'}
+                {episode.transcriptSource === 'note'
+                  ? '配信の全文（noteの記事より）'
+                  : episode.transcriptSource === 'pody'
+                    ? '配信の全文（podyの記事より）'
+                    : '配信の全文（文字起こし）'}
               </span>
               <span className="block text-sm text-ink-500 mt-0.5">
                 {episode.transcriptSource === 'note'
                   ? 'noteで無料公開されている記事の本文です。AIによる文字起こしを含むため、固有名詞や数字に誤りが含まれることがあります。'
-                  : '自動文字起こしのため、固有名詞や数字に誤りが含まれることがあります。'}
+                  : episode.transcriptSource === 'pody'
+                    ? 'podyがこの回の音声からAIで起こした記事です。章ごとの見出しと要点つき。固有名詞や数字に誤りが含まれることがあります。'
+                    : '自動文字起こしのため、固有名詞や数字に誤りが含まれることがあります。'}
                 約 {Math.round(transcript!.length / 100) * 100} 字
               </span>
             </span>
@@ -190,6 +196,14 @@ export default function EpisodePage() {
                   出典：
                   <a href={episode.noteUrl} target="_blank" rel="noreferrer" className="underline decoration-moss-300 hover:text-moss-700">
                     noteの記事を開く
+                  </a>
+                </p>
+              )}
+              {episode.transcriptSource === 'pody' && episode.podyUrl && (
+                <p className="pt-2 text-sm text-ink-500">
+                  出典：
+                  <a href={episode.podyUrl} target="_blank" rel="noreferrer" className="underline decoration-moss-300 hover:text-moss-700">
+                    podyで読む（音声つき・章ごとに再生できます）
                   </a>
                 </p>
               )}
@@ -217,13 +231,13 @@ export default function EpisodePage() {
           <a href={spotify.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
             <AudioLines size={16} className="text-green-600" /> {spotify.exact ? 'Spotify で聴く' : 'Spotify で探す'}
           </a>
-          <a href={LINKS.pody} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
-            <Headphones size={16} /> Pody（番組ページ）
+          <a href={episode.podyUrl ?? LINKS.pody} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300">
+            <Headphones size={16} /> {episode.podyUrl ? 'Pody で読む・聴く' : 'Pody（番組ページ）'}
           </a>
         </div>
         <p className="mt-2 text-sm text-ink-500">
-          「探す」のボタンは、この回のタイトルで各サービス内を検索します。通常は先頭に該当回が表示されます。Podyでは配信日（
-          {formatDate(episode.date)} 前後）から探せます。
+          「探す」のボタンは、この回のタイトルで各サービス内を検索します。通常は先頭に該当回が表示されます。
+          {!episode.podyUrl && <>Podyでは配信日（{formatDate(episode.date)} 前後）から探せます。</>}
         </p>
       </section>
 

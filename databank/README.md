@@ -66,6 +66,16 @@ python scripts/build_index.py --src <フォルダ> --summarize 20
 
 `src/lib/paths.ts` の `PATHS` に、記事IDと「なぜこの順で読むか」を並べるだけです。
 
+### 4. 自動取り込み（note・pody・inbox）
+
+GitHub Actions の「新しい配信を取り込む」（`.github/workflows/ingest.yml`）が毎日 12:00（日本時間）に `scripts/ingest.mjs` を動かします。
+
+- **note**: 新しい無料記事の本文を全文として取り込み、有料記事は案内だけ登録します。
+- **pody**: 番組ページ（`https://pody.jp/player/OT1nXl6WW61B8vjQ98ru`）の一覧から新しい回を探し、pody が音声から AI で起こした記事を全文として取り込みます。すでに本文がある回には pody へのリンクだけを足します。
+- **inbox**: `databank/inbox/` に置いた文字起こしファイルを取り込みます（書き方は `inbox/README.md`）。
+
+手元で試すときは `node scripts/ingest.mjs --dry-run` で下見ができます。初回や取りこぼしがあるときは Actions の「Run workflow」で「全部を見直す」にチェックを入れて動かします。
+
 ## 分類ルール
 
 タイトルから機械的に付与しています（`src/lib/data.ts`）。
