@@ -1,5 +1,5 @@
 # 新しい配信を取り込む
-#  - 毎日 12:00（日本時間）に note の新着記事を確認して取り込む
+#  - 毎日 12:00（日本時間）に note の新着記事と pody の記事を確認して取り込む
 #  - databank/inbox/ にファイルが置かれたら取り込む
 #  - Actions タブの「Run workflow」で手動でも動かせる（下見だけの dry run も可）
 # 取り込みがあれば main にコミットし、サイトの再公開（pages.yml）を起動する
@@ -18,7 +18,7 @@ on:
         type: boolean
         default: false
       full:
-        description: 'note の全記事を見直す'
+        description: 'note と pody の全部を見直す（初回や取りこぼしがあるとき）'
         type: boolean
         default: false
 

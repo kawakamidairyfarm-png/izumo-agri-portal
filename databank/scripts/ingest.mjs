@@ -6,8 +6,9 @@
  *   node scripts/ingest.mjs               inbox と note の新着を両方取り込む
  *   node scripts/ingest.mjs --no-note     inbox だけ
  *   node scripts/ingest.mjs --no-inbox    note だけ
+ *   node scripts/ingest.mjs --no-pody     pody の記事は見ない
  *   node scripts/ingest.mjs --dry-run     何を取り込むかを表示するだけで、ファイルは変えない
- *   node scripts/ingest.mjs --full        note の全記事を見直す（通常は既知の記事に当たった時点で止める）
+ *   node scripts/ingest.mjs --full        note と pody の全部を見直す（通常は既知の回が続いた時点で止める）
  *
  * 1. inbox/ の使い方
  *    databank/inbox/ に「YYYYMMDD_タイトル.txt」という名前で文字起こしを置く。
@@ -26,9 +27,16 @@
  *    note の API から返る本文は「その人が無料で読める範囲」だけなので、
  *    有料部分がサイトに載ることは仕組み上ない。
  *
+ * 3. pody の記事
+ *    pody（https://pody.jp）が配信の音声から AI で起こした記事を、番組ページの一覧から探して取り込む。
+ *    すでに本文（note の記事など）がある回には本文を足さず、pody へのリンクだけを登録する。
+ *    本文が無い回は記事の本文を全文として取り込む（有料の回は非公開フォルダへ）。
+ *
  * 環境変数:
  *   NOTE_CREATOR   note のユーザー名（既定: kawakamifarm）
  *   NOTE_API_BASE  note API のベース URL（テスト用。既定: https://note.com）
+ *   PODY_FEED_ID   pody の番組 ID（既定: OT1nXl6WW61B8vjQ98ru）
+ *   PODY_BASE      pody のベース URL（テスト用。既定: https://pody.jp）
  */
 
 import { createHash } from 'node:crypto'
@@ -48,14 +56,19 @@ const args = new Set(process.argv.slice(2))
 const DRY = args.has('--dry-run')
 const DO_INBOX = !args.has('--no-inbox')
 const DO_NOTE = !args.has('--no-note')
+const DO_PODY = !args.has('--no-pody')
 const FULL = args.has('--full')
 const CREATOR = process.env.NOTE_CREATOR || 'kawakamifarm'
 const API_BASE = (process.env.NOTE_API_BASE || 'https://note.com').replace(/\/$/, '')
+const PODY_FEED = process.env.PODY_FEED_ID || 'OT1nXl6WW61B8vjQ98ru'
+const PODY_BASE = (process.env.PODY_BASE || 'https://pody.jp').replace(/\/$/, '')
+const UA = 'kawakami-databank-ingest/1.0 (+https://kawakamidairyfarm-png.github.io/izumo-agri-portal/)'
 
 /** タイトルから有料と判断するパターン（利用者の方針: Farmers Voices は全て有料） */
 const PAID_TITLE_RE = /(?:famars|farmers)\s*voices|【後半有料】|【有料】/i
 
 const report = { added: [], bodies: [], paid: [], updated: [], skipped: [], warnings: [] }
+const debug = (...m) => process.env.INGEST_DEBUG && console.error('[debug]', ...m)
 
 // ---------- 小道具 ----------
 
@@ -166,6 +179,18 @@ class Index {
   }
   idOf(e) {
     return `${e.date}_${e.driveId.slice(0, 8)}`
+  }
+  /** 同じタイトルで日付が近い回（配信日と記事の日付が 1〜2 日ずれることがある） */
+  findNearTitle(title, date, days = 2) {
+    const key = normalizeTitle(title)
+    const t = Date.parse(date)
+    let best = null
+    for (const e of this.entries) {
+      if (normalizeTitle(e.title) !== key) continue
+      const diff = Math.abs(Date.parse(e.date) - t) / 86400000
+      if (diff <= days && (!best || diff < best.diff)) best = { e, diff }
+    }
+    return best ? best.e : null
   }
   isPaid(noteUrl) {
     return Boolean(noteUrl && this.paid[cleanNoteUrl(noteUrl)])
@@ -304,7 +329,7 @@ async function fetchJson(url) {
   await sleep(400)
   for (let attempt = 1; ; attempt++) {
     const res = await fetch(url, {
-      headers: { accept: 'application/json', 'user-agent': 'kawakami-databank-ingest/1.0 (+https://databank.kawakamifarm.net)' },
+      headers: { accept: 'application/json', 'user-agent': UA },
       signal: AbortSignal.timeout(20_000),
     })
     if (res.ok) return res.json()
@@ -410,6 +435,165 @@ async function ingestNote(index) {
   if (looked === 0) report.warnings.push('note: 記事一覧が空でした（API の形式が変わった可能性）')
 }
 
+// ---------- 3. pody の記事 ----------
+
+async function fetchText(url) {
+  await sleep(500)
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(url, { headers: { accept: 'text/html', 'user-agent': UA }, signal: AbortSignal.timeout(30_000) })
+    if (res.ok) return res.text()
+    if ((res.status === 429 || res.status >= 500) && attempt < 3) {
+      await sleep(3000 * attempt)
+      continue
+    }
+    throw new Error(`HTTP ${res.status} ${url}`)
+  }
+}
+
+/** Next.js のページに埋め込まれたデータ（self.__next_f.push の文字列）をつなげて返す */
+export function rscPayload(html) {
+  const out = []
+  const re = /self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)/g
+  let m
+  while ((m = re.exec(html))) {
+    try {
+      out.push(JSON.parse(m[1]))
+    } catch {
+      /* 壊れた断片は飛ばす */
+    }
+  }
+  return out.join('')
+}
+
+/** text[start] が [ か { のとき、対応する閉じ括弧までを返す（文字列の中の括弧は数えない） */
+function balanced(text, start) {
+  let depth = 0
+  let inStr = false
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i]
+    if (inStr) {
+      if (ch === '\\') i++
+      else if (ch === '"') inStr = false
+      continue
+    }
+    if (ch === '"') inStr = true
+    else if (ch === '[' || ch === '{') depth++
+    else if (ch === ']' || ch === '}') {
+      depth--
+      if (depth === 0) return text.slice(start, i + 1)
+    }
+  }
+  return null
+}
+
+/** データの中の「id:T<16進のバイト数>,本文」という形の長い文字列を取り出す */
+function rscTextChunk(payload, id) {
+  const m = new RegExp(`(?:^|\\n)${id}:T([0-9a-f]+),`).exec(payload)
+  if (!m) return null
+  const start = m.index + m[0].length
+  const n = parseInt(m[1], 16)
+  return Buffer.from(payload.slice(start), 'utf8').subarray(0, n).toString('utf8')
+}
+
+/** 番組ページ（/player/<番組ID>?page=N）からエピソード一覧と最終ページ番号を読む */
+export function parsePodyList(html) {
+  const payload = rscPayload(html)
+  const episodes = []
+  const i = payload.indexOf('"episodes":[')
+  if (i >= 0) {
+    const raw = balanced(payload, i + '"episodes":'.length)
+    try {
+      for (const e of JSON.parse(raw ?? '[]')) {
+        if (!e || typeof e !== 'object') continue
+        episodes.push({
+          id: String(e.id ?? ''),
+          title: String(e.title ?? '').trim(),
+          pubDate: e.pubDateIso ?? e.pubDate ?? null,
+          guid: e.guid ?? null,
+          hasPublicArticle: Boolean(e.hasPublicArticle ?? (e.hasArticle && e.articleSummaryVisibility === 'public')),
+        })
+      }
+    } catch {
+      /* 一覧が読めなければ空のまま */
+    }
+  }
+  let lastPage = 1
+  for (const m of html.matchAll(/\?page=(\d+)/g)) lastPage = Math.max(lastPage, Number(m[1]))
+  return { episodes, lastPage }
+}
+
+/** エピソードページから記事の HTML を取り出す */
+export function podyArticleHtml(html) {
+  const payload = rscPayload(html)
+  const ref = /"html":"\$([0-9a-f]+)","version"/.exec(payload) ?? /"html":"\$([0-9a-f]+)"/.exec(payload)
+  return ref ? rscTextChunk(payload, ref[1]) : null
+}
+
+/** pody の記事 HTML を素のテキストにする（再生ボタンや飾りを除く） */
+export function podyArticleToText(html) {
+  let s = String(html ?? '')
+  s = s.replace(/<(button|svg)\b[\s\S]*?<\/\1>/gi, '')
+  s = s.replace(/<a class="share-btn[^"]*"[^>]*>[\s\S]*?<\/a>/gi, '')
+  s = s.replace(/<span class="chapter-no"[^>]*>[\s\S]*?<\/span>/gi, '')
+  s = s.replace(/<span class="insight-label"[^>]*>[\s\S]*?<\/span>/gi, '')
+  s = s.replace(/<div class="(?:bubble-avatar|insight-attr|insight-accent-bar|chapter-head-actions|insight-meta)"[^>]*>[\s\S]*?<\/div>/gi, '')
+  return htmlToText(s)
+}
+
+async function ingestPody(index) {
+  let seenKnown = 0
+  let lastPage = 1
+  let looked = 0
+  for (let page = 1; page <= lastPage; page++) {
+    debug(`pody: ${page}/${lastPage} ページ目`)
+    const html = await fetchText(`${PODY_BASE}/player/${PODY_FEED}${page > 1 ? `?page=${page}` : ''}`)
+    const list = parsePodyList(html)
+    if (page === 1) lastPage = list.lastPage
+    if (list.episodes.length === 0) {
+      report.warnings.push(`pody: ${page} ページ目のエピソード一覧が読めませんでした（ページの形式が変わった可能性）`)
+      return
+    }
+    for (const ep of list.episodes) {
+      looked++
+      const date = toJstDate(ep.pubDate)
+      if (!ep.id || !ep.title || !date) {
+        report.warnings.push(`pody: 読めない項目をとばしました ${JSON.stringify(ep).slice(0, 120)}`)
+        continue
+      }
+      const url = `https://pody.jp/player/${PODY_FEED}/${ep.id}`
+      const label = `pody ${date} ${ep.title}`
+      debug(label)
+      let entry = index.find({ date, title: ep.title }) ?? index.findNearTitle(ep.title, date)
+      const hadBody = entry ? await transcriptExists(index.idOf(entry)) : false
+      if (entry && entry.podyUrl && (hadBody || !ep.hasPublicArticle)) {
+        seenKnown++
+        if (!FULL && seenKnown >= 5) return
+        continue
+      }
+      let isNew = false
+      let changed = false
+      if (!entry) [entry, isNew] = index.upsert({ date, title: ep.title, source: 'pody' })
+      if (!entry.podyUrl) {
+        entry.podyUrl = url
+        changed = true
+      }
+      if (!hadBody && ep.hasPublicArticle) {
+        const paid = index.isPaid(entry.noteUrl) || PAID_TITLE_RE.test(entry.title)
+        try {
+          const text = podyArticleToText(podyArticleHtml(await fetchText(`${PODY_BASE}/player/${PODY_FEED}/${ep.id}`)))
+          if (text.trim().length < 200) report.warnings.push(`${label}: 記事が読めませんでした（${text.trim().length} 文字）。次回にやり直します`)
+          else if (await saveBody(index, entry, text, { paid, label })) entry.bodySource = 'pody'
+        } catch (e) {
+          report.warnings.push(`${label}: 記事を取得できませんでした（${e.message}）。次回にやり直します`)
+        }
+      }
+      if (isNew) report.added.push(`${entry.date} ${entry.title}（pody）`)
+      else if (changed) report.updated.push(`${entry.date} ${entry.title}: pody のリンクを追加`)
+    }
+  }
+  if (looked === 0) report.warnings.push('pody: エピソード一覧が空でした')
+}
+
 // ---------- main ----------
 
 async function main() {
@@ -425,6 +609,14 @@ async function main() {
       await ingestNote(index)
     } catch (e) {
       report.warnings.push(`note の新着確認に失敗しました: ${e.message}`)
+    }
+  }
+
+  if (DO_PODY) {
+    try {
+      await ingestPody(index)
+    } catch (e) {
+      report.warnings.push(`pody の記事の確認に失敗しました: ${e.message}`)
     }
   }
 
