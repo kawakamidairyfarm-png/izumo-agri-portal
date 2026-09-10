@@ -30,6 +30,13 @@ function referrerSource(): string {
   }
 }
 
+let track: ((label: string) => void) | null = null
+
+/** リンク以外の操作（コピー・端末の共有など）を「クリック」として記録する。計測が無効なら何もしない */
+export function trackEvent(label: string) {
+  track?.(label)
+}
+
 function installOwnLog(endpoint: string) {
   const device = () => (window.innerWidth < 768 ? 'sp' : 'pc')
   const send = (t: 'view' | 'click', extra: Record<string, string> = {}) => {
@@ -41,6 +48,7 @@ function installOwnLog(endpoint: string) {
       /* 計測の失敗はサイトの動作に影響させない */
     }
   }
+  track = (label) => send('click', { l: label })
   let last = ''
   const view = () => {
     const p = currentPath()

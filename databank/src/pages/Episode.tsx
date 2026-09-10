@@ -7,6 +7,7 @@ import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate
 import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links'
 import { loadTranscript } from '../lib/transcripts'
 import NextSteps from '../components/NextSteps'
+import ShareBar from '../components/ShareBar'
 
 export default function EpisodePage() {
   const { id = '' } = useParams()
@@ -72,6 +73,7 @@ export default function EpisodePage() {
             </Link>
           ))}
         </div>
+        <ShareBar title={episode.title} url={`${location.origin}${location.pathname}#/e/${episode.id}`} />
       </header>
 
       {a ? (
@@ -151,7 +153,9 @@ export default function EpisodePage() {
           <p className="font-bold text-ink-900">この回の要約は準備中です。</p>
           <p className="mt-2 text-sm leading-relaxed text-ink-700">
             {episode.hasTranscript
-              ? 'この下で全文を読めます（noteの無料記事の本文）。配信本体は Pody で聴けます。'
+              ? episode.transcriptSource === 'pody'
+                ? 'この下で全文を読めます（podyが音声から起こした記事）。配信本体は Pody で聴けます。'
+                : 'この下で全文を読めます（noteの無料記事の本文）。配信本体は Pody で聴けます。'
               : episode.paidNote
                 ? episode.notePrice
                   ? `この回の全文は、noteの有料記事（${episode.notePrice.toLocaleString()}円）として公開されています。配信本体は Pody で聴けます。`
