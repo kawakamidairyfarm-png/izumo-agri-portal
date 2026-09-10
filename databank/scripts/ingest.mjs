@@ -72,7 +72,7 @@ const debug = (...m) => process.env.INGEST_DEBUG && console.error('[debug]', ...
 
 // ---------- 小道具 ----------
 
-function normalizeTitle(t) {
+export function normalizeTitle(t) {
   return t
     .normalize('NFKC')
     .replace(/\s+/g, '')
@@ -180,8 +180,8 @@ class Index {
   idOf(e) {
     return `${e.date}_${e.driveId.slice(0, 8)}`
   }
-  /** 同じタイトルで日付が近い回（配信日と記事の日付が 1〜2 日ずれることがある） */
-  findNearTitle(title, date, days = 2) {
+  /** 同じタイトルで日付が近い回。note の記事は配信の 7〜8 週間後に出ることが多いので、既定は 100 日以内 */
+  findNearTitle(title, date, days = 100) {
     const key = normalizeTitle(title)
     const t = Date.parse(date)
     let best = null
@@ -203,7 +203,8 @@ class Index {
   }
   /** 既存があれば URL を補い、無ければ追加する。戻り値は [entry, isNew] */
   upsert({ date, title, noteUrl, youtubeUrl, spotifyUrl, source, bytes }) {
-    let e = this.find({ date, title, noteUrl })
+    // 同じ回が別の日付で登録済みなら（配信は pody、記事は note で日付が違う）、その回に足す。日付は先に登録した方を保つ
+    let e = this.find({ date, title, noteUrl }) ?? this.findNearTitle(title, date)
     let isNew = false
     if (!e) {
       e = { date, title, driveId: syntheticId(date, title, noteUrl), bytes: bytes ?? 0, source }
@@ -235,19 +236,39 @@ async function transcriptExists(id) {
   return (await exists(path.join(TRANSCRIPTS, `${id}.txt`))) || (await exists(path.join(PRIVATE, `${id}.txt`)))
 }
 
-/** 本文を保存する。有料の回は公開ビルドに入らない transcripts_private/ に置く */
-async function saveBody(index, entry, text, { paid, label }) {
+/**
+ * 本文を保存する。有料の回は公開ビルドに入らない transcripts_private/ に置く。
+ * pody の記事は仮の本文なので、あとから note や inbox の本文が来たら置き換える。
+ */
+async function saveBody(index, entry, text, { paid, label, source }) {
   const id = index.idOf(entry)
-  if (await transcriptExists(id)) {
+  const replacingPody = entry.bodySource === 'pody' && source !== 'pody'
+  if ((await transcriptExists(id)) && !replacingPody) {
     report.skipped.push(`${label}: 本文は登録済み（${id}）`)
     return false
   }
   const dir = paid ? PRIVATE : TRANSCRIPTS
+  if (replacingPody && !DRY) {
+    for (const d of [TRANSCRIPTS, PRIVATE]) await fs.rm(path.join(d, `${id}.txt`), { force: true })
+  }
   await writeText(path.join(dir, `${id}.txt`), text)
   if (paid) report.warnings.push(`${label}: 有料記事の回なので本文は非公開フォルダ（data/transcripts_private/）に保存しました`)
-  else report.bodies.push(`${label} → ${path.relative(ROOT, path.join(dir, `${id}.txt`))}`)
-  entry.bytes = entry.bytes || Buffer.byteLength(text, 'utf8')
+  else report.bodies.push(`${label} → ${path.relative(ROOT, path.join(dir, `${id}.txt`))}${replacingPody ? '（pody の記事を置き換え）' : ''}`)
+  entry.bytes = Buffer.byteLength(text, 'utf8')
+  entry.bodySource = source
   return true
+}
+
+/** 有料と分かった回の公開本文（pody の記事など）を非公開フォルダへ移す */
+async function hidePublicBody(index, entry, label) {
+  const id = index.idOf(entry)
+  const pub = path.join(TRANSCRIPTS, `${id}.txt`)
+  if (!(await exists(pub))) return
+  if (!DRY) {
+    await fs.mkdir(PRIVATE, { recursive: true })
+    await fs.rename(pub, path.join(PRIVATE, `${id}.txt`))
+  }
+  report.warnings.push(`${label}: 有料記事の回なので、公開していた本文を非公開フォルダ（data/transcripts_private/）へ移しました`)
 }
 
 // ---------- 1. inbox ----------
@@ -313,7 +334,7 @@ async function ingestInbox(index) {
       report.skipped.push(`${label}: Drive ID は記録しません（既存の id を維持）`)
     }
     const paid = index.isPaid(entry.noteUrl) || PAID_TITLE_RE.test(entry.title)
-    await saveBody(index, entry, meta.body, { paid, label })
+    await saveBody(index, entry, meta.body, { paid, label, source: 'inbox' })
     if (isNew) report.added.push(`${entry.date} ${entry.title}（${label}）`)
     else if (changed) report.updated.push(`${entry.date} ${entry.title}: リンクを追加`)
     if (!DRY) await fs.unlink(file)
@@ -405,6 +426,7 @@ async function ingestNote(index) {
         if (index.markPaid(n.url, { title: n.title, date: n.date, price: n.price, note: n.price > 0 ? undefined : n.limited ? 'メンバーシップ限定' : 'タイトル判定' }))
           report.paid.push(`${label}（¥${n.price}${n.limited ? '・限定' : ''}${n.flags.length ? '・' + n.flags.join(',') : ''}）`)
         if (isNew) report.added.push(`${entry.date} ${entry.title}（note・有料）`)
+        else await hidePublicBody(index, entry, label)
         continue
       }
       // 無料記事: 本文を取りに行く
@@ -419,6 +441,7 @@ async function ingestNote(index) {
         const [entry, isNew] = index.upsert({ date: n.date, title: n.title, noteUrl: n.url, source: 'note' })
         if (index.markPaid(n.url, { title: n.title, date: n.date, price: body.price, note: '本文APIの判定' })) report.paid.push(`${label}（本文API: ¥${body.price}）`)
         if (isNew) report.added.push(`${entry.date} ${entry.title}（note・有料）`)
+        else await hidePublicBody(index, entry, label)
         continue
       }
       const text = htmlToText(body.html)
@@ -427,7 +450,7 @@ async function ingestNote(index) {
         continue
       }
       const [entry, isNew, changed] = index.upsert({ date: n.date, title: n.title, noteUrl: n.url, source: 'note', bytes: Buffer.byteLength(text, 'utf8') })
-      await saveBody(index, entry, text, { paid: false, label })
+      await saveBody(index, entry, text, { paid: false, label, source: 'note' })
       if (isNew) report.added.push(`${entry.date} ${entry.title}（note・無料）`)
       else if (changed) report.updated.push(`${entry.date} ${entry.title}: note のリンクを追加`)
     }
@@ -582,7 +605,7 @@ async function ingestPody(index) {
         try {
           const text = podyArticleToText(podyArticleHtml(await fetchText(`${PODY_BASE}/player/${PODY_FEED}/${ep.id}`)))
           if (text.trim().length < 200) report.warnings.push(`${label}: 記事が読めませんでした（${text.trim().length} 文字）。次回にやり直します`)
-          else if (await saveBody(index, entry, text, { paid, label })) entry.bodySource = 'pody'
+          else await saveBody(index, entry, text, { paid, label, source: 'pody' })
         } catch (e) {
           report.warnings.push(`${label}: 記事を取得できませんでした（${e.message}）。次回にやり直します`)
         }
