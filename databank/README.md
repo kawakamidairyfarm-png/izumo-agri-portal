@@ -86,6 +86,23 @@ GitHub Actions の「新しい配信を取り込む」（`.github/workflows/inge
 
 要約つきの回は、記事 JSON の `category` と `audience` が優先されます。
 
+## 検索エンジンから見えるようにする（静的な書き出し）
+
+住所は `/e/<id>/` のような普通の形です（以前の `#/e/<id>` から変更。古いリンクは `index.html` の先頭で自動的に新しい住所へ転送します）。
+
+`npm run build` のあとに `scripts/prerender.mjs` が走り、次を作ります。
+
+- 全ページ分の `dist/<住所>/index.html`。ページごとの題名・説明・正規URL・SNSカード（OGP）・構造化データを入れ、`#root` の中に本文（要約・要点・全文）を静的な HTML で置きます。React は起動時にこの中身を置き換えるので、人の見え方は変わりません。
+- `sitemap.xml`（全ページ）、`robots.txt`、`404.html`、`.nojekyll`
+
+公開先が変わるときは環境変数で指定します。
+
+```bash
+VITE_BASE=/ SITE_URL=https://example.com/ npm run build
+```
+
+初回だけ、Google Search Console でサイトを登録し、`sitemap.xml` を送信してください。
+
 ## 公開
 
 `npm run build` の出力 `dist/` をそのままホスティングに置きます。ルーティングはハッシュ方式（`/#/browse`）なので、サーバー側の設定は不要です。

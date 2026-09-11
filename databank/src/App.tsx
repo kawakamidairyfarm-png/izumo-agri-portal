@@ -1,5 +1,6 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { trackView } from './lib/analytics'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Browse from './pages/Browse'
@@ -8,10 +9,12 @@ import { PathsIndex, PathDetail } from './pages/Paths'
 import { ForStudents, ForConsumers } from './pages/Entrances'
 import About from './pages/About'
 
-function ScrollToTop() {
+/** ページが変わったら先頭に戻し、計測にも知らせる */
+function OnRouteChange() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo({ top: 0 })
+    trackView()
   }, [pathname])
   return null
 }
@@ -19,7 +22,7 @@ function ScrollToTop() {
 export default function App() {
   return (
     <>
-      <ScrollToTop />
+      <OnRouteChange />
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />

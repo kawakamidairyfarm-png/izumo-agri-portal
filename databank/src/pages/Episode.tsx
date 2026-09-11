@@ -73,7 +73,7 @@ export default function EpisodePage() {
             </Link>
           ))}
         </div>
-        <ShareBar title={episode.title} url={`${location.origin}${location.pathname}#/e/${episode.id}`} />
+        <ShareBar title={episode.title} url={`${location.origin}${location.pathname}`} />
       </header>
 
       {a ? (
