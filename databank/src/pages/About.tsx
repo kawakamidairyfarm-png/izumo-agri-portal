@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { stats } from '../lib/data'
 import { LINKS } from '../lib/links'
@@ -112,6 +113,11 @@ export default function About() {
             </li>
           </ul>
           <p className="mt-3 text-sm text-ink-500">申込はnoteのメンバーシップページから。どのプランが合うか迷う方は、先に公式LINEで状況を送ってください。</p>
+          <p className="mt-2 text-sm text-ink-500">
+            企業・研究機関・メディアの方からのご相談（専門家インタビュー、取材、新規事業の伴走）は
+            <Link to="/expert" className="underline decoration-moss-300 underline-offset-4 hover:text-moss-700"> 企業・研究・メディアの方へ </Link>
+            をご覧ください。
+          </p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <a href={LINKS.noteSubscribe} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900">
               プランを見る（note）

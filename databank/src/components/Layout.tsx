@@ -138,6 +138,11 @@ export default function Layout() {
                     酪農家・牧場の方へ（相談・伴走）
                   </Link>
                 </li>
+                <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/expert">
+                    企業・研究・メディアの方へ
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
