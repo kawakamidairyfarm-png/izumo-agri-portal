@@ -55,7 +55,7 @@ export default function Expert() {
           <div className="mt-3 space-y-4">
             <div className="rounded-2xl bg-cream-100 p-5">
               <p className="font-bold text-ink-900">スポット相談（オンライン）</p>
-              <p className="mt-1 text-sm">1時間 30,000円〜。Zoomなどで直接おたずねください。1回きりで完結します。</p>
+              <p className="mt-1 text-sm">Zoomなどで直接おたずねください。1時間から、1回きりで完結します。</p>
             </div>
             <div className="rounded-2xl bg-cream-100 p-5">
               <p className="font-bold text-ink-900">継続の伴走・顧問</p>
@@ -67,6 +67,9 @@ export default function Expert() {
             </div>
           </div>
           <p className="mt-4 text-sm text-ink-500">
+            費用は、ご相談の内容と時間をうかがってから個別にお見積りします。金額の目安だけ先に知りたい場合も、その旨をお送りください。
+          </p>
+          <p className="mt-2 text-sm text-ink-500">
             出雲で牧場を経営しているため、移住や常駐はいたしかねます。オンラインでの継続と、必要に応じた訪問という形になります。
           </p>
         </section>
