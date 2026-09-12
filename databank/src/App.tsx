@@ -8,6 +8,7 @@ import EpisodePage from './pages/Episode'
 import { PathsIndex, PathDetail } from './pages/Paths'
 import { ForStudents, ForConsumers } from './pages/Entrances'
 import About from './pages/About'
+import Expert from './pages/Expert'
 
 /** ページが変わったら先頭に戻し、計測にも知らせる */
 function OnRouteChange() {
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="for-students" element={<ForStudents />} />
           <Route path="for-consumers" element={<ForConsumers />} />
           <Route path="about" element={<About />} />
+          <Route path="expert" element={<Expert />} />
           <Route path="*" element={<Home />} />
         </Route>
       </Routes>
