@@ -76,6 +76,14 @@ GitHub Actions の「新しい配信を取り込む」（`.github/workflows/inge
 
 手元で試すときは `node scripts/ingest.mjs --dry-run` で下見ができます。初回や取りこぼしがあるときは Actions の「Run workflow」で「全部を見直す」にチェックを入れて動かします。
 
+### 5. 週の人気記事から、データバンクの住所を引く
+
+毎週の公式LINEで note の人気記事を案内するとき、同じ回のデータバンクの住所を添えるために使います。題名は途中まででかまいません。
+
+```bash
+node scripts/find-url.mjs "モー" "飼料価格" "カゼイン"
+```
+
 ## 分類ルール
 
 タイトルから機械的に付与しています（`src/lib/data.ts`）。
