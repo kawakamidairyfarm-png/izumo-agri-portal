@@ -35,20 +35,20 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-b from-moss-900/95 to-moss-900/85 md:bg-gradient-to-r md:from-moss-900/95 md:via-moss-900/92 md:to-moss-900/60" />
           </>
         )}
-        <div className="relative mx-auto max-w-6xl px-4 py-14 md:py-24">
+        <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-8 md:py-16">
           <p className="text-sm font-bold tracking-[0.2em] text-hay-100">島根県出雲市・川上牧場</p>
           <h1 className="mt-3 font-serif text-3xl md:text-5xl font-bold leading-tight [text-wrap:balance]">
             酪農家になりたい。
             <br />
             そう思ったら、ここから。
           </h1>
-          <p className="mt-5 max-w-2xl leading-relaxed">
+          <p className="mt-4 md:mt-5 max-w-2xl leading-relaxed">
             出雲の酪農家が毎朝の配信で話してきたことを、{stats.episodes} 本ぶん読める形にしました。
           </p>
           <p className="mt-2 max-w-2xl leading-relaxed">
             就農の準備や牛の健康から、牛乳のふしぎまで。<span className="font-bold">酪農を志す人も、牛乳を飲む人も、どなたでも読めます。</span>登録もお金も要りません。
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-5 md:mt-7 flex flex-wrap gap-3">
             <Link
               to="/paths/start-dairy"
               className="inline-flex items-center gap-2 rounded-xl bg-hay-300 px-5 py-3 text-sm font-bold text-moss-900 hover:bg-hay-500 transition-colors"
@@ -70,17 +70,17 @@ export default function Home() {
               <MessageCircle size={18} /> 質問はLINEで
             </a>
           </div>
-          <div className="mt-8 max-w-2xl">
+          <div className="mt-6 md:mt-8 max-w-2xl">
             <SearchBox large />
           </div>
-          <p className="mt-6 text-sm leading-relaxed text-white">
+          <p className="mt-4 md:mt-6 max-w-2xl text-sm leading-relaxed text-white">
             {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約・Q&Aつきの回は {stats.articles} 本。
           </p>
         </div>
       </section>
 
       {/* 二つの入口: どちらの人が来ても、自分の場所が最初に見つかるように */}
-      <section className="mx-auto max-w-6xl px-4 mt-10">
+      <section className="mx-auto max-w-6xl px-4 mt-6 md:mt-10">
         <div className="grid gap-4 md:grid-cols-2">
           <Link
             to="/for-students"
