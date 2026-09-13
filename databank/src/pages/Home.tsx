@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, ChevronRight, FileText, Headphones, MessageCircle } from 'lucide-react'
+import { ArrowRight, BookOpen, ChevronRight, FileText, Headphones, MessageCircle, Milk } from 'lucide-react'
 import NextSteps from '../components/NextSteps'
 import SearchBox from '../components/SearchBox'
 import Section from '../components/Section'
@@ -38,10 +38,10 @@ export default function Home() {
             そう思ったら、ここから。
           </h1>
           <p className="mt-5 max-w-2xl leading-relaxed">
-            出雲の酪農家が研修生に話してきたことを、{stats.episodes} 本の配信から読める形にしました。
+            出雲の酪農家が毎朝の配信で話してきたことを、{stats.episodes} 本ぶん読める形にしました。
           </p>
           <p className="mt-2 max-w-2xl leading-relaxed">
-            就農の準備、資金、資格、牛の健康、飼料、改良まで。わからないことは、LINEで気軽に聞けます。
+            就農の準備や牛の健康から、牛乳のふしぎまで。<span className="font-bold">酪農を志す人も、牛乳を飲む人も、どなたでも読めます。</span>登録もお金も要りません。
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
@@ -49,6 +49,12 @@ export default function Home() {
               className="inline-flex items-center gap-2 rounded-xl bg-hay-300 px-5 py-3 text-sm font-bold text-moss-900 hover:bg-hay-500 transition-colors"
             >
               <BookOpen size={18} /> ゼロから酪農を始める
+            </Link>
+            <Link
+              to="/for-consumers"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/50 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 transition-colors"
+            >
+              <Milk size={18} /> 牛乳の疑問から読む
             </Link>
             <a
               href={LINKS.line}
@@ -65,6 +71,38 @@ export default function Home() {
           <p className="mt-6 text-sm leading-relaxed text-white">
             {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約・Q&Aつきの回は {stats.articles} 本。
           </p>
+        </div>
+      </section>
+
+      {/* 二つの入口: どちらの人が来ても、自分の場所が最初に見つかるように */}
+      <section className="mx-auto max-w-6xl px-4 mt-10">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Link
+            to="/for-students"
+            className="group rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-7 hover:border-moss-300 transition-colors"
+          >
+            <p className="text-sm font-bold text-moss-700">酪農を志す人へ</p>
+            <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">就農の現実を、順番に読む</h2>
+            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
+              資金はいくらかかるのか、資格は要るのか、非農家から入れるのか。研修生に話してきたことを、読む順番をつけて並べています。
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
+              志す人の入口へ <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
+          <Link
+            to="/for-consumers"
+            className="group rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-7 hover:border-moss-300 transition-colors"
+          >
+            <p className="text-sm font-bold text-moss-700">牛乳を飲む人へ</p>
+            <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">牛乳の「なぜ？」に、酪農家が答える</h2>
+            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
+              原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 消費者から届いた質問に、現場から率直に答えています。
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
+              飲む人の入口へ <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
         </div>
       </section>
 
@@ -187,21 +225,6 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* 消費者に聞かれること */}
-      <section className="mx-auto max-w-6xl px-4 pb-6">
-        <div className="rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-8 md:flex md:items-center md:gap-8">
-          <div className="flex-1">
-            <p className="text-sm font-bold text-moss-700">就農すると、必ず聞かれる</p>
-            <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">牛乳の「なぜ？」に、答えられる酪農家になる</h2>
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
-              原価はいくら？なぜバターだけ高い？雄の子牛はどうなる？消費者から届いた質問と、酪農家の率直な答えを先に読んでおく。
-            </p>
-          </div>
-          <Link to="/for-consumers" className="mt-4 md:mt-0 shrink-0 inline-flex items-center gap-1 rounded-xl border border-cream-200 px-5 py-3 text-sm font-bold text-ink-900 hover:border-moss-300">
-            消費者の疑問を読む <ArrowRight size={16} />
-          </Link>
-        </div>
-      </section>
     </>
   )
 }
