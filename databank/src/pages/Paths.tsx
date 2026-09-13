@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import EpisodeCard from '../components/EpisodeCard'
+import NextSteps from '../components/NextSteps'
 import { PATHS, findPath, resolvePath } from '../lib/paths'
 
 export function PathsIndex() {
@@ -68,6 +69,12 @@ export function PathDetail() {
           <EpisodeCard key={s.episode.id} episode={s.episode} index={i + 1} why={s.why} />
         ))}
       </div>
+      {/* 道筋を最後まで読んだ人が、行き止まりにならないように */}
+      <NextSteps
+        compact
+        audience={path.audience === 'consumer' ? 'consumer' : 'student'}
+        title="この道筋を読んだら"
+      />
     </div>
   )
 }
