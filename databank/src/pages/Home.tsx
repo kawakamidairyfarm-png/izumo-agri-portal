@@ -12,9 +12,14 @@ const PATH_ORDER = ['start-dairy', 'raise-healthy-cows', 'bridge', 'milk-truth']
 
 export default function Home() {
   const paths = PATH_ORDER.map((k) => PATHS.find((p) => p.key === k)!).filter(Boolean)
-  const questions = ARTICLES.filter((e) => e.audience.includes('student'))
-    .flatMap((e) => e.article!.qa.slice(0, 1).map((qa) => ({ q: qa.q, episode: e })))
-    .slice(0, 7)
+  // 両方の相手の質問を交互に並べる。どちらの人が見ても自分の疑問が入っているように
+  const pick = (au: 'student' | 'consumer') =>
+    ARTICLES.filter((e) => e.audience.includes(au)).flatMap((e) => e.article!.qa.slice(0, 1).map((qa) => ({ q: qa.q, episode: e })))
+  const forStudents = pick('student')
+  const forConsumers = pick('consumer').filter((x) => !forStudents.some((y) => y.q === x.q))
+  const questions = Array.from({ length: 8 }, (_, i) => (i % 2 === 0 ? forConsumers[i / 2] : forStudents[(i - 1) / 2]))
+    .filter(Boolean)
+    .slice(0, 8)
   const latest = EPISODES.slice(0, 8)
   const trainee = SERIES.find((s) => s.key === 'trainee')!
   const lecture = SERIES.find((s) => s.key === 'lecture2021')!
@@ -151,8 +156,8 @@ export default function Home() {
         </ol>
       </Section>
 
-      {/* 研修生と話した回 */}
-      <Section title="研修生と一緒に話した回" lead="同じ立場の人が、同じところでつまずいています。">
+      {/* まとまった連続回 */}
+      <Section title="まとまった話を、続けて読む" lead="一つのテーマを何回かに分けて話した回です。">
         <div className="grid gap-6 md:grid-cols-2">
           {[trainee, lecture].map((s) => {
             const eps = seriesEpisodes(s.key)
@@ -182,7 +187,7 @@ export default function Home() {
       </Section>
 
       {/* よく聞かれる質問（文の一覧） */}
-      <Section title="研修生によく聞かれる質問" lead="配信で実際に答えた質問から。">
+      <Section title="よく聞かれる質問" lead="配信に届いた質問と、そのとき答えた回です。">
         <ul className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
           {questions.map((x, i) => (
             <li key={i}>
