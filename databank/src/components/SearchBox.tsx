@@ -48,7 +48,7 @@ export default function SearchBox({
         </button>
       </form>
       {large && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-2 md:mt-3 flex flex-wrap gap-1 md:gap-1.5">
           {SUGGESTIONS.map((s) => (
             <button
               key={s}
@@ -57,7 +57,7 @@ export default function SearchBox({
                 setQ(s)
                 submit(s)
               }}
-              className="rounded-full border border-cream-200 bg-white px-3 py-1 text-sm text-ink-700 hover:border-moss-300 hover:text-moss-700"
+              className="rounded-full border border-cream-200 bg-white px-2 py-0.5 md:px-3 md:py-1 text-sm text-ink-700 hover:border-moss-300 hover:text-moss-700"
             >
               {s}
             </button>

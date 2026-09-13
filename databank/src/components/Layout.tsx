@@ -24,13 +24,13 @@ export default function Layout() {
               <span className="block text-xs font-bold tracking-[0.18em] text-moss-700 truncate">酪農データバンク</span>
             </span>
           </Link>
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1">
             {NAV.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  `px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                     isActive ? 'bg-moss-50 text-moss-900' : 'text-ink-700 hover:bg-cream-100'
                   }`
                 }
@@ -42,13 +42,13 @@ export default function Layout() {
               href={LINKS.line}
               target="_blank"
               rel="noreferrer"
-              className="ml-2 inline-flex items-center gap-1.5 rounded-lg bg-line px-3 py-2 text-sm font-bold text-white hover:bg-line-dark"
+              className="ml-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-line px-3 py-2 text-sm font-bold text-white hover:bg-line-dark"
             >
               <MessageCircle size={16} /> LINEで質問
             </a>
           </nav>
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-cream-100"
+            className="lg:hidden p-2 rounded-lg hover:bg-cream-100"
             aria-label="メニュー"
             onClick={() => setOpen((v) => !v)}
           >
@@ -56,7 +56,7 @@ export default function Layout() {
           </button>
         </div>
         {open && (
-          <nav className="md:hidden border-t border-cream-200 bg-white px-4 py-2 flex flex-col">
+          <nav className="lg:hidden border-t border-cream-200 bg-white px-4 py-2 flex flex-col">
             {NAV.map((n) => (
               <NavLink
                 key={n.to}
