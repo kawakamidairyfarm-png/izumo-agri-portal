@@ -40,5 +40,6 @@ p, h1, h2, h3, li, dt, dd, blockquote {
 }
 
 .prose-transcript p {
-  @apply leading-relaxed;
+  /* 本文に貼られた長いURLは、切れ目が無いと画面をはみ出す（配信で紹介したリンクなど） */
+  overflow-wrap: anywhere;
 }
