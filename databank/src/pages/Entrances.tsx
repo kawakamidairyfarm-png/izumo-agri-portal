@@ -7,7 +7,23 @@ import NextSteps from '../components/NextSteps'
 import { ARTICLES, EPISODES, TOPICS, leadOf, paragraphs } from '../lib/data'
 import { PATHS, resolvePath } from '../lib/paths'
 
-function Hero({ eyebrow, title, lead, dark = false }: { eyebrow: string; title: string; lead: string; dark?: boolean }) {
+function Hero({
+  eyebrow,
+  title,
+  lead,
+  placeholder,
+  hint,
+  dark = false,
+}: {
+  eyebrow: string
+  title: string
+  lead: string
+  /** 検索窓の例。読む人に合わせて変える（志す人には就農の質問、飲む人には牛乳の質問） */
+  placeholder?: string
+  /** 検索窓の下の添え書き */
+  hint?: string
+  dark?: boolean
+}) {
   return (
     <section className={dark ? 'bg-moss-900 text-white' : 'bg-moss-50'}>
       <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
@@ -19,7 +35,8 @@ function Hero({ eyebrow, title, lead, dark = false }: { eyebrow: string; title: 
           </p>
         ))}
         <div className="mt-6 max-w-xl">
-          <SearchBox />
+          <SearchBox placeholder={placeholder} />
+          {hint && <p className={`mt-2 text-sm ${dark ? 'text-white' : 'text-ink-500'}`}>{hint}</p>}
         </div>
       </div>
     </section>
@@ -100,9 +117,11 @@ export function ForConsumers() {
   return (
     <>
       <Hero
-        eyebrow="消費者に聞かれる質問"
-        title="牛乳の「なぜ？」に、答えられる酪農家になる。"
-        lead="就農すると、家族や友人、お客さんから必ず聞かれます。原価はいくら？給食の牛乳とスーパーの牛乳は何が違う？雄の子牛はどうなる？牧場に届いた質問に出雲の酪農家が答えてきた記録を、先に読んでおけます。"
+        eyebrow="牛乳を飲む人へ"
+        title="牛乳の「なぜ？」に、酪農家が答えます。"
+        lead="原価はいくら？ なぜバターだけ高い？ 給食の牛乳とスーパーの牛乳は何が違う？ 雄の子牛はどうなる？ 牧場に届いた質問に、出雲の酪農家が毎朝の配信で答えてきた記録です。登録もお金も要りません。"
+        placeholder="例：なぜバターだけ高いの？"
+        hint="気になる言葉を入れると、822回の中から探せます。たとえば「バター」「給食」「乳糖不耐症」。"
       />
 
       <Section title="よくある質問" lead="配信で実際に答えた質問から。">
