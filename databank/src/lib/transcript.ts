@@ -17,7 +17,7 @@ export type Block =
   | { kind: 'paragraph'; text: string }
   | { kind: 'quote'; who: string; text: string }
   | { kind: 'question'; who: string; text: string }
-  | { kind: 'insight'; text: string }
+  | { kind: 'insight'; who: string; text: string }
   | { kind: 'term'; who: string; text: string }
   | { kind: 'points'; items: string[] }
 
@@ -43,7 +43,7 @@ export function parseTranscript(raw: string): Block[] {
     if (mark === '##') blocks.push({ kind: 'heading', text: rest.trim() })
     else if (mark === '>>') blocks.push({ kind: 'quote', ...split(rest) })
     else if (mark === '??') blocks.push({ kind: 'question', ...split(rest) })
-    else if (mark === '!!') blocks.push({ kind: 'insight', text: rest.trim() })
+    else if (mark === '!!') blocks.push({ kind: 'insight', ...split(rest) })
     else if (mark === '%%') blocks.push({ kind: 'term', ...split(rest) })
     else {
       // まとめの項目は続くかぎり1つの箱にまとめる

@@ -41,10 +41,13 @@ export default function TranscriptBody({ text }: { text: string }) {
             )
           case 'insight':
             return (
-              <p key={i} className="rounded-2xl bg-hay-100 px-5 py-4 font-bold text-ink-900">
-                <Sparkles size={14} className="mr-1.5 inline-block align-[-2px] text-moss-700" />
-                {b.text}
-              </p>
+              <figure key={i} className="rounded-2xl bg-hay-100 px-5 py-4">
+                <blockquote className="font-bold text-ink-900">
+                  <Sparkles size={14} className="mr-1.5 inline-block align-[-2px] text-hay-700" />
+                  {b.text}
+                </blockquote>
+                {b.who && <figcaption className="mt-1.5 text-xs font-bold text-hay-700">── {b.who}</figcaption>}
+              </figure>
             )
           case 'term':
             return (
