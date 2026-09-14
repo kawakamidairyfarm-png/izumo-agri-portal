@@ -64,3 +64,42 @@ export function stripMarkers(raw: string): string {
 export function hasChapters(blocks: Block[]): boolean {
   return blocks.some((b) => b.kind === 'heading')
 }
+
+/**
+ * 狭い画面で、長い段落を文の切れ目で分ける。
+ *
+ * スマホ（幅390px）では1行が20字ほどなので、120字の段落は7〜8行の壁になる。
+ * 文の途中では切らず、「」の中の句点でも切らない。1文ずつに刻むと逆に読みにくいので、
+ * 上限に達するまでは文をためてから切る（金継ぎの掟「段落の粒度は幅で決める・1文刻みにしない」）。
+ * 広い画面では1行が50字を超えるので、分けずにそのまま出す。
+ */
+export function splitParagraph(text: string, max = 80, min = 25): string[] {
+  if (text.length <= max) return [text]
+  const sentences: string[] = []
+  let depth = 0
+  let buf = ''
+  for (const ch of text) {
+    buf += ch
+    if (ch === '「' || ch === '『' || ch === '（') depth++
+    else if (ch === '」' || ch === '』' || ch === '）') depth = Math.max(0, depth - 1)
+    else if (depth === 0 && (ch === '。' || ch === '！' || ch === '？')) {
+      sentences.push(buf)
+      buf = ''
+    }
+  }
+  if (buf) sentences.push(buf)
+  if (sentences.length < 2) return [text]
+
+  const out: string[] = []
+  for (const sentence of sentences) {
+    const last = out[out.length - 1]
+    if (last !== undefined && (last.length < min || last.length + sentence.length <= max)) out[out.length - 1] = last + sentence
+    else out.push(sentence)
+  }
+  // 最後のかけらが短すぎるときは前にくっつける
+  if (out.length > 1 && out[out.length - 1].length < min) {
+    const tail = out.pop()!
+    out[out.length - 1] += tail
+  }
+  return out
+}
