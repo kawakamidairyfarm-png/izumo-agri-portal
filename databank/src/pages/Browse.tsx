@@ -16,9 +16,14 @@ export default function Browse() {
   const category = params.get('category') as Category | null
   const topic = params.get('topic')
   const series = params.get('series')
-  const hasArticle = params.get('has') === 'article'
+  const has = params.get('has')
+  const hasArticle = has === 'article'
+  const hasText = has === 'text'
   const year = params.get('year')
   const [bodiesReady, setBodiesReady] = useState(searchHasBodies())
+  // 820件を一度に描くとスマホで重く、スクロールも終わらない。まず24件、あとは「もっと見る」で足す
+  const PAGE = 24
+  const [shown, setShown] = useState(PAGE)
   useEffect(() => {
     if (!q) return
     let alive = true
@@ -45,13 +50,22 @@ export default function Browse() {
       if (topic && !e.topics.includes(topic)) return false
       if (series && e.series !== series) return false
       if (hasArticle && !e.article) return false
+      if (hasText && !e.hasTranscript) return false
       if (year && !e.date.startsWith(year)) return false
       return true
     })
-  }, [q, audience, category, topic, series, hasArticle, year, bodiesReady])
+  }, [q, audience, category, topic, series, hasArticle, hasText, year, bodiesReady])
+
+  // 絞り込みや検索が変わったら、表示件数を最初に戻す
+  const resetKey = `${q}|${audience}|${category}|${topic}|${series}|${has}|${year}`
+  const [lastKey, setLastKey] = useState(resetKey)
+  if (lastKey !== resetKey) {
+    setLastKey(resetKey)
+    setShown(PAGE)
+  }
 
   const years = useMemo(() => Array.from(new Set(EPISODES.map((e) => e.date.slice(0, 4)))).sort().reverse(), [])
-  const activeFilters = [audience, category, topic, series, hasArticle ? 'article' : null, year].filter(Boolean).length
+  const activeFilters = [audience, category, topic, series, has, year].filter(Boolean).length
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -109,8 +123,14 @@ export default function Browse() {
                 {AUDIENCE_META[a].short}
               </Chip>
             ))}
+          </Filter>
+
+          <Filter label="読めるもの">
+            <Chip active={hasText} onClick={() => set('has', hasText ? null : 'text')}>
+              全文あり
+            </Chip>
             <Chip active={hasArticle} onClick={() => set('has', hasArticle ? null : 'article')}>
-              要約つきのみ
+              要約つき
             </Chip>
           </Filter>
 
@@ -151,6 +171,7 @@ export default function Browse() {
         <div>
           <p className="text-sm text-ink-500 mb-3">
             {results.length} 件{q && <>（「{q}」）</>}
+            {results.length > shown && <span className="ml-1">のうち {Math.min(shown, results.length)} 件を表示</span>}
             {q && !bodiesReady && <span className="ml-2">本文を読み込み中…</span>}
           </p>
           {results.length === 0 ? (
@@ -159,11 +180,24 @@ export default function Browse() {
               <p className="mt-1 text-sm">言い方を変えるか、絞り込みを解除してみてください。要約のない回は、タイトルのみで検索されます。</p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {results.map(({ episode, snippet }) => (
-                <EpisodeCard key={episode.id} episode={episode} query={q} snippet={snippet} />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                {results.slice(0, shown).map(({ episode, snippet }) => (
+                  <EpisodeCard key={episode.id} episode={episode} query={q} snippet={snippet} />
+                ))}
+              </div>
+              {results.length > shown && (
+                <div className="mt-6 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShown((n) => n + PAGE)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-6 py-3 text-sm font-bold text-ink-900 shadow-card hover:border-moss-300"
+                  >
+                    <ChevronDown size={18} /> もっと見る（残り {results.length - shown} 件）
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

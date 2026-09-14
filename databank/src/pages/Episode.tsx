@@ -8,15 +8,23 @@ import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links
 import { loadTranscript } from '../lib/transcripts'
 import NextSteps from '../components/NextSteps'
 import ShareBar from '../components/ShareBar'
+import TranscriptBody from '../components/TranscriptBody'
 
 export default function EpisodePage() {
   const { id = '' } = useParams()
   const episode = findEpisode(id)
-  const [showTranscript, setShowTranscript] = useState(false)
+  // 要約が無い回は全文が主役なので、最初から開いておく（要約がある回はたたんだまま）
+  const [showTranscript, setShowTranscript] = useState(!episode?.article)
   const [transcript, setTranscript] = useState<string | null>(null)
+  // 別の回へ移ったら、本文と開閉をその回のものに戻す（描画中に直すので効果の中で setState しない）
+  const [lastId, setLastId] = useState(id)
+  if (lastId !== id) {
+    setLastId(id)
+    setTranscript(null)
+    setShowTranscript(!episode?.article)
+  }
   useEffect(() => {
     let alive = true
-    setTranscript(null)
     if (episode?.transcriptKey) loadTranscript(episode.transcriptKey).then((t) => alive && setTranscript(t))
     return () => {
       alive = false
@@ -46,7 +54,6 @@ export default function EpisodePage() {
   const idx = EPISODES.findIndex((e) => e.id === episode.id)
   const newer = idx > 0 ? EPISODES[idx - 1] : null
   const older = idx < EPISODES.length - 1 ? EPISODES[idx + 1] : null
-  const paragraphs = transcript ? transcript.split(/\n+/).filter((p) => p.trim()) : []
   const note = noteLinkFor(episode)
   const youtube = youtubeLinkFor(episode)
   const spotify = spotifyLinkFor(episode)
@@ -148,24 +155,21 @@ export default function EpisodePage() {
           )}
 
         </>
-      ) : (
+      ) : episode.hasTranscript ? null : (
+        /* 全文も要約も無い回だけ、どこで読めるかを案内する（全文がある回は、この下の全文が主役） */
         <section className="mt-8 rounded-2xl bg-white border border-cream-200 p-6 shadow-card">
-          <p className="font-bold text-ink-900">この回の要約は準備中です。</p>
+          <p className="font-bold text-ink-900">この回は、まだこのサイトで読めません。</p>
           <p className="mt-2 text-sm leading-relaxed text-ink-700">
-            {episode.hasTranscript
-              ? episode.transcriptSource === 'pody'
-                ? 'この下で全文を読めます（podyが音声から起こした記事）。配信本体は Pody で聴けます。'
-                : 'この下で全文を読めます（noteの無料記事の本文）。配信本体は Pody で聴けます。'
-              : episode.paidNote
-                ? episode.notePrice
-                  ? `この回の全文は、noteの有料記事（${episode.notePrice.toLocaleString()}円）として公開されています。配信本体は Pody で聴けます。`
-                  : 'この回の全文は、noteのメンバーシップ限定記事として公開されています。配信本体は Pody で聴けます。'
-                : '配信本体は Pody で聴けます。要約と全文は、順次このサイトに追加していきます。'}
+            {episode.paidNote
+              ? episode.notePrice
+                ? `この回の全文は、noteの有料記事（${episode.notePrice.toLocaleString()}円）として公開されています。配信本体は Pody で聴けます。`
+                : 'この回の全文は、noteのメンバーシップ限定記事として公開されています。配信本体は Pody で聴けます。'
+              : '配信本体は Pody で聴けます。全文は、記事ができしだいこのサイトに追加していきます。'}
           </p>
         </section>
       )}
 
-      {paragraphs.length > 0 && (
+      {transcript && (
         <section className="mt-10">
           <button
             onClick={() => setShowTranscript((v) => !v)}
@@ -191,10 +195,8 @@ export default function EpisodePage() {
             {showTranscript ? <ChevronUp /> : <ChevronDown />}
           </button>
           {showTranscript && (
-            <div className="prose-transcript mt-4 rounded-2xl bg-white border border-cream-200 p-6 text-[15px] text-ink-700 space-y-3">
-              {paragraphs.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
+            <div className="mt-4 rounded-2xl bg-white border border-cream-200 p-6">
+              <TranscriptBody text={transcript!} />
               {episode.transcriptSource === 'note' && episode.noteUrl && (
                 <p className="pt-2 text-sm text-ink-500">
                   出典：

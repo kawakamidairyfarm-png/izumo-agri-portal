@@ -136,6 +136,53 @@ function render(template, { url, title, description, body, jsonLd, type = 'websi
   return html
 }
 
+/**
+ * 全文の「行頭の印」を、そのままの形の HTML にする。
+ * 印を付ける側は scripts/ingest.mjs の podyArticleToText、画面側は src/lib/transcript.ts。
+ * 三者は同じ印の表（## 見出し／>> 話者｜発言／?? 質問者｜質問／!! ひとこと／%% 用語｜説明／-- まとめ）を見る。
+ */
+function transcriptHtml(text) {
+  const out = []
+  let points = null
+  const flush = () => {
+    if (points) out.push(`<ul>${points.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`)
+    points = null
+  }
+  const named = (rest) => {
+    const i = rest.indexOf('｜')
+    return i < 0 ? { who: '', body: rest.trim() } : { who: rest.slice(0, i).trim(), body: rest.slice(i + 1).trim() }
+  }
+  for (const line of text.split(/\n+/)) {
+    const l = line.trim()
+    if (!l) continue
+    const m = /^(##|>>|\?\?|!!|%%|--)\s+([\s\S]*)$/.exec(l)
+    if (!m) {
+      flush()
+      out.push(`<p>${esc(l)}</p>`)
+      continue
+    }
+    const [, mark, rest] = m
+    if (mark === '--') {
+      points = points ?? []
+      points.push(rest.trim())
+      continue
+    }
+    flush()
+    if (mark === '##') out.push(`<h3>${esc(rest.trim())}</h3>`)
+    else if (mark === '>>' || mark === '??') {
+      const { who, body } = named(rest)
+      const label = mark === '??' ? `質問${who ? `（${who}）` : ''}` : who || '話し手'
+      out.push(`<blockquote><p><b>${esc(label)}</b> ${esc(body)}</p></blockquote>`)
+    } else if (mark === '!!') out.push(`<p><b>${esc(rest.trim())}</b></p>`)
+    else {
+      const { who, body } = named(rest)
+      out.push(`<p>${who ? `<b>${esc(who)}</b> ` : ''}${esc(body)}</p>`)
+    }
+  }
+  flush()
+  return out.join('')
+}
+
 function episodeBody(ep, transcript) {
   const parts = [`<article>`, `<h1>${esc(ep.title)}</h1>`, `<p>${esc(ep.date)} 配信｜${esc(NAME)}</p>`]
   if (ep.tags.length) parts.push(`<p>${ep.tags.map((t) => `#${esc(t)}`).join(' ')}</p>`)
@@ -146,7 +193,7 @@ function episodeBody(ep, transcript) {
     const text = transcript.length > BODY_LIMIT ? transcript.slice(0, BODY_LIMIT) : transcript
     const heading = ep.bodySource === 'pody' ? '配信の全文（podyの記事より）' : '配信の全文'
     parts.push(`<h2>${esc(heading)}</h2>`)
-    parts.push(text.split(/\n+/).filter((p) => p.trim()).map((p) => `<p>${esc(p)}</p>`).join(''))
+    parts.push(transcriptHtml(text))
   }
   parts.push('</article>')
   return parts.join('')

@@ -61,10 +61,14 @@ export default function EpisodeCard({
           ) : (
             <p className="mt-2 text-xs text-ink-500">
               {episode.hasTranscript
-                ? '要約は準備中。全文（noteの記事）を読めます。'
+                ? episode.transcriptSource === 'pody'
+                  ? 'この回の全文を、章ごとに読めます。'
+                  : episode.transcriptSource === 'note'
+                    ? 'この回の全文（noteの記事）を読めます。'
+                    : 'この回の全文（文字起こし）を読めます。'
                 : episode.paidNote
-                  ? '要約は準備中。全文は note の有料記事で読めます。'
-                  : '要約は準備中。配信本体は Pody で聴けます。'}
+                  ? '全文は note の有料記事で読めます。'
+                  : '配信本体は Pody で聴けます。'}
             </p>
           )}
           {snippet && (

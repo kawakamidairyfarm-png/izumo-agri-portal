@@ -21,6 +21,10 @@ on:
         description: 'note と pody の全部を見直す（初回や取りこぼしがあるとき）'
         type: boolean
         default: false
+      refresh_pody:
+        description: 'pody の本文を、章立て・発言・用語の印つきで取り直す（時間がかかる）'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -33,7 +37,7 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: databank
@@ -47,7 +51,7 @@ jobs:
 
       - name: 取り込み
         id: ingest
-        run: node scripts/ingest.mjs ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.full && '--full' || '' }}
+        run: node scripts/ingest.mjs ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.full && '--full' || '' }} ${{ inputs.refresh_pody && '--refresh-pody' || '' }}
 
       - name: 変更の有無
         id: diff
