@@ -7,10 +7,13 @@ const SUGGESTIONS = ['資金', '資格', '非農家', '研修', '乳房炎', '�
 export default function SearchBox({
   initial = '',
   large = false,
+  placeholder = '例：牧場を始めるのに資金はいくら？',
   onSearch,
 }: {
   initial?: string
   large?: boolean
+  /** 読む人に合わせて例を変える（志す人には就農の質問、飲む人には牛乳の質問） */
+  placeholder?: string
   onSearch?: (q: string) => void
 }) {
   const [q, setQ] = useState(initial)
@@ -35,7 +38,7 @@ export default function SearchBox({
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="例：牧場を始めるのに資金はいくら？"
+          placeholder={placeholder}
           className={`search-input flex-1 min-w-0 bg-white text-ink-900 placeholder:text-ink-500 caret-moss-700 outline-none ${large ? 'text-lg py-2' : 'text-sm py-1.5'}`}
           autoComplete="off"
           aria-label="検索"
