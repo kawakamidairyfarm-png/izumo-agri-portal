@@ -173,7 +173,10 @@ function transcriptHtml(text) {
       const { who, body } = named(rest)
       const label = mark === '??' ? `質問${who ? `（${who}）` : ''}` : who || '話し手'
       out.push(`<blockquote><p><b>${esc(label)}</b> ${esc(body)}</p></blockquote>`)
-    } else if (mark === '!!') out.push(`<p><b>${esc(rest.trim())}</b></p>`)
+    } else if (mark === '!!') {
+      const { who, body } = named(rest)
+      out.push(`<blockquote><p><b>${esc(body)}</b>${who ? ` ── ${esc(who)}` : ''}</p></blockquote>`)
+    }
     else {
       const { who, body } = named(rest)
       out.push(`<p>${who ? `<b>${esc(who)}</b> ` : ''}${esc(body)}</p>`)

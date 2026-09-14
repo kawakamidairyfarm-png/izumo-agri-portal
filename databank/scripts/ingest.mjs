@@ -586,7 +586,7 @@ export function podyArticleToText(html) {
   s = s.replace(/<(button|svg)\b[\s\S]*?<\/\1>/gi, '')
   s = s.replace(/<a class="share-btn[^"]*"[^>]*>[\s\S]*?<\/a>/gi, '')
   s = s.replace(/<span class="(?:chapter-no|insight-label|tip-block-icon)"[^>]*>[\s\S]*?<\/span>/gi, '')
-  s = s.replace(/<div class="(?:bubble-avatar|insight-attr|insight-accent-bar|chapter-head-actions|insight-meta|insight-share|question-badge)"[^>]*>[\s\S]*?<\/div>/gi, '')
+  s = s.replace(/<div class="(?:bubble-avatar|insight-accent-bar|chapter-head-actions|insight-meta|insight-share|question-badge|copy-toast)"[^>]*>[\s\S]*?<\/div>/gi, '')
 
   /* 用語メモ: <div class="tip-block">…<strong>用語</strong> ── 説明…</div>（入れ子の div は無い） */
   s = s.replace(/<div class="tip-block"[^>]*>([\s\S]*?)<\/div>/gi, (_m, inner) => {
@@ -604,8 +604,14 @@ export function podyArticleToText(html) {
     /<div class="question-from"[^>]*>([\s\S]*?)<\/div>\s*<p class="question-text"[^>]*>([\s\S]*?)<\/p>/gi,
     (_m, from, q) => `\n\n?? ${inlineText(from)}｜${inlineText(q)}\n\n`,
   )
-  /* だいじなひとこと: <div class="insight-text">…</div> */
-  s = s.replace(/<div class="insight-text"[^>]*>([\s\S]*?)<\/div>/gi, (_m, t) => `\n\n!! ${inlineText(t)}\n\n`)
+  /* だいじなひとこと: <p class="insight-text">…</p> と、その下の <div class="insight-attr">── 名前</div> */
+  s = s.replace(
+    /<p class="insight-text"[^>]*>([\s\S]*?)<\/p>\s*(?:<div class="insight-attr"[^>]*>([\s\S]*?)<\/div>)?/gi,
+    (_m, t, who) => {
+      const name = inlineText(who ?? '').replace(/^──\s*/, '')
+      return `\n\n!! ${name ? `${name}｜` : ''}${inlineText(t)}\n\n`
+    },
+  )
   /* まとめの箇条書き */
   s = s.replace(/<ul class="summary-list"[^>]*>([\s\S]*?)<\/ul>/gi, (_m, inner) => {
     const items = [...inner.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)].map((x) => `-- ${inlineText(x[1])}`)
