@@ -186,7 +186,31 @@ function transcriptHtml(text) {
   return out.join('')
 }
 
-function episodeBody(ep, transcript) {
+/** 回への内部リンク1本 */
+function epLink(ep) {
+  return `<li><a href="${esc(SITE)}e/${esc(ep.id)}/">${esc(ep.date)} ${esc(ep.title)}</a></li>`
+}
+
+/**
+ * 回どうしをつなぐ道。
+ * 静的HTMLにリンクが1本も無いと、検索エンジンはトップ以外の回を見つけられない
+ * （サイトマップが読めないときは、これだけが手がかりになる）。
+ */
+function episodeNav(ep, prev, next, sameMonth) {
+  const parts = ['<nav><h2>この配信の前後</h2><ul>']
+  if (prev) parts.push(`<li>前の配信: <a href="${esc(SITE)}e/${esc(prev.id)}/">${esc(prev.date)} ${esc(prev.title)}</a></li>`)
+  if (next) parts.push(`<li>次の配信: <a href="${esc(SITE)}e/${esc(next.id)}/">${esc(next.date)} ${esc(next.title)}</a></li>`)
+  parts.push('</ul>')
+  if (sameMonth.length) {
+    parts.push(`<h2>${esc(ep.date.slice(0, 7).replace('-', '年'))}月の配信</h2><ul>`)
+    parts.push(sameMonth.map(epLink).join(''))
+    parts.push('</ul>')
+  }
+  parts.push(`<ul><li><a href="${esc(SITE)}browse/">全配信を探す</a></li><li><a href="${esc(SITE)}">${esc(NAME)}</a></li></ul></nav>`)
+  return parts.join('')
+}
+
+function episodeBody(ep, transcript, nav = '') {
   const parts = [`<article>`, `<h1>${esc(ep.title)}</h1>`, `<p>${esc(ep.date)} 配信｜${esc(NAME)}</p>`]
   if (ep.tags.length) parts.push(`<p>${ep.tags.map((t) => `#${esc(t)}`).join(' ')}</p>`)
   if (ep.summary) parts.push(`<h2>要約</h2><p>${esc(ep.summary)}</p>`)
@@ -199,6 +223,7 @@ function episodeBody(ep, transcript) {
     parts.push(transcriptHtml(text))
   }
   parts.push('</article>')
+  if (nav) parts.push(nav)
   return parts.join('')
 }
 
@@ -225,10 +250,24 @@ async function main() {
     { url: '/expert', title: `企業・研究・メディアの方へ｜${NAME}`, description: '島根県出雲市の酪農家が、飼養管理・経営・人手・遺伝改良・資材の実態についてお答えします。専門家インタビュー、取材、新規事業の伴走のご相談を承ります。', h1: '酪農の現場に、直接たずねる', lead: '搾乳牛40頭・全体80頭を1人で管理する酪農家が、統計や資料では出てこない粒度で現場の実態をお話しします。', priority: '0.8' },
     { url: '/about', title: `牧場について｜${NAME}`, description: '島根県出雲市・川上牧場について。研修生の受け入れ、酪農家・牧場向けの相談、講演や取材のご依頼。', h1: '牧場について', lead: '', priority: '0.7' },
   ]
+  // 静的HTMLにも、ほかのページへ行ける道を必ず置く（検索エンジンはここを辿って回を見つける）
+  const byDate = [...episodes].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  const menu =
+    `<nav><ul>` +
+    fixed.map((f) => `<li><a href="${esc(SITE)}${f.url === '/' ? '' : f.url.replace(/^\//, '') + '/'}">${esc(f.h1)}</a></li>`).join('') +
+    paths.map((p) => `<li><a href="${esc(SITE)}paths/${esc(p.key)}/">${esc(p.title)}</a></li>`).join('') +
+    `</ul></nav>`
   for (const f of fixed) {
+    const extra =
+      f.url === '/browse'
+        ? // 全配信の索引。検索エンジンが 822 回すべてに辿り着ける唯一の道になる
+          `<h2>すべての配信</h2><ul>${byDate.map(epLink).join('')}</ul>`
+        : f.url === '/'
+          ? `<h2>最近の配信</h2><ul>${byDate.slice(0, 30).map(epLink).join('')}</ul>`
+          : ''
     await write(f.url, render(template, {
       url: f.url, title: f.title, description: f.description,
-      body: `<article><h1>${esc(f.h1)}</h1><p>${esc(f.lead || f.description)}</p></article>`,
+      body: `<article><h1>${esc(f.h1)}</h1><p>${esc(f.lead || f.description)}</p>${extra}</article>${menu}`,
       jsonLd: f.url === '/' ? { '@context': 'https://schema.org', '@type': 'WebSite', name: NAME, url: SITE } : null,
     }))
   }
@@ -239,13 +278,23 @@ async function main() {
       url: `/paths/${p.key}`,
       title: `${p.title}｜学びの道筋｜${NAME}`,
       description: clip(p.lead, 110),
-      body: `<article><h1>${esc(p.title)}</h1><p>${esc(p.lead)}</p></article>`,
+      body: `<article><h1>${esc(p.title)}</h1><p>${esc(p.lead)}</p></article>${menu}`,
     }))
   }
 
-  // 個別の回
+  // 個別の回（新しい順に並べ、前後をつないで回れるようにする）
+  const ordered = [...episodes].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.id < b.id ? 1 : -1))
+  const byMonth = new Map()
+  for (const e of ordered) {
+    const k = e.date.slice(0, 7)
+    if (!byMonth.has(k)) byMonth.set(k, [])
+    byMonth.get(k).push(e)
+  }
   let withBody = 0
-  for (const ep of episodes) {
+  for (const [i, ep] of ordered.entries()) {
+    const newer = i > 0 ? ordered[i - 1] : null
+    const older = i < ordered.length - 1 ? ordered[i + 1] : null
+    const sameMonth = (byMonth.get(ep.date.slice(0, 7)) ?? []).filter((e) => e.id !== ep.id).slice(0, 10)
     let transcript = null
     if (ep.transcriptFile) {
       transcript = await fs.readFile(path.join(DATA, 'transcripts', ep.transcriptFile), 'utf8')
@@ -257,7 +306,7 @@ async function main() {
       type: 'article',
       title: `${ep.title}｜${NAME}`,
       description,
-      body: episodeBody(ep, transcript),
+      body: episodeBody(ep, transcript, episodeNav(ep, older, newer, sameMonth)),
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'Article',
