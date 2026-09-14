@@ -9,6 +9,7 @@
  *   node scripts/ingest.mjs --no-pody     pody の記事は見ない
  *   node scripts/ingest.mjs --dry-run     何を取り込むかを表示するだけで、ファイルは変えない
  *   node scripts/ingest.mjs --full        note と pody の全部を見直す（通常は既知の回が続いた時点で止める）
+ *   node scripts/ingest.mjs --refresh-pody  pody の本文を、章立て・発言・用語の印つきで取り直す（--full を含む）
  *
  * 1. inbox/ の使い方
  *    databank/inbox/ に「YYYYMMDD_タイトル.txt」という名前で文字起こしを置く。
@@ -57,7 +58,8 @@ const DRY = args.has('--dry-run')
 const DO_INBOX = !args.has('--no-inbox')
 const DO_NOTE = !args.has('--no-note')
 const DO_PODY = !args.has('--no-pody')
-const FULL = args.has('--full')
+const REFRESH_PODY = args.has('--refresh-pody')
+const FULL = args.has('--full') || REFRESH_PODY
 const CREATOR = process.env.NOTE_CREATOR || 'kawakamifarm'
 const API_BASE = (process.env.NOTE_API_BASE || 'https://note.com').replace(/\/$/, '')
 const PODY_FEED = process.env.PODY_FEED_ID || 'OT1nXl6WW61B8vjQ98ru'
@@ -242,7 +244,7 @@ async function transcriptExists(id) {
  */
 async function saveBody(index, entry, text, { paid, label, source }) {
   const id = index.idOf(entry)
-  const replacingPody = entry.bodySource === 'pody' && source !== 'pody'
+  const replacingPody = entry.bodySource === 'pody' && (source !== 'pody' || REFRESH_PODY)
   if ((await transcriptExists(id)) && !replacingPody) {
     report.skipped.push(`${label}: 本文は登録済み（${id}）`)
     return false
@@ -552,14 +554,69 @@ export function podyArticleHtml(html) {
   return ref ? rscTextChunk(payload, ref[1]) : null
 }
 
-/** pody の記事 HTML を素のテキストにする（再生ボタンや飾りを除く） */
+/** タグを落として1行の文にする（印つきの行を組み立てるときに使う） */
+function inlineText(html) {
+  return decodeEntities(String(html ?? '').replace(/<[^>]+>/g, ' '))
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * pody の記事 HTML を、行頭の印つきテキストにする。
+ *
+ * pody の記事は章立て・発言の吹き出し・質問カード・用語メモ・まとめでできている。
+ * これを平らな文章にしてしまうと、サイトでは見分けがつかない壁になるので、
+ * 行頭に印を置いて構造を残す（印の意味は src/lib/transcript.ts と対）。
+ *
+ *   ## 見出し
+ *   >> 話者｜発言
+ *   ?? 質問した人｜質問
+ *   !! だいじなひとこと
+ *   %% 用語｜説明
+ *   -- まとめの項目
+ *   （印の無い行は、ふつうの段落）
+ *
+ * 印は全角・和文では行頭に出ない並びを選んである。読み取り側が知らなくても、
+ * 印を外せばこれまでどおりの文章として読める。
+ */
 export function podyArticleToText(html) {
   let s = String(html ?? '')
+  /* 操作部品・飾りを落とす */
   s = s.replace(/<(button|svg)\b[\s\S]*?<\/\1>/gi, '')
   s = s.replace(/<a class="share-btn[^"]*"[^>]*>[\s\S]*?<\/a>/gi, '')
-  s = s.replace(/<span class="chapter-no"[^>]*>[\s\S]*?<\/span>/gi, '')
-  s = s.replace(/<span class="insight-label"[^>]*>[\s\S]*?<\/span>/gi, '')
-  s = s.replace(/<div class="(?:bubble-avatar|insight-attr|insight-accent-bar|chapter-head-actions|insight-meta)"[^>]*>[\s\S]*?<\/div>/gi, '')
+  s = s.replace(/<span class="(?:chapter-no|insight-label|tip-block-icon)"[^>]*>[\s\S]*?<\/span>/gi, '')
+  s = s.replace(/<div class="(?:bubble-avatar|insight-attr|insight-accent-bar|chapter-head-actions|insight-meta|insight-share|question-badge)"[^>]*>[\s\S]*?<\/div>/gi, '')
+
+  /* 用語メモ: <div class="tip-block">…<strong>用語</strong> ── 説明…</div>（入れ子の div は無い） */
+  s = s.replace(/<div class="tip-block"[^>]*>([\s\S]*?)<\/div>/gi, (_m, inner) => {
+    const t = inlineText(inner)
+    const m = /^(.{1,40}?)\s*──\s*([\s\S]+)$/.exec(t)
+    return m ? `\n\n%% ${m[1]}｜${m[2]}\n\n` : t ? `\n\n%% ${t}\n\n` : ''
+  })
+  /* 発言の吹き出し: <div class="bubble-name">川上</div><div class="bubble"><p>…</p></div> */
+  s = s.replace(
+    /<div class="bubble-name"[^>]*>([\s\S]*?)<\/div>\s*<div class="bubble"[^>]*>([\s\S]*?)<\/div>/gi,
+    (_m, name, body) => `\n\n>> ${inlineText(name)}｜${inlineText(body)}\n\n`,
+  )
+  /* 質問カード: <div class="question-from">名前</div><p class="question-text">…</p> */
+  s = s.replace(
+    /<div class="question-from"[^>]*>([\s\S]*?)<\/div>\s*<p class="question-text"[^>]*>([\s\S]*?)<\/p>/gi,
+    (_m, from, q) => `\n\n?? ${inlineText(from)}｜${inlineText(q)}\n\n`,
+  )
+  /* だいじなひとこと: <div class="insight-text">…</div> */
+  s = s.replace(/<div class="insight-text"[^>]*>([\s\S]*?)<\/div>/gi, (_m, t) => `\n\n!! ${inlineText(t)}\n\n`)
+  /* まとめの箇条書き */
+  s = s.replace(/<ul class="summary-list"[^>]*>([\s\S]*?)<\/ul>/gi, (_m, inner) => {
+    const items = [...inner.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)].map((x) => `-- ${inlineText(x[1])}`)
+    return items.length ? `\n\n${items.join('\n')}\n\n` : ''
+  })
+  /* 章見出し（まとめの見出しも同じ印で） */
+  s = s.replace(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi, (_m, t) => {
+    const label = inlineText(t)
+    return label ? `\n\n## ${label}\n\n` : ''
+  })
+
   return htmlToText(s)
 }
 
@@ -588,7 +645,8 @@ async function ingestPody(index) {
       debug(label)
       let entry = index.find({ date, title: ep.title }) ?? index.findNearTitle(ep.title, date)
       const hadBody = entry ? await transcriptExists(index.idOf(entry)) : false
-      if (entry && entry.podyUrl && (hadBody || !ep.hasPublicArticle)) {
+      const refreshing = REFRESH_PODY && ep.hasPublicArticle && entry?.bodySource === 'pody'
+      if (entry && entry.podyUrl && (hadBody || !ep.hasPublicArticle) && !refreshing) {
         seenKnown++
         if (!FULL && seenKnown >= 5) return
         continue
@@ -600,7 +658,7 @@ async function ingestPody(index) {
         entry.podyUrl = url
         changed = true
       }
-      if (!hadBody && ep.hasPublicArticle) {
+      if ((!hadBody || refreshing) && ep.hasPublicArticle) {
         const paid = index.isPaid(entry.noteUrl) || PAID_TITLE_RE.test(entry.title)
         try {
           const text = podyArticleToText(podyArticleHtml(await fetchText(`${PODY_BASE}/player/${PODY_FEED}/${ep.id}`)))

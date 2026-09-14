@@ -121,7 +121,11 @@ function makeSnippet(e: Episode, idx: number, term: string): string | null {
   // cases (NFKC/lowercase keep Japanese text stable), so index into the raw text.
   const start = Math.max(0, idx - 60)
   const end = Math.min(raw.length, idx + term.length + 90)
-  const s = raw.slice(start, end).replace(/\s+/g, ' ')
+  // 全文には行頭の印（## >> ?? !! %% --）が入っていることがある。抜き書きには出さない
+  const s = raw
+    .slice(start, end)
+    .replace(/(^|\n)(##|>>|\?\?|!!|%%|--)\s+/g, '$1')
+    .replace(/\s+/g, ' ')
   return (start > 0 ? '…' : '') + s + (end < raw.length ? '…' : '')
 }
 
