@@ -30,6 +30,16 @@
         location.replace('https://' + location.host + location.pathname + location.search + location.hash)
       }
     </script>
+    <style>
+      /*
+        prerender.mjs が #root の中に書き出す静的な本文は、検索エンジンのためのもの。
+        CSS と JavaScript が届くまでの一瞬、人には飾りの無い文字の羅列として見えてしまうので隠す
+        （React が起動すると中身ごと置き換わるので、人の見え方はこれまでどおり）。
+        JavaScript が動かない環境では読めないと困るため、noscript で見えるように戻す。
+      */
+      #root > .prerender { display: none; }
+    </style>
+    <noscript><style>#root > .prerender { display: block; }</style></noscript>
   </head>
   <body>
     <div id="root"></div>

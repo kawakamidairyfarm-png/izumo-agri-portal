@@ -132,7 +132,8 @@ function render(template, { url, title, description, body, jsonLd, type = 'websi
   html = html.replace(/\n\s*<meta name="description"[\s\S]*?\/>/, '')
   html = html.replace(/\n\s*<meta property="og:(?:type|title|description|url)"[\s\S]*?\/>/g, '')
   html = html.replace('</head>', `  ${head}\n  </head>`)
-  html = html.replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+  // .prerender は「検索エンジン向けの中身」の印。index.html の <style> がこれを人の目から隠す
+  html = html.replace('<div id="root"></div>', `<div id="root"><div class="prerender">${body}</div></div>`)
   return html
 }
 
