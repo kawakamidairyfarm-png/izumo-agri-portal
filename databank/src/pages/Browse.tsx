@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp, SlidersHorizontal, X } from 'lucide-react'
 import SearchBox from '../components/SearchBox'
 import EpisodeCard from '../components/EpisodeCard'
@@ -76,6 +76,13 @@ export default function Browse() {
       <div className="mt-5">
         <SearchBox initial={q} onSearch={(v) => set('q', v || null)} />
       </div>
+      <p className="mt-2 text-sm text-ink-500">
+        日付から探すなら{' '}
+        <Link to="/archive" className="font-bold text-moss-700 underline decoration-moss-300 hover:text-moss-900">
+          全配信の一覧
+        </Link>
+        へ。
+      </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
         <aside>

@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { trackView } from './lib/analytics'
 import Layout from './components/Layout'
 import Home from './pages/Home'
+import Archive from './pages/Archive'
 import Browse from './pages/Browse'
 import EpisodePage from './pages/Episode'
 import { PathsIndex, PathDetail } from './pages/Paths'
@@ -28,6 +29,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="browse" element={<Browse />} />
+          <Route path="archive" element={<Archive />} />
           <Route path="e/:id" element={<EpisodePage />} />
           <Route path="paths" element={<PathsIndex />} />
           <Route path="paths/:key" element={<PathDetail />} />

@@ -300,6 +300,7 @@ async function main() {
   const fixed = [
     { url: '/', title: NAME, description: `出雲の酪農家が毎朝の配信で話してきたことを、${episodes.length}本ぶん読める形にまとめました。就農の準備や牛の健康から、牛乳のふしぎまで。酪農を志す人も、牛乳を飲む人も、登録なしで読めます。`, h1: NAME, lead: `配信 ${episodes.length} 回分を、言葉で検索できる形にまとめています。酪農を志す人も、牛乳を飲む人も、登録なしで読めます。`, priority: '1.0' },
     { url: '/browse', title: `全配信を探す｜${NAME}`, description: `川上牧場の配信 ${episodes.length} 回を、言葉・分類・年月から探せます。乳房炎、資金、飼料、繁殖、就農など。`, h1: '全配信を探す', lead: '言葉で全文を検索できます。', priority: '0.9' },
+    { url: '/archive', title: `全配信の一覧｜${NAME}`, description: `2019年から続く川上牧場の音声配信 ${episodes.length} 回を、日付順にすべて並べた一覧です。`, h1: '全配信の一覧', lead: `2019年からの ${episodes.length} 回を、新しい順に並べています。`, priority: '0.9' },
     { url: '/paths', title: `学びの道筋｜${NAME}`, description: '何から読めばいいかを順番にした道筋。ゼロから酪農を始める、牛を健康に飼う、ほか。', h1: '学びの道筋', lead: '読む順番をたどれます。', priority: '0.8' },
     { url: '/for-students', title: `酪農を志す人へ｜${NAME}`, description: '酪農をやってみたい人が最初に知りたいこと。資金、資格、非農家からの道、研修のこと。', h1: '酪農を志す人へ', lead: '', priority: '0.8' },
     { url: '/for-consumers', title: `牛乳を飲む人へ｜${NAME}`, description: '牛乳と酪農について、消費者からよく聞かれる質問に酪農家が答えます。', h1: '牛乳を飲む人へ', lead: '', priority: '0.8' },
@@ -308,6 +309,16 @@ async function main() {
   ]
   // 静的HTMLにも、ほかのページへ行ける道を必ず置く（検索エンジンはここを辿って回を見つける）
   const byDate = [...episodes].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  /** 年ごとにまとめた一覧（新しい年から） */
+  const byYear2 = () => {
+    const m = new Map()
+    for (const e of byDate) {
+      const y = e.date.slice(0, 4)
+      if (!m.has(y)) m.set(y, [])
+      m.get(y).push(e)
+    }
+    return [...m.entries()]
+  }
   const menu =
     `<nav><ul>` +
     fixed.map((f) => `<li><a href="${esc(SITE)}${f.url === '/' ? '' : f.url.replace(/^\//, '') + '/'}">${esc(f.h1)}</a></li>`).join('') +
@@ -315,9 +326,9 @@ async function main() {
     `</ul></nav>`
   for (const f of fixed) {
     const extra =
-      f.url === '/browse'
-        ? // 全配信の索引。検索エンジンが 822 回すべてに辿り着ける唯一の道になる
-          `<h2>すべての配信</h2><ul>${byDate.map(epLink).join('')}</ul>`
+      f.url === '/archive' || f.url === '/browse'
+        ? // 全配信の索引。ここから 1 回ずつに辿れる（/archive は画面にも同じ一覧が出る）
+          byYear2().map(([y, list]) => `<h2>${esc(y)}年</h2><ul>${list.map(epLink).join('')}</ul>`).join('')
         : f.url === '/'
           ? `<h2>最近の配信</h2><ul>${byDate.slice(0, 30).map(epLink).join('')}</ul>`
           : ''

@@ -134,6 +134,11 @@ export default function Layout() {
                   </a>
                 </li>
                 <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/archive">
+                    全配信の一覧（{stats.episodes} 回）
+                  </Link>
+                </li>
+                <li>
                   <Link className="underline decoration-moss-300 hover:text-moss-700" to="/about#farmers">
                     酪農家・牧場の方へ（相談・伴走）
                   </Link>
