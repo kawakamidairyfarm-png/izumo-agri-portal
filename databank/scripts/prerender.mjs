@@ -24,6 +24,28 @@ const NAME = '川上牧場 酪農データバンク'
 /** 全文をこの長さで切る。長すぎるページは検索側に嫌われ、ファイルも重くなる */
 const BODY_LIMIT = 12000
 
+/* 誰が話したものか・どこの牧場かを、機械が読める形で1か所に持つ。
+   検索やAIの要約に拾われるとき、書き手が実在の酪農家であることが手がかりになる */
+const FARM = {
+  '@type': 'Organization',
+  name: '川上牧場',
+  url: SITE,
+  address: { '@type': 'PostalAddress', addressRegion: '島根県', addressLocality: '出雲市', addressCountry: 'JP' },
+}
+const AUTHOR = {
+  '@type': 'Person',
+  name: '川上哲也',
+  jobTitle: '酪農家',
+  worksFor: FARM,
+  description: '島根県出雲市で乳牛約80頭を飼う酪農家。2019年から毎朝の音声配信を続けている。',
+}
+/** パンくず（このページがサイトのどこにあるか） */
+const breadcrumb = (items) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.name, item: it.url })),
+})
+
 const readJson = async (p) => JSON.parse(await fs.readFile(p, 'utf8'))
 const exists = (p) => fs.access(p).then(() => true, () => false)
 
@@ -33,6 +55,34 @@ function esc(s) {
 
 function normalizeTitle(t) {
   return String(t).normalize('NFKC').replace(/\s+/g, '').replace(/[“”"「」『』!！?？・:：、。…—─―]/g, '').toLowerCase()
+}
+
+/** 行頭の印（## >> ?? !! %% --）と「名前｜」を外して、ふつうの文章に戻す */
+function stripMarkers(text) {
+  return String(text ?? '')
+    .replace(/^(##|>>|\?\?|!!|%%|--)\s+/gm, '')
+    .replace(/^([^\n｜]{1,24})｜/gm, '$1: ')
+}
+
+/**
+ * 全文の末尾にある「まとめ」を取り出す。
+ * pody の記事は最後に、1〜2文の要旨と箇条書きの要点を置いてくれる。
+ * これはページの説明文にも、答えを先に示すための要点にも使える一番良い材料になる。
+ */
+function extractSummary(text) {
+  const t = String(text ?? '')
+  const at = t.indexOf('\n## まとめ')
+  if (at < 0) return { abstract: '', points: [] }
+  const lines = t.slice(at).split(/\n/).map((l) => l.trim()).filter(Boolean)
+  lines.shift() // 「## まとめ」の見出し自体を捨てる
+  let abstract = ''
+  const points = []
+  for (const l of lines) {
+    if (l.startsWith('## ')) break
+    if (l.startsWith('-- ')) points.push(l.slice(3).trim())
+    else if (!abstract && !/^(>>|\?\?|!!|%%)\s/.test(l)) abstract = l
+  }
+  return { abstract, points }
 }
 
 /** 説明文にする。改行を詰めて、指定の長さで切る */
@@ -124,7 +174,7 @@ function render(template, { url, title, description, body, jsonLd, type = 'websi
     `<meta property="og:title" content="${esc(title)}" />`,
     `<meta property="og:description" content="${esc(description)}" />`,
     `<meta property="og:url" content="${esc(abs)}" />`,
-    jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>` : '',
+    ...[jsonLd ?? []].flat().filter(Boolean).map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`),
   ].filter(Boolean).join('\n    ')
 
   let html = template
@@ -211,9 +261,14 @@ function episodeNav(ep, prev, next, sameMonth) {
   return parts.join('')
 }
 
-function episodeBody(ep, transcript, nav = '') {
+function episodeBody(ep, transcript, nav = '', summary = { abstract: '', points: [] }) {
   const parts = [`<article>`, `<h1>${esc(ep.title)}</h1>`, `<p>${esc(ep.date)} 配信｜${esc(NAME)}</p>`]
   if (ep.tags.length) parts.push(`<p>${ep.tags.map((t) => `#${esc(t)}`).join(' ')}</p>`)
+  // 答えを先に置く。読む側も、要約を拾う側も、最初の数行で「この回は何の話か」が分かるように
+  if (summary.abstract) parts.push(`<h2>この回の要旨</h2><p>${esc(summary.abstract)}</p>`)
+  if (summary.points.length) {
+    parts.push(`<h2>この回の要点</h2><ul>${summary.points.map((k) => `<li>${esc(k)}</li>`).join('')}</ul>`)
+  }
   if (ep.summary) parts.push(`<h2>要約</h2><p>${esc(ep.summary)}</p>`)
   if (ep.keyPoints.length) parts.push(`<h2>要点</h2><ul>${ep.keyPoints.map((k) => `<li>${esc(k)}</li>`).join('')}</ul>`)
   if (ep.qa.length) parts.push(`<h2>こんな質問に答えています</h2><dl>${ep.qa.map((q) => `<dt>${esc(q.q)}</dt><dd>${esc(q.a)}</dd>`).join('')}</dl>`)
@@ -269,7 +324,30 @@ async function main() {
     await write(f.url, render(template, {
       url: f.url, title: f.title, description: f.description,
       body: `<article><h1>${esc(f.h1)}</h1><p>${esc(f.lead || f.description)}</p>${extra}</article>${menu}`,
-      jsonLd: f.url === '/' ? { '@context': 'https://schema.org', '@type': 'WebSite', name: NAME, url: SITE } : null,
+      jsonLd:
+        f.url === '/'
+          ? [
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: NAME,
+                url: SITE,
+                inLanguage: 'ja',
+                description: f.description,
+                publisher: FARM,
+                // 「サイトの中を言葉で探せる」ことを機械に伝える
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: { '@type': 'EntryPoint', urlTemplate: `${SITE}browse?q={search_term_string}` },
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+              { '@context': 'https://schema.org', ...FARM, founder: AUTHOR, description: '島根県出雲市の酪農家。乳牛約80頭。' },
+            ]
+          : [
+              { '@context': 'https://schema.org', '@type': 'WebPage', name: f.h1, url: `${SITE}${f.url.replace(/^\//, '')}/`, description: f.description, inLanguage: 'ja', isPartOf: { '@type': 'WebSite', name: NAME, url: SITE } },
+              breadcrumb([{ name: NAME, url: SITE }, { name: f.h1, url: `${SITE}${f.url.replace(/^\//, '')}/` }]),
+            ],
     }))
   }
 
@@ -280,6 +358,11 @@ async function main() {
       title: `${p.title}｜学びの道筋｜${NAME}`,
       description: clip(p.lead, 110),
       body: `<article><h1>${esc(p.title)}</h1><p>${esc(p.lead)}</p></article>${menu}`,
+      jsonLd: breadcrumb([
+        { name: NAME, url: SITE },
+        { name: '学びの道筋', url: `${SITE}paths/` },
+        { name: p.title, url: `${SITE}paths/${p.key}/` },
+      ]),
     }))
   }
 
@@ -301,24 +384,49 @@ async function main() {
       transcript = await fs.readFile(path.join(DATA, 'transcripts', ep.transcriptFile), 'utf8')
       withBody++
     }
-    const description = clip(ep.summary || transcript || `${ep.date} の配信。${ep.title}`, 110)
+    const summary = extractSummary(transcript)
+    const description = clip(ep.summary || summary.abstract || stripMarkers(transcript) || `${ep.date} の配信。${ep.title}`, 110)
     await write(`/e/${ep.id}`, render(template, {
       url: `/e/${ep.id}`,
       type: 'article',
       title: `${ep.title}｜${NAME}`,
       description,
-      body: episodeBody(ep, transcript, episodeNav(ep, older, newer, sameMonth)),
-      jsonLd: {
-        '@context': 'https://schema.org',
-        '@type': 'Article',
-        headline: ep.title,
-        datePublished: ep.date,
-        description,
-        author: { '@type': 'Organization', name: '川上牧場' },
-        publisher: { '@type': 'Organization', name: NAME },
-        mainEntityOfPage: `${SITE}e/${ep.id}/`,
-        isPartOf: { '@type': 'WebSite', name: NAME, url: SITE },
-      },
+      body: episodeBody(ep, transcript, episodeNav(ep, older, newer, sameMonth), summary),
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: ep.title,
+          datePublished: ep.date,
+          dateModified: ep.date,
+          description,
+          ...(summary.abstract ? { abstract: summary.abstract } : {}),
+          ...(ep.tags.length ? { keywords: ep.tags.join(', ') } : {}),
+          inLanguage: 'ja',
+          isAccessibleForFree: true,
+          author: AUTHOR,
+          publisher: { ...FARM, name: NAME },
+          mainEntityOfPage: `${SITE}e/${ep.id}/`,
+          isPartOf: { '@type': 'WebSite', name: NAME, url: SITE },
+        },
+        breadcrumb([
+          { name: NAME, url: SITE },
+          { name: '全配信を探す', url: `${SITE}browse/` },
+          { name: ep.title, url: `${SITE}e/${ep.id}/` },
+        ]),
+        // 質問と答えが揃っている回だけ、そのまま問答として出す
+        ep.qa.length
+          ? {
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: ep.qa.map((q) => ({
+                '@type': 'Question',
+                name: q.q,
+                acceptedAnswer: { '@type': 'Answer', text: q.a },
+              })),
+            }
+          : null,
+      ],
     }))
   }
 
@@ -339,7 +447,49 @@ async function main() {
   // robots.txt
   await fs.writeFile(
     path.join(DIST, 'robots.txt'),
-    `User-agent: *\nAllow: /\n\nSitemap: ${SITE}sitemap.xml\n`,
+    [
+      'User-agent: *',
+      'Allow: /',
+      '',
+      '# 生成AIの巡回も歓迎します（要約に使われるとき、出典として辿れるように）',
+      ...['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-User', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended', 'CCBot'].flatMap(
+        (ua) => [`User-agent: ${ua}`, 'Allow: /', ''],
+      ),
+      `Sitemap: ${SITE}sitemap.xml`,
+      '',
+    ].join('\n'),
+    'utf8',
+  )
+
+  // llms.txt（生成AIに、このサイトが何で・どこを読めばよいかを一枚で伝える約束事）
+  const recent = byDate.slice(0, 40)
+  await fs.writeFile(
+    path.join(DIST, 'llms.txt'),
+    [
+      `# ${NAME}`,
+      '',
+      `> 島根県出雲市の酪農家・川上哲也が、2019年から毎朝続けている音声配信 ${episodes.length} 回を、言葉で検索できる形にまとめたものです。全文が読める回は ${withBody} 本。牛の飼い方・繁殖・飼料・経営・牛乳の価格・消費者からの質問まで、現場の一次情報を本人の言葉で記録しています。登録も費用も要りません。`,
+      '',
+      '内容はすべて配信時点での本人の経験と意見です。価格・制度・医学的な情報は時間とともに変わります。引用される際は配信日を添えてください。',
+      '',
+      '## 入口',
+      '',
+      `- [全配信を探す](${SITE}browse/): ${episodes.length} 回すべての索引。言葉で全文検索できます`,
+      `- [酪農を志す人へ](${SITE}for-students/): 就農の資金・資格・非農家からの入り方`,
+      `- [牛乳を飲む人へ](${SITE}for-consumers/): 牛乳の原価、バターの値段、雄の子牛、給食の牛乳`,
+      `- [学びの道筋](${SITE}paths/): テーマごとに読む順番を決めた案内`,
+      `- [牧場について](${SITE}about/): 川上牧場と、このサイトの成り立ち`,
+      `- [企業・研究・メディアの方へ](${SITE}expert/): 現場への取材・相談の窓口`,
+      '',
+      '## 最近の配信',
+      '',
+      ...recent.map((e) => `- [${e.title}](${SITE}e/${e.id}/): ${e.date} の配信`),
+      '',
+      '## そのほか',
+      '',
+      `- [サイトマップ](${SITE}sitemap.xml): 全 ${urls.length} ページの一覧`,
+      '',
+    ].join('\n'),
     'utf8',
   )
 
