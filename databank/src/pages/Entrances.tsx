@@ -124,7 +124,7 @@ export function ForConsumers() {
         hint="気になる言葉を入れると、822回の中から探せます。たとえば「バター」「給食」「乳糖不耐症」。"
       />
 
-      <Section title="よくある質問" lead="配信で実際に答えた質問から。">
+      <Section title="よくある質問" lead="配信で実際に答えた質問から。" more={{ to: '/questions', label: '届いた質問をすべて見る' }}>
         <div className="grid gap-3 md:grid-cols-2">
           {qas.map((x, i) => (
             <Link key={i} to={`/e/${x.episode.id}`} className="rounded-2xl bg-white border border-cream-200 p-5 shadow-card hover:border-moss-300 transition-colors">

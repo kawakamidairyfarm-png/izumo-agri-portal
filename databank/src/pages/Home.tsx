@@ -190,7 +190,7 @@ export default function Home() {
       </Section>
 
       {/* よく聞かれる質問（文の一覧） */}
-      <Section title="よく聞かれる質問" lead="配信に届いた質問と、そのとき答えた回です。">
+      <Section title="よく聞かれる質問" lead="配信に届いた質問と、そのとき答えた回です。" more={{ to: '/questions', label: '届いた質問をすべて見る' }}>
         <ul className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
           {questions.map((x, i) => (
             <li key={i}>

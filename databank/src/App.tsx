@@ -10,6 +10,8 @@ import { PathsIndex, PathDetail } from './pages/Paths'
 import { ForStudents, ForConsumers } from './pages/Entrances'
 import About from './pages/About'
 import Expert from './pages/Expert'
+import Questions from './pages/Questions'
+import Terms from './pages/Terms'
 
 /** ページが変わったら先頭に戻し、計測にも知らせる */
 function OnRouteChange() {
@@ -30,6 +32,8 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="browse" element={<Browse />} />
           <Route path="archive" element={<Archive />} />
+          <Route path="questions" element={<Questions />} />
+          <Route path="terms" element={<Terms />} />
           <Route path="e/:id" element={<EpisodePage />} />
           <Route path="paths" element={<PathsIndex />} />
           <Route path="paths/:key" element={<PathDetail />} />

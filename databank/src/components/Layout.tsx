@@ -8,7 +8,8 @@ import { LINKS } from '../lib/links'
 const NAV = [
   { to: '/for-consumers', label: '牛乳の疑問' },
   { to: '/for-students', label: '酪農を志す人へ' },
-  { to: '/paths', label: '学びの道筋' },
+  { to: '/questions', label: '質問と答え' },
+  { to: '/terms', label: 'ことば帖' },
   { to: '/browse', label: '全配信を探す' },
   { to: '/about', label: '牧場について' },
 ]
@@ -137,6 +138,21 @@ export default function Layout() {
                 <li>
                   <Link className="underline decoration-moss-300 hover:text-moss-700" to="/archive">
                     全配信の一覧（{stats.episodes} 回）
+                  </Link>
+                </li>
+                <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/paths">
+                    学びの道筋（読む順番）
+                  </Link>
+                </li>
+                <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/questions">
+                    届いた質問と、答えた回
+                  </Link>
+                </li>
+                <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/terms">
+                    酪農のことば帖
                   </Link>
                 </li>
                 <li>
