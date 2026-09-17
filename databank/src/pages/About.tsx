@@ -30,7 +30,14 @@ export default function About() {
             配信は毎朝の作業の合間に、研修生とのやりとり、牛の健康や飼料、経営のお金、業界の動きを酪農家自身の言葉で話したものです。
           </p>
           <p className="mt-2">
-            ここではその文字起こし {stats.episodes} 本を整理し、酪農を志す人が、就農前に知っておきたいことを順番に読めるようにしています。
+            ここではその文字起こし {stats.episodes} 本を整理し、牛乳を飲む人は「なぜ？」から、酪農を志す人は就農前に知っておきたいことから、順番に読めるようにしています。
+          </p>
+          <p className="mt-2">
+            「乳房炎の話、前に配信でしていましたよね？」と聞かれても、どの回か渡せなかった。作った経緯は
+            <a href={LINKS.noteStory} target="_blank" rel="noreferrer" className="underline decoration-moss-300 hover:text-moss-700">
+              noteの記事「7年間話してきたことが、探せない。だから「川上牧場 酪農データバンク」を作りました」
+            </a>
+            に書いています。
           </p>
         </section>
 

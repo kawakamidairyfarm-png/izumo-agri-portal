@@ -574,6 +574,7 @@ async function main() {
       '## そのほか',
       '',
       `- [サイトマップ](${SITE}sitemap.xml): 全 ${urls.length} ページの一覧`,
+      '- [作った経緯（note）](https://note.com/kawakamifarm/n/n1b47869416ee): 本人が書いた、このサイトを作った理由',
       '',
     ].join('\n'),
     'utf8',
