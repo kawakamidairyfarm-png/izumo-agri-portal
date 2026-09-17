@@ -77,7 +77,7 @@ export default function Home() {
             <SearchBox large placeholder="例：なぜバターだけ高いの？" suggestions={HOME_SUGGESTIONS} />
           </div>
           <p className="mt-4 md:mt-6 max-w-2xl text-sm leading-relaxed text-white">
-            {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約・Q&Aつきの回は {stats.articles} 本。
+            {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約つきの回は {stats.withSummary} 本。
           </p>
         </div>
       </section>
@@ -222,8 +222,8 @@ export default function Home() {
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-ink-500 align-top">
                     <span className="inline-flex items-center gap-1">
-                      {e.article ? <FileText size={14} /> : <Headphones size={14} />}
-                      {e.article ? '要約あり' : '音声'}
+                      {e.summary ? <FileText size={14} /> : <Headphones size={14} />}
+                      {e.summary ? '要約あり' : e.hasTranscript ? '全文あり' : '音声'}
                     </span>
                   </td>
                 </tr>

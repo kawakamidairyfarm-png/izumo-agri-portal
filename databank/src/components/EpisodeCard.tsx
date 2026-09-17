@@ -54,9 +54,9 @@ export default function EpisodeCard({
             <Highlighted text={episode.title} query={query} />
           </h3>
           {why && <p className="mt-1 text-sm text-moss-700">{why}</p>}
-          {episode.article ? (
+          {episode.summary ? (
             <p className="mt-2 text-sm text-ink-700 leading-relaxed">
-              <Highlighted text={query ? episode.article.summary : leadOf(episode.article.summary)} query={query} />
+              <Highlighted text={query ? episode.summary : leadOf(episode.summary)} query={query} />
             </p>
           ) : (
             <p className="mt-2 text-xs text-ink-500">
@@ -84,7 +84,7 @@ export default function EpisodeCard({
             ))}
             <span className="ml-auto inline-flex items-center gap-1">
               {episode.article || episode.hasTranscript ? <FileText size={13} /> : <Headphones size={13} />}
-              {episode.article ? '要約・全文あり' : episode.hasTranscript ? '全文あり' : '音声のみ'}
+              {episode.summary ? '要約・全文あり' : episode.hasTranscript ? '全文あり' : '音声のみ'}
             </span>
           </div>
         </div>
