@@ -57,6 +57,8 @@ export interface Episode {
   series: string | null
   audience: Audience[]
   article: Article | null
+  /** 要約の一文。編集した記事があればその要約、無ければ全文の「まとめ」の要旨。どちらも無ければ null */
+  summary: string | null
   /** 本文（全文）のファイル名。本文は遅延読み込み（lib/transcripts.ts）。無ければ null */
   transcriptKey: string | null
   hasTranscript: boolean
@@ -89,6 +91,12 @@ const paidModules = import.meta.glob<Record<string, { title: string; date: strin
   import: 'default',
 })
 const PAID_NOTE: Record<string, { title: string; date: string; price: number }> = Object.values(paidModules)[0] ?? {}
+/** 全文の「## まとめ」から抜いた要旨（本文ファイル名→一文）。scripts/build-transcripts-json.mjs が作る */
+const summaryModules = import.meta.glob<Record<string, string>>('../../data/summaries.json', {
+  eager: true,
+  import: 'default',
+})
+const SUMMARIES: Record<string, string> = Object.values(summaryModules)[0] ?? {}
 
 
 const rawIndex: IndexEntry[] = Object.values(indexModules)[0] ?? []
@@ -207,6 +215,7 @@ function toEpisode(
     series,
     audience,
     article,
+    summary: article?.summary || (transcriptKey && SUMMARIES[transcriptKey]) || null,
     transcriptKey,
     hasTranscript: transcriptKey !== null,
     transcriptSource: driveKey ? 'drive' : noteKey ? (indexEntry?.bodySource === 'pody' ? 'pody' : 'note') : null,
@@ -310,6 +319,8 @@ export const stats = {
   episodes: EPISODES.length,
   articles: ARTICLES.length,
   withText: EPISODES.filter((e) => e.hasTranscript).length,
+  /** 要約のある回（編集した記事＋全文のまとめ） */
+  withSummary: EPISODES.filter((e) => e.summary).length,
   earliest: EPISODES.length ? EPISODES[EPISODES.length - 1].date : '',
   latest: EPISODES.length ? EPISODES[0].date : '',
 }

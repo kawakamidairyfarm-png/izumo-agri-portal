@@ -49,7 +49,7 @@ export default function Browse() {
       if (category && e.category !== category) return false
       if (topic && !e.topics.includes(topic)) return false
       if (series && e.series !== series) return false
-      if (hasArticle && !e.article) return false
+      if (hasArticle && !e.summary) return false
       if (hasText && !e.hasTranscript) return false
       if (year && !e.date.startsWith(year)) return false
       return true

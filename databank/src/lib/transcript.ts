@@ -60,6 +60,29 @@ export function stripMarkers(raw: string): string {
   return raw.replace(/^(##|>>|\?\?|!!|%%|--)\s+/gm, '').replace(/^([^\n｜]{1,24})｜/gm, '$1: ')
 }
 
+/**
+ * 全文の「## まとめ」の節を、要旨（印の無い最初の行）と要点（-- の行）に分けて取り出す。
+ * body はまとめの節を除いた残りの全文（要約を先頭に出したとき、同じものを二度読ませないため）。
+ * まとめが無ければ abstract は空文字、body は元のまま（scripts/build-transcripts-json.mjs の abstractOf と同じ規則）。
+ */
+export function extractSummary(raw: string): { abstract: string; points: string[]; body: string } {
+  const at = raw.indexOf('\n## まとめ')
+  if (at < 0) return { abstract: '', points: [], body: raw }
+  const rest = raw.slice(at + 1)
+  const next = rest.indexOf('\n## ', 1)
+  const section = next < 0 ? rest : rest.slice(0, next)
+  const lines = section.split(/\n/).map((l) => l.trim()).filter(Boolean)
+  lines.shift() // 「## まとめ」の見出し自体
+  let abstract = ''
+  const points: string[] = []
+  for (const l of lines) {
+    if (l.startsWith('-- ')) points.push(l.slice(3).trim())
+    else if (!abstract && !/^(>>|\?\?|!!|%%)\s/.test(l)) abstract = l
+  }
+  const body = (raw.slice(0, at) + (next < 0 ? '' : '\n' + rest.slice(next + 1))).trim()
+  return { abstract, points, body }
+}
+
 /** この全文が章立てのある記事か（見出しが1つでもあれば目次を出す価値がある） */
 export function hasChapters(blocks: Block[]): boolean {
   return blocks.some((b) => b.kind === 'heading')

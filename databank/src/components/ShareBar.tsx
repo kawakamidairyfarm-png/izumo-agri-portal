@@ -12,9 +12,10 @@ export default function ShareBar({ title, url }: { title: string; url: string })
 
   const text = `${title}｜${SITE}`
   const enc = encodeURIComponent
+  // 読む人の多くは牛乳を飲む人で、人に送るならLINE。LINEを先頭に置く
   const targets = [
+    { label: 'LINEで送る', href: `https://social-plugins.line.me/lineit/share?url=${enc(url)}&text=${enc(text)}` },
     { label: 'X', href: `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}` },
-    { label: 'LINE', href: `https://social-plugins.line.me/lineit/share?url=${enc(url)}&text=${enc(text)}` },
     { label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}` },
   ]
 

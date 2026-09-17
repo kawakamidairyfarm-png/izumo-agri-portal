@@ -89,8 +89,43 @@ function installOwnLog(endpoint: string) {
 
 let gcView: (() => void) | null = null
 
+/**
+ * 自分の端末を計測から外す。運営者の動作確認が「直接」の大半を占めて数字が読めなくなるため。
+ * 一度 `?keisoku=off` を付けて開くと、その端末（ブラウザ）は以後数えない。`?keisoku=on` で戻す。
+ * 端末の中にだけ印を置く（何も送らない）。
+ */
+function ownerExcluded(): boolean {
+  const KEY = 'db-keisoku-off'
+  try {
+    const url = new URL(location.href)
+    const v = url.searchParams.get('keisoku')
+    if (v === 'off' || v === 'on') {
+      if (v === 'off') localStorage.setItem(KEY, '1')
+      else localStorage.removeItem(KEY)
+      url.searchParams.delete('keisoku')
+      history.replaceState(null, '', url.toString())
+      notice(v === 'off' ? 'この端末は計測から外しました' : 'この端末の計測を戻しました')
+    }
+    return localStorage.getItem(KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** 画面の下に数秒だけ出す知らせ（スマホでは console が見えないため） */
+function notice(text: string) {
+  const el = document.createElement('div')
+  el.textContent = text
+  el.setAttribute('role', 'status')
+  el.style.cssText =
+    'position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:100;white-space:nowrap;background:#1f2a1f;color:#fff;padding:10px 16px;border-radius:9999px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.2)'
+  document.body.appendChild(el)
+  setTimeout(() => el.remove(), 4000)
+}
+
 export function installAnalytics() {
   if (navigator.doNotTrack === '1') return
+  if (ownerExcluded()) return
 
   const own = import.meta.env.VITE_LOG_ENDPOINT as string | undefined
   if (own) installOwnLog(own)

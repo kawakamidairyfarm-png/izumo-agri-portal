@@ -6,6 +6,7 @@ import EpisodeCard from '../components/EpisodeCard'
 import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate, paragraphs as toParagraphs } from '../lib/data'
 import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links'
 import { loadTranscript } from '../lib/transcripts'
+import { extractSummary } from '../lib/transcript'
 import NextSteps from '../components/NextSteps'
 import ShareBar from '../components/ShareBar'
 import TranscriptBody from '../components/TranscriptBody'
@@ -51,6 +52,9 @@ export default function EpisodePage() {
 
   const cat = CATEGORY_META[episode.category]
   const a = episode.article
+  // 編集した記事が無い回は、全文の「まとめ」を要約として先頭に出し、全文からはその節を外す
+  const sum = !a && transcript ? extractSummary(transcript) : null
+  const bodyText = sum?.abstract ? sum.body : transcript
   const idx = EPISODES.findIndex((e) => e.id === episode.id)
   const newer = idx > 0 ? EPISODES[idx - 1] : null
   const older = idx < EPISODES.length - 1 ? EPISODES[idx + 1] : null
@@ -155,6 +159,27 @@ export default function EpisodePage() {
           )}
 
         </>
+      ) : sum?.abstract ? (
+        <>
+          <section className="mt-8 rounded-2xl bg-white border border-cream-200 p-6 shadow-card">
+            <h2 className="text-sm font-bold text-moss-700 tracking-wide">要約</h2>
+            <p className="mt-2 leading-relaxed text-ink-900">{sum.abstract}</p>
+            <p className="mt-2 text-xs text-ink-500">podyの記事の「まとめ」より。固有名詞や数字に誤りが含まれることがあります。</p>
+          </section>
+          {sum.points.length > 0 && (
+            <section className="mt-6">
+              <h2 className="font-serif text-xl font-bold text-ink-900">要点</h2>
+              <ul className="mt-3 space-y-2">
+                {sum.points.map((k, i) => (
+                  <li key={i} className="flex gap-3 leading-relaxed">
+                    <span className="shrink-0 mt-2 h-2 w-2 rounded-full bg-hay-500" />
+                    <span>{k}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       ) : episode.hasTranscript ? null : (
         /* 全文も要約も無い回だけ、どこで読めるかを案内する（全文がある回は、この下の全文が主役） */
         <section className="mt-8 rounded-2xl bg-white border border-cream-200 p-6 shadow-card">
@@ -196,7 +221,7 @@ export default function EpisodePage() {
           </button>
           {showTranscript && (
             <div className="mt-4 rounded-2xl bg-white border border-cream-200 p-6">
-              <TranscriptBody text={transcript!} />
+              <TranscriptBody text={bodyText!} />
               {episode.transcriptSource === 'note' && episode.noteUrl && (
                 <p className="pt-2 text-sm text-ink-500">
                   出典：
