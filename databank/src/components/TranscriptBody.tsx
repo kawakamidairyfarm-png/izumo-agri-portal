@@ -1,19 +1,6 @@
-import { useEffect, useState } from 'react'
 import { HelpCircle, Quote, Sparkles } from 'lucide-react'
 import { parseTranscript, splitParagraph } from '../lib/transcript'
-
-/** 幅の狭い画面か（段落を分けるかどうかの判断に使う） */
-function useNarrow() {
-  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches)
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)')
-    const onChange = () => setNarrow(mq.matches)
-    onChange()
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-  return narrow
-}
+import { useNarrow } from '../lib/useNarrow'
 
 /**
  * 配信の全文を、章立て・発言・質問・用語メモの形のまま出す。

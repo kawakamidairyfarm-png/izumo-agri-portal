@@ -247,6 +247,8 @@ export function normalizeTitle(t: string): string {
 
 export const EPISODES: Episode[] = build()
 export const ARTICLES: Episode[] = EPISODES.filter((e) => e.article)
+/** 本文ファイル名 → 回（本文から作った索引: 質問・ことば帖 を回に結びつける） */
+export const BY_TRANSCRIPT = new Map<string, Episode>(EPISODES.filter((e) => e.transcriptKey).map((e) => [e.transcriptKey!, e]))
 
 export function findEpisode(id: string): Episode | undefined {
   return EPISODES.find((e) => e.id === id)
