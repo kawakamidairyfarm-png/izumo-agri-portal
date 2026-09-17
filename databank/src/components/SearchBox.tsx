@@ -8,12 +8,15 @@ export default function SearchBox({
   initial = '',
   large = false,
   placeholder = '例：牧場を始めるのに資金はいくら？',
+  suggestions = SUGGESTIONS,
   onSearch,
 }: {
   initial?: string
   large?: boolean
   /** 読む人に合わせて例を変える（志す人には就農の質問、飲む人には牛乳の質問） */
   placeholder?: string
+  /** 検索窓の下に並べる言葉。placeholder と同じく、読む人に合わせて差し替える */
+  suggestions?: string[]
   onSearch?: (q: string) => void
 }) {
   const [q, setQ] = useState(initial)
@@ -52,7 +55,7 @@ export default function SearchBox({
       </form>
       {large && (
         <div className="mt-2 md:mt-3 flex flex-wrap gap-1 md:gap-1.5">
-          {SUGGESTIONS.map((s) => (
+          {suggestions.map((s) => (
             <button
               key={s}
               type="button"

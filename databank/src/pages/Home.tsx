@@ -8,7 +8,10 @@ import { PATHS, resolvePath, seriesEpisodes } from '../lib/paths'
 import { LINKS } from '../lib/links'
 import { PHOTOS } from '../lib/photos'
 
-const PATH_ORDER = ['start-dairy', 'raise-healthy-cows', 'bridge', 'milk-truth']
+// 旗は「酪農の現場を、隠さず話す」。来る人の多くは牛乳を飲む人なので（2026-09 アクセスログ）、
+// 飲む人の道筋を先に、志す人の道筋をそのあとに並べる。志す人の道は消さない
+const PATH_ORDER = ['milk-truth', 'bridge', 'start-dairy', 'raise-healthy-cows']
+const HOME_SUGGESTIONS = ['牛乳の原価', 'バター', '給食', '乳糖不耐症', '雄の子牛', '資金', '研修', '非農家', '乳房炎']
 
 export default function Home() {
   const paths = PATH_ORDER.map((k) => PATHS.find((p) => p.key === k)!).filter(Boolean)
@@ -27,7 +30,7 @@ export default function Home() {
 
   return (
     <>
-      {/* 最初の画面: 誰に・何が・次の一歩 */}
+      {/* 最初の画面: 誰に・何が・次の一歩。旗は「隠さず話す」、入口は飲む人を先に */}
       <section className="relative overflow-hidden bg-moss-900 text-white">
         {PHOTOS.hero && (
           <>
@@ -38,28 +41,28 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-8 md:py-16">
           <p className="text-sm font-bold tracking-[0.2em] text-hay-100">島根県出雲市・川上牧場</p>
           <h1 className="mt-3 font-serif text-3xl md:text-5xl font-bold leading-tight [text-wrap:balance]">
-            酪農家になりたい。
+            牛乳のこと、牛のこと、酪農家になる道のこと。
             <br />
-            そう思ったら、ここから。
+            出雲の酪農家が、隠さず話します。
           </h1>
           <p className="mt-4 md:mt-5 max-w-2xl leading-relaxed">
-            出雲の酪農家が毎朝の配信で話してきたことを、{stats.episodes} 本ぶん読める形にしました。
+            原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 牧場に届いた質問に毎朝の配信で答えてきた {stats.episodes} 回を、読める形にしました。
           </p>
           <p className="mt-2 max-w-2xl leading-relaxed">
-            就農の準備や牛の健康から、牛乳のふしぎまで。<span className="font-bold">酪農を志す人も、牛乳を飲む人も、どなたでも読めます。</span>登録もお金も要りません。
+            <span className="font-bold">牛乳を飲む人も、酪農を志す人も、どなたでも読めます。</span>登録もお金も要りません。
           </p>
           <div className="mt-5 md:mt-7 flex flex-wrap gap-3">
             <Link
-              to="/paths/start-dairy"
+              to="/for-consumers"
               className="inline-flex items-center gap-2 rounded-xl bg-hay-300 px-5 py-3 text-sm font-bold text-moss-900 hover:bg-hay-500 transition-colors"
             >
-              <BookOpen size={18} /> ゼロから酪農を始める
+              <Milk size={18} /> 牛乳の疑問から読む
             </Link>
             <Link
-              to="/for-consumers"
+              to="/paths/start-dairy"
               className="inline-flex items-center gap-2 rounded-xl border border-white/50 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 transition-colors"
             >
-              <Milk size={18} /> 牛乳の疑問から読む
+              <BookOpen size={18} /> 酪農家になる道を読む
             </Link>
             <a
               href={LINKS.line}
@@ -71,7 +74,7 @@ export default function Home() {
             </a>
           </div>
           <div className="mt-6 md:mt-8 max-w-2xl">
-            <SearchBox large />
+            <SearchBox large placeholder="例：なぜバターだけ高いの？" suggestions={HOME_SUGGESTIONS} />
           </div>
           <p className="mt-4 md:mt-6 max-w-2xl text-sm leading-relaxed text-white">
             {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約・Q&Aつきの回は {stats.articles} 本。
@@ -79,9 +82,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 二つの入口: どちらの人が来ても、自分の場所が最初に見つかるように */}
+      {/* 二つの入口: 飲む人を先に（スマホでは上に）、志す人をそのあとに。どちらの人も自分の場所が見つかるように */}
       <section className="mx-auto max-w-6xl px-4 mt-6 md:mt-10">
         <div className="grid gap-4 md:grid-cols-2">
+          <Link
+            to="/for-consumers"
+            className="group rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-7 hover:border-moss-300 transition-colors"
+          >
+            <p className="text-sm font-bold text-moss-700">牛乳を飲む人へ</p>
+            <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">牛乳の「なぜ？」に、酪農家が答える</h2>
+            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
+              原価はいくら？ なぜバターだけ高い？ 給食の牛乳とスーパーの牛乳は何が違う？ 消費者から届いた質問に、現場から率直に答えています。
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
+              飲む人の入口へ <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
           <Link
             to="/for-students"
             className="group rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-7 hover:border-moss-300 transition-colors"
@@ -93,19 +109,6 @@ export default function Home() {
             </p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
               志す人の入口へ <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </Link>
-          <Link
-            to="/for-consumers"
-            className="group rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-7 hover:border-moss-300 transition-colors"
-          >
-            <p className="text-sm font-bold text-moss-700">牛乳を飲む人へ</p>
-            <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">牛乳の「なぜ？」に、酪農家が答える</h2>
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
-              原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 消費者から届いた質問に、現場から率直に答えています。
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
-              飲む人の入口へ <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
             </span>
           </Link>
         </div>
@@ -132,7 +135,7 @@ export default function Home() {
       </section>
 
       {/* 読む順番（番号つきの一覧） */}
-      <Section title="まず、この順で読む" lead="配信は日付順ですが、学ぶには順番があります。">
+      <Section title="まず、この順で読む" lead="配信は日付順ですが、知るには順番があります。牛乳の疑問からでも、就農の準備からでも。">
         <ol className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
           {paths.map((p, i) => {
             const n = resolvePath(p).length
@@ -201,8 +204,8 @@ export default function Home() {
         </ul>
       </Section>
 
-      {/* 読んだあとの次の一歩（無料の受け皿はメルマガ1つ。本・note・現地は段として並べる） */}
-      <NextSteps audience="student" />
+      {/* 読んだあとの次の一歩（無料の受け皿はメルマガ1つ。来る人の多くは飲む人なので、飲む人向けの文面を既定にする） */}
+      <NextSteps audience="consumer" />
 
       {/* 最近の配信（一覧） */}
       <Section title="最近の配信" lead="毎朝の配信から。要約がない回も、タイトルで探せます。" more={{ to: '/browse', label: '全配信を探す' }}>

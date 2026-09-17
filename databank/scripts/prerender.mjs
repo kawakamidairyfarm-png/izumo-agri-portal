@@ -298,7 +298,7 @@ async function main() {
 
   // 固定のページ
   const fixed = [
-    { url: '/', title: NAME, description: `出雲の酪農家が毎朝の配信で話してきたことを、${episodes.length}本ぶん読める形にまとめました。就農の準備や牛の健康から、牛乳のふしぎまで。酪農を志す人も、牛乳を飲む人も、登録なしで読めます。`, h1: NAME, lead: `配信 ${episodes.length} 回分を、言葉で検索できる形にまとめています。酪農を志す人も、牛乳を飲む人も、登録なしで読めます。`, priority: '1.0' },
+    { url: '/', title: NAME, description: `原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 出雲の酪農家が毎朝の配信で答えてきた${episodes.length}回を、読める形にまとめました。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, h1: NAME, lead: `牛乳のこと、牛のこと、酪農家になる道のこと。配信 ${episodes.length} 回分を、言葉で検索できる形にまとめています。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, priority: '1.0' },
     { url: '/browse', title: `全配信を探す｜${NAME}`, description: `川上牧場の配信 ${episodes.length} 回を、言葉・分類・年月から探せます。乳房炎、資金、飼料、繁殖、就農など。`, h1: '全配信を探す', lead: '言葉で全文を検索できます。', priority: '0.9' },
     { url: '/archive', title: `全配信の一覧｜${NAME}`, description: `2019年から続く川上牧場の音声配信 ${episodes.length} 回を、日付順にすべて並べた一覧です。`, h1: '全配信の一覧', lead: `2019年からの ${episodes.length} 回を、新しい順に並べています。`, priority: '0.9' },
     { url: '/paths', title: `学びの道筋｜${NAME}`, description: '何から読めばいいかを順番にした道筋。ゼロから酪農を始める、牛を健康に飼う、ほか。', h1: '学びの道筋', lead: '読む順番をたどれます。', priority: '0.8' },

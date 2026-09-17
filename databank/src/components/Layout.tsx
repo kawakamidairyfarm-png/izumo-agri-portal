@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { formatDate, stats } from '../lib/data'
 import { LINKS } from '../lib/links'
 
+// 来る人の多くは牛乳を飲む人なので、飲む人の入口を先に置く（志す人の入口は残す）
 const NAV = [
-  { to: '/for-students', label: 'はじめに' },
+  { to: '/for-consumers', label: '牛乳の疑問' },
+  { to: '/for-students', label: '酪農を志す人へ' },
   { to: '/paths', label: '学びの道筋' },
   { to: '/browse', label: '全配信を探す' },
-  { to: '/for-consumers', label: '消費者の疑問' },
   { to: '/about', label: '牧場について' },
 ]
 
@@ -97,7 +98,7 @@ export default function Layout() {
             <div>
               <p className="font-bold text-ink-900 mb-2">川上牧場</p>
               <p className="text-ink-700 leading-relaxed">
-                島根県出雲市の牧場から、酪農の現場を毎朝配信しています。このサイトは配信の文字起こしをもとに、酪農を志す人が順番に学べるように整理したものです。
+                島根県出雲市の牧場から、酪農の現場を毎朝配信しています。このサイトは配信の文字起こしをもとに、牛乳を飲む人も酪農を志す人も、知りたいことから読めるように整理したものです。
               </p>
             </div>
             <div>
