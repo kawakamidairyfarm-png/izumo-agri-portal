@@ -247,7 +247,8 @@ export default function EpisodePage() {
         </p>
       </section>
 
-      <NextSteps compact audience={episode.audience.includes('student') ? 'student' : 'consumer'} />
+      {/* 両方の相手に当たる回は、来る人の多い飲む人向けの文面を既定にする */}
+      <NextSteps compact audience={episode.audience.includes('consumer') ? 'consumer' : 'student'} />
 
       <nav className="mt-10 grid gap-3 sm:grid-cols-2 text-sm">
         {older && (
