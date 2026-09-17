@@ -3,6 +3,8 @@ import type { Episode } from './data'
 export const LINKS = {
   pody: 'https://pody.jp/player/OT1nXl6WW61B8vjQ98ru',
   note: 'https://note.com/kawakamifarm',
+  /** このサイトを作った経緯を本人が書いたnote記事（2026-09-17公開） */
+  noteStory: 'https://note.com/kawakamifarm/n/n1b47869416ee',
   /** noteのメンバーシップ（限定記事・数字まで読める） */
   noteSubscribe: 'https://note.com/kawakamifarm/membership/boards',
   /** 酪農DX・タイミー活用 伴走サポートの紹介記事 */
