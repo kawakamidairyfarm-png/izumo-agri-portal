@@ -46,18 +46,15 @@ jobs:
         run: |
           CH=$(node -e "console.log(require('/tmp/meta.json').chapters.map(c=>c.seconds).join(','))")
           node scripts/video/make.mjs --key "${{ inputs.key }}" --out /tmp/video --audio /tmp/ep.mp3 --chapters "$CH" --size "${{ inputs.size }}"
-          node -e "
-            const m=require('/tmp/meta.json');const f=(s)=>new Date(s*1000).toISOString().slice(11,19).replace(/^00:/,'');
-            const site='https://kawakamidairyfarm-png.github.io/izumo-agri-portal/';
-            console.log([m.title,'',m.date+' の配信（毎朝の音声配信「牛乳のむ？牧場配信」より）','','章','0:00 はじめに',...m.chapters.map(c=>f(c.seconds)+' '+c.heading),'','この回の全文・用語・質問: '+site+'e/'+m.id+'/','酪農のことば帖: '+site+'terms/','届いた質問と、答えた回: '+site+'questions/','','島根県出雲市・川上牧場 川上哲也'].join('\n'))
-          " > /tmp/video/youtube-description.txt
-          cat /tmp/video/youtube-description.txt
+          rm -f /tmp/video/f-*.png
+          cat /tmp/video/youtube.txt
           ls -la /tmp/video
       - uses: actions/upload-artifact@v4
         with:
           name: video-${{ inputs.key }}
           path: |
             /tmp/video/*.mp4
-            /tmp/video/youtube-description.txt
+            /tmp/video/thumbnail.png
+            /tmp/video/youtube.txt
             /tmp/meta.json
           retention-days: 14
