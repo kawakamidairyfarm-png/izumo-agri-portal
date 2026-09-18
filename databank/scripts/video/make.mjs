@@ -39,6 +39,7 @@ const AUDIO = args.get('audio') ? path.resolve(args.get('audio')) : null
 const CHAPTERS = (args.get('chapters') ?? '').split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
 const FRAMES_ONLY = args.has('frames-only')
 const FULL = args.has('full')
+const MAX_MIN = Number(args.get('max-minutes') ?? 0) // 動画全体の上限（分）。Instagram は 20 分まで
 const [W, H] = (args.get('size') ?? '1920x1080').split('x').map(Number)
 const FFMPEG = process.env.FFMPEG || 'ffmpeg'
 const FFPROBE = process.env.FFPROBE || FFMPEG.replace(/ffmpeg$/, 'ffprobe')
@@ -145,6 +146,32 @@ const audioStart = FULL || !CHAPTERS.length ? 0 : CHAPTERS[0]
 let audioEnd = Number(args.get('duration') ?? 0)
 if (!audioEnd && AUDIO) audioEnd = Number(execFileSync(FFPROBE, ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', AUDIO]).toString().trim())
 if (!audioEnd) throw new Error('--duration か --audio が要ります')
+
+/**
+ * 上限（分）に収める。まず後ろの雑談を落とし、それでも長ければ少しだけ速さを上げる。
+ * 落とすのは「最後の章の話が終わったあと」まで＝本編は削らない。速さは 1.2 倍を超えない。
+ */
+let tempo = 1
+let trimmed = 0
+if (MAX_MIN > 0) {
+  const target = MAX_MIN * 60 - COVER - END
+  const span = audioEnd - audioStart
+  if (span > target) {
+    // この回の話す速さ（字/秒）から、最後の章の話が終わる時刻を見積もる
+    const chars = text.replace(/^(##|>>|\?\?|!!|%%|--)\s+/gm, '').replace(/\s/g, '').length
+    const rate = chars / span
+    const lastFrom = CHAPTERS[plan.length - 1] ?? audioStart
+    const lastChars = (chapters[chapters.length - 1]?.heading ?? '').length +
+      (body[body.length - 1]?.blocks ?? []).reduce((a, b) => a + b.t.length, 0) + points.join('').length
+    const contentEnd = Math.min(audioEnd, lastFrom + Math.max(30, lastChars / Math.max(1, rate)) + 10)
+    if (contentEnd < audioEnd) {
+      trimmed = audioEnd - contentEnd
+      audioEnd = contentEnd
+    }
+    const left = audioEnd - audioStart
+    if (left > target) tempo = Math.min(1.2, left / target)
+  }
+}
 const bounds = plan.map((_, i) => ({ from: CHAPTERS[i] ?? audioStart, to: i + 1 < plan.length ? (CHAPTERS[i + 1] ?? audioEnd) : audioEnd }))
 for (let ci = 0; ci < plan.length; ci++) {
   const mine = frames.filter((f) => f.ci === ci)
@@ -159,6 +186,8 @@ for (let ci = 0; ci < plan.length; ci++) {
   const diff = budget - mine.reduce((a, b) => a + b.dur, 0)
   mine[mine.length - 1].dur += diff
 }
+// 速さを上げたぶん、画面の長さも縮める（章の頭が音とずれないように）
+if (tempo !== 1) for (const f of frames) f.dur /= tempo
 frames.unshift({ type: 'cover', dur: COVER })
 frames.push({ type: 'end', dur: END })
 
@@ -431,7 +460,7 @@ await fs.writeFile(
     ...(points.length ? ['この回の要点', ...points.map((p) => `・${p}`), ''] : []),
     '章',
     `${mmss(0)} はじめに`,
-    ...body.map((c, i) => `${mmss(COVER + (bounds[i].from - audioStart))} ${c.heading}`),
+    ...body.map((c, i) => `${mmss(COVER + (bounds[i].from - audioStart) / tempo)} ${c.heading}`),
     '',
     `この回の全文・用語・質問　${SITE}e/${epId}/`,
     `酪農のことば帖　${SITE}terms/`,
@@ -443,13 +472,23 @@ await fs.writeFile(
 )
 
 const totalSec = frames.reduce((a, b) => a + b.dur, 0)
-console.log(`画面 ${files.length} 枚・${Math.round(totalSec)} 秒（本編 ${Math.round(audioStart)}秒〜${Math.round(audioEnd)}秒${FULL ? '' : '＝前置きの雑談は落とした'}）`)
+console.log(`画面 ${files.length} 枚・${Math.round(totalSec)} 秒＝${(totalSec / 60).toFixed(1)} 分（本編 ${Math.round(audioStart)}秒〜${Math.round(audioEnd)}秒${FULL ? '' : '＝前置きの雑談は落とした'}）`)
+if (trimmed) console.log(`後ろの雑談を ${Math.round(trimmed)} 秒落とした`)
+if (tempo !== 1) console.log(`上限 ${MAX_MIN} 分に収めるため、話す速さを ${tempo.toFixed(3)} 倍にした（声の高さは変えていない）`)
 console.log(`1枚あたり ${(totalSec / files.length).toFixed(1)} 秒・台本: ${args.has('key') && plan ? 'あり' : 'なし'}`)
 if (FRAMES_ONLY) process.exit(0)
 
 const out = path.join(OUT, `${KEY.replace(/\.txt$/, '')}.mp4`)
+const spanSec = (audioEnd - audioStart) / tempo
+const af = [
+  tempo !== 1 ? `atempo=${tempo.toFixed(5)}` : null,
+  // 終わりを2秒かけて絞る（途中で切っても唐突にならないように）
+  `afade=t=out:st=${Math.max(0, spanSec - 2).toFixed(3)}:d=2`,
+  `adelay=${COVER * 1000}|${COVER * 1000}`,
+  'apad',
+].filter(Boolean).join(',')
 const aArgs = AUDIO
-  ? ['-ss', String(audioStart), '-i', AUDIO, '-af', `adelay=${COVER * 1000}|${COVER * 1000},apad`]
+  ? ['-ss', String(audioStart), '-to', String(audioEnd), '-i', AUDIO, '-af', af]
   : ['-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo']
 execFileSync(
   FFMPEG,

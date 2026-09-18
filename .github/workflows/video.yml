@@ -13,6 +13,10 @@ on:
         description: 画面サイズ
         required: false
         default: "1920x1080"
+      max_minutes:
+        description: 動画の上限（分）。Instagram は 20 分まで。0 で上限なし
+        required: false
+        default: "20"
 
 jobs:
   render:
@@ -45,7 +49,7 @@ jobs:
           PLAYWRIGHT_DIR: /tmp/pw
         run: |
           CH=$(node -e "console.log(require('/tmp/meta.json').chapters.map(c=>c.seconds).join(','))")
-          node scripts/video/make.mjs --key "${{ inputs.key }}" --out /tmp/video --audio /tmp/ep.mp3 --chapters "$CH" --size "${{ inputs.size }}"
+          node scripts/video/make.mjs --key "${{ inputs.key }}" --out /tmp/video --audio /tmp/ep.mp3 --chapters "$CH" --size "${{ inputs.size }}" --max-minutes "${{ inputs.max_minutes }}"
           rm -f /tmp/video/f-*.png
           cat /tmp/video/youtube.txt
           ls -la /tmp/video
