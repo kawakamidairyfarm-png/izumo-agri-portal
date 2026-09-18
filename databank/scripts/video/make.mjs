@@ -59,7 +59,12 @@ const ASR_FIX = [
   [/楽能|落脳|楽農/g, '酪農'],
   [/乳腺炎|入房院|乳房園/g, '乳房炎'],
 ]
-const text = ASR_FIX.reduce((s, [re, to]) => s.replace(re, to), await fs.readFile(path.join(ROOT, 'data', 'transcripts', KEY), 'utf8'))
+// 全文が無い回もある（noteの有料記事の回は、本文を公開の場所に置いていない）。
+// その場合は台本（plans/<key>.json）だけで作る＝有料記事の本文をリポジトリに入れない
+const text = ASR_FIX.reduce(
+  (s, [re, to]) => s.replace(re, to),
+  await fs.readFile(path.join(ROOT, 'data', 'transcripts', KEY), 'utf8').catch(() => ''),
+)
 const title = ep.title
 const date = ep.date
 const epId = ep.id
@@ -94,12 +99,16 @@ if (!body.length && args.get('meta')) {
   const meta = JSON.parse(await fs.readFile(path.resolve(args.get('meta')), 'utf8'))
   body = (meta.chapters ?? []).map((c) => ({ heading: c.heading, blocks: [] }))
 }
-const points = summaryCh?.blocks.filter((b) => b.mark === '--').map((b) => b.t) ?? []
+let points = summaryCh?.blocks.filter((b) => b.mark === '--').map((b) => b.t) ?? []
 
 /* ---------- 画面の台本 ---------- */
 let plan = null
+let planPoints = null
 try {
-  plan = JSON.parse(await fs.readFile(path.join(HERE, 'plans', KEY.replace(/\.txt$/, '.json')), 'utf8')).chapters
+  const j = JSON.parse(await fs.readFile(path.join(HERE, 'plans', KEY.replace(/\.txt$/, '.json')), 'utf8'))
+  plan = j.chapters
+  // 全文が無い回のために、まとめの要点を台本に書いておける
+  if (Array.isArray(j.points)) planPoints = j.points
 } catch {
   /* 台本が無ければ下で自動生成 */
 }
@@ -116,6 +125,7 @@ if (!plan) {
     return s
   })
 }
+if (planPoints?.length) points = planPoints
 if (points.length) plan[plan.length - 1] = [...plan[plan.length - 1], { type: 'matome' }, { type: 'summary', items: points }]
 
 /* ---------- 画面（frame）へ展開 ---------- */
