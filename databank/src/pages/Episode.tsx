@@ -186,9 +186,7 @@ export default function EpisodePage() {
           <p className="font-bold text-ink-900">この回は、まだこのサイトで読めません。</p>
           <p className="mt-2 text-sm leading-relaxed text-ink-700">
             {episode.paidNote
-              ? episode.notePrice
-                ? `この回の全文は、noteの有料記事（${episode.notePrice.toLocaleString()}円）として公開されています。配信本体は Pody で聴けます。`
-                : 'この回の全文は、noteのメンバーシップ限定記事として公開されています。配信本体は Pody で聴けます。'
+              ? 'この回の全文は note の記事として公開しています（下に案内があります）。配信本体は Pody で聴けます。'
               : '配信本体は Pody で聴けます。全文は、記事ができしだいこのサイトに追加していきます。'}
           </p>
         </section>
@@ -240,6 +238,34 @@ export default function EpisodePage() {
               )}
             </div>
           )}
+        </section>
+      )}
+
+      {/* noteの有料記事になっている回は、このサイトに全文を置いていない＝どこで読めるかを正直に案内する */}
+      {episode.paidNote && (
+        <section className="mt-8 rounded-2xl border border-hay-300/70 bg-hay-100 p-6">
+          <p className="inline-flex items-center gap-1.5 font-bold text-ink-900">
+            <BookOpen size={16} className="text-hay-700" /> もっと詳しくは、noteの記事で。
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-700">
+            この回の全文は、note{'の'}
+            {episode.notePrice ? `有料記事（${episode.notePrice.toLocaleString()}円）` : 'メンバーシップ限定記事'}
+            として公開しています。数字の出どころや、配信で話しきれなかったところまで書いてあります。
+            配信の音声そのものは、Pody・Spotify・YouTube でどなたでも無料で聴けます。
+          </p>
+          <a
+            href={note.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-moss-700 text-white px-4 py-2.5 text-sm font-bold hover:bg-moss-900"
+          >
+            <BookOpen size={16} />
+            {note.exact
+              ? episode.notePrice
+                ? `note で読む（${episode.notePrice.toLocaleString()}円）`
+                : 'note で読む（メンバーシップ限定）'
+              : 'note で探す'}
+          </a>
         </section>
       )}
 

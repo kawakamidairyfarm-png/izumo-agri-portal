@@ -128,6 +128,8 @@ async function loadEpisodes() {
       transcriptFile: driveKey ?? noteKey,
       bodySource: e.bodySource ?? null,
       paidNote,
+      noteUrl,
+      notePrice: paidNote ? (paid[String(noteUrl).split('?')[0]]?.price ?? null) : null,
     })
   }
   // 索引に載っていない記事（通常は無いが、サイト側と数を合わせる）
@@ -146,6 +148,8 @@ async function loadEpisodes() {
       transcriptFile: !paidNote && transcripts.has(a.transcriptFile) ? a.transcriptFile : null,
       bodySource: null,
       paidNote,
+      noteUrl: a.noteUrl ?? null,
+      notePrice: paidNote ? (paid[String(a.noteUrl).split('?')[0]]?.price ?? null) : null,
     })
   }
   out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.title.localeCompare(b.title, 'ja')))
@@ -272,6 +276,15 @@ function episodeBody(ep, transcript, nav = '', summary = { abstract: '', points:
   if (ep.summary) parts.push(`<h2>要約</h2><p>${esc(ep.summary)}</p>`)
   if (ep.keyPoints.length) parts.push(`<h2>要点</h2><ul>${ep.keyPoints.map((k) => `<li>${esc(k)}</li>`).join('')}</ul>`)
   if (ep.qa.length) parts.push(`<h2>こんな質問に答えています</h2><dl>${ep.qa.map((q) => `<dt>${esc(q.q)}</dt><dd>${esc(q.a)}</dd>`).join('')}</dl>`)
+  // noteの有料記事になっている回は、このサイトに全文を置いていない＝どこで読めるかを正直に案内する
+  if (ep.paidNote && ep.noteUrl) {
+    const kind = ep.notePrice ? `有料記事（${ep.notePrice.toLocaleString()}円）` : 'メンバーシップ限定記事'
+    parts.push(
+      `<h2>もっと詳しくは、noteの記事で</h2><p>この回の全文は、noteの${esc(kind)}として公開しています。` +
+        `数字の出どころや、配信で話しきれなかったところまで書いてあります：` +
+        `<a href="${esc(ep.noteUrl)}">noteで読む</a>。配信の音声そのものは、Pody・Spotify・YouTube でどなたでも無料で聴けます。</p>`,
+    )
+  }
   if (transcript) {
     const text = transcript.length > BODY_LIMIT ? transcript.slice(0, BODY_LIMIT) : transcript
     const heading = ep.bodySource === 'pody' ? '配信の全文（podyの記事より）' : '配信の全文'

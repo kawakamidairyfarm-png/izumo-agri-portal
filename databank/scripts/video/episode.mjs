@@ -33,6 +33,10 @@ function sim(a, b) {
 export async function resolveEpisode(ROOT, key) {
   const stem = String(key).replace(/\.txt$/, '')
   const index = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'episodes.json'), 'utf8'))
+  const paid = await fs
+    .readFile(path.join(ROOT, 'data', 'note_paid.json'), 'utf8')
+    .then((s) => JSON.parse(s))
+    .catch(() => ({}))
   const dir = path.join(ROOT, 'data', 'articles')
   const articles = []
   for (const f of await fs.readdir(dir).catch(() => [])) {
@@ -69,10 +73,17 @@ export async function resolveEpisode(ROOT, key) {
       null
   }
 
+  // noteの記事URL（あれば）。有料記事なら値段も持っておく＝動画の説明欄と締めの画面で「もっと詳しくは」の案内に使う
+  const noteUrl = article?.noteUrl ?? entry?.noteUrl ?? null
+  const paidInfo = noteUrl ? paid[String(noteUrl).split('?')[0]] : undefined
+
   return {
     entry,
     article,
     how,
+    noteUrl,
+    notePaid: Boolean(paidInfo),
+    notePrice: paidInfo?.price ?? null,
     // サイトでの住所（/e/<id>/）。記事があればそのID、無ければ索引のID
     id: article?.id ?? (entry ? `${entry.date}_${entry.driveId.slice(0, 8)}` : stem),
     title: article?.title ?? entry?.title ?? stem,

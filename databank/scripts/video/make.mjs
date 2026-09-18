@@ -14,6 +14,7 @@
  *
  * 章の頭の時刻は pody の再生位置（--chapters）に必ず合わせるので、ずれが溜まらない。
  * --frames-only 画像だけ作って動画にしない（見た目の確認用）／--full 前置きの雑談も残す
+ * --thumb-only  サムネイルだけ作り直す（画面も動画も作らない）
  */
 import { createRequire } from 'node:module'
 import fs from 'node:fs/promises'
@@ -38,6 +39,7 @@ const OUT = path.resolve(need('out'))
 const AUDIO = args.get('audio') ? path.resolve(args.get('audio')) : null
 const CHAPTERS = (args.get('chapters') ?? '').split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
 const FRAMES_ONLY = args.has('frames-only')
+const THUMB_ONLY = args.has('thumb-only') // サムネイルだけ作り直す（動画は触らない）
 const FULL = args.has('full')
 const MAX_MIN = Number(args.get('max-minutes') ?? 0) // 動画全体の上限（分）。Instagram は 20 分まで
 const [W, H] = (args.get('size') ?? '1920x1080').split('x').map(Number)
@@ -104,11 +106,14 @@ let points = summaryCh?.blocks.filter((b) => b.mark === '--').map((b) => b.t) ??
 /* ---------- 画面の台本 ---------- */
 let plan = null
 let planPoints = null
+let planThumb = null
 try {
   const j = JSON.parse(await fs.readFile(path.join(HERE, 'plans', KEY.replace(/\.txt$/, '.json')), 'utf8'))
   plan = j.chapters
   // 全文が無い回のために、まとめの要点を台本に書いておける
   if (Array.isArray(j.points)) planPoints = j.points
+  // サムネイルの文字（手で書いたものがあれば、題名からの自動生成より優先する）
+  if (j.thumb && typeof j.thumb === 'object') planThumb = j.thumb
 } catch {
   /* 台本が無ければ下で自動生成 */
 }
@@ -399,11 +404,14 @@ function frame(f, prog) {
       ${footer(`${fmtDate(date)}の配信　全 ${plan.length} 章`)}</div>`
   }
   if (f.type === 'end') {
+    // noteの有料記事になっている回は、データバンクに全文が無い＝「もっと詳しくはnoteで」と正直に案内する
     return `<div class="s cover"><div class="mark">${portrait ? `<img src="${portrait}" alt="">` : ''}川上牧場 酪農データバンク</div>
-      <div class="mid"><div class="endh">この回の全文・用語・質問は、<br>データバンクで読めます。</div>
+      <div class="mid"><div class="endh">この回の${ep.notePaid ? '要点' : '全文'}・用語・質問は、<br>データバンクで読めます。</div>
       <div class="url">kawakamidairyfarm-png.github.io/izumo-agri-portal/e/${esc(epId)}/</div>
-      <div class="endn">牛乳のこと、牛のこと、酪農家になる道のこと。2019年からの配信を、言葉で探せます。質問は公式LINEへ。</div></div>
-      ${footer('登録もお金も要りません')}</div>`
+      <div class="endn">牛乳のこと、牛のこと、酪農家になる道のこと。2019年からの配信を、言葉で探せます。質問は公式LINEへ。${
+        ep.notePaid ? `<br><b>もっと詳しくは、noteの記事で${ep.notePrice ? `（${ep.notePrice.toLocaleString()}円）` : ''}。note.com/kawakamifarm</b>` : ''
+      }</div></div>
+      ${footer(ep.notePaid ? 'データバンクは登録もお金も要りません' : '登録もお金も要りません')}</div>`
   }
   const h = head(f.ci, prog)
   const ft = footer(fmtDate(date))
@@ -422,7 +430,7 @@ const page = await browser.newPage({ viewport: { width: W, height: H }, deviceSc
 const files = []
 let t = 0
 const totalBody = bounds.length ? bounds[bounds.length - 1].to - bounds[0].from : audioEnd
-for (let i = 0; i < frames.length; i++) {
+for (let i = 0; !THUMB_ONLY && i < frames.length; i++) {
   const f = frames[i]
   await page.setContent(`<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>${css}</style></head><body>${frame(f, Math.min(1, t / (totalBody || 1)))}</body></html>`)
   await page.evaluate(() => document.fonts.ready)
@@ -432,26 +440,152 @@ for (let i = 0; i < frames.length; i++) {
   if (f.type !== 'cover' && f.type !== 'end') t += f.dur
 }
 
-// サムネイル（1280×720）
-const thumbTitle = (/^(.{4,24}?[？?])/.exec(title)?.[1] ?? title.split(/[。、]/)[0]).slice(0, 26)
-const tf = Math.round(Math.min(116, 1130 / Math.max(6, thumbTitle.length <= 13 ? thumbTitle.length : Math.ceil(thumbTitle.length / 2))))
+/* ---------- サムネイル（1280×720） ----------
+ * YouTubeのサムネイルの作法を調べて作った（LOCUS「YouTubeサムネイル完全攻略ガイド」ほか）:
+ *   ・文字は多くて20字・ねらいは6〜10字（スマホでは約1/9の大きさに縮む）
+ *   ・太いゴシック体。地と文字は「座布団（背景色）」で分ける
+ *   ・Zの法則＝一番伝えたい言葉は左上に置く
+ *   ・右下には再生時間の黒い帯が乗るので、文字も顔も置かない
+ *   ・色はベース・メイン・アクセントの3色まで。地と文字の明度差を強く
+ *   ・人の顔（表情）が入るとクリックされやすい
+ *   ・ロゴの位置・色・書体は毎回同じにする（チャンネルの見た目を揃える）
+ *   ・煽らない＝配信で話した範囲の言葉だけ使う
+ * 台本（plans/<key>.json）に "thumb" があればそれを使う。手で書いた言葉が一番強い。
+ *   "thumb": { "kicker": "…", "lines": ["…","…"], "hit": "強調する語", "sub": "…" }
+ */
+/* 題名から、サムネイルに出す1〜2行を作る。
+ * ここでの決まりごとは一つだけ＝「言葉の途中で折らない」。
+ * 折ってよいのは、助詞や読点のうしろか、文字の種類が変わるところ（漢字↔かな↔カタカナ↔数字）。
+ * 折れるところが無ければ、1行のまま小さくする（中途半端に切った行は出さない）。
+ */
+const CLS = (c) => (/[一-鿿々]/.test(c) ? 'k' : /[ぁ-ん]/.test(c) ? 'h' : /[ァ-ヶー]/.test(c) ? 'K' : /[0-9A-Za-z０-９Ａ-Ｚａ-ｚ]/.test(c) ? 'n' : 'o')
+const PARTICLE = 'はがをにのとでもへ' // 「か・ね・よ・や」は言葉の途中にも出るので入れない（〜てから／やけ食い、で折れてしまう）
+const NO_HEAD = 'ーぁぃぅぇぉっゃゅょァィゥェォッャュョ々、。・？?！!」』）)'
+/** i の位置で行を折ってよいか */
+function canBreak(s, i) {
+  if (i <= 0 || i >= s.length) return false
+  const prev = s[i - 1]
+  const cur = s[i]
+  if (NO_HEAD.includes(cur)) return false
+  if ('、・'.includes(prev)) return true
+  if (PARTICLE.includes(prev)) return true
+  return CLS(prev) !== CLS(cur)
+}
+/** 題名から、サムネイルの芯になる一文を取る（問いがあれば問いを優先する） */
+function thumbCore(t) {
+  const s = String(t)
+    .replace(/[【】]/g, '・') // 副題の囲みは切れ目として扱う
+    .replace(/[“”"「」『』]/g, '') // 引用の記号は落とす
+    .replace(/・+/g, '・')
+    .trim()
+  const qi = s.search(/[？?]/)
+  if (qi >= 0) {
+    // 問いの終わりから、切れ目ごとに頭を落としていく。20字に収まるうちで一番長いものを採る
+    const cand = []
+    for (let c = s.slice(0, qi + 1); c; ) {
+      if (c.length <= 20) cand.push(c)
+      const cut = Math.max(...['、', '・', '。', '！', '!'].map((x) => c.lastIndexOf(x)))
+      if (cut < 0) break
+      c = c.slice(cut + 1)
+    }
+    const pick = cand.find((c) => c.length >= 8) ?? cand[0]
+    if (pick && pick.length >= 4) return pick
+    // 切れ目が無くて長いときは、問いの終わりから折れるところまでを取る（頭を落とす＝言葉は途中で切らない）
+    const c = s.slice(0, qi + 1)
+    for (let n = 14; n >= 8; n--) {
+      const i = c.length - n
+      if (i > 0 && canBreak(c, i) && !PARTICLE.includes(c[i])) return c.slice(i)
+    }
+  }
+  const parts = s.split(/[。、・／｜─！!]/).map((x) => x.trim()).filter(Boolean)
+  const first = parts.find((x) => x.length >= 6) ?? parts[0] ?? s
+  if (first.length <= 20) return first
+  for (let i = 20; i >= 8; i--) if (canBreak(first, i)) return first.slice(0, i)
+  return first.slice(0, 20)
+}
+function autoThumbLines(t) {
+  const s = thumbCore(t)
+  if (s.length <= 11) return [s.replace(/[、・―—–－\s]+$/, '')]
+  let best = null
+  for (let i = 3; i <= s.length - 3; i++) {
+    if (i > 12 || s.length - i > 12) continue
+    if (!canBreak(s, i)) continue
+    let score = -Math.abs(i - (s.length - i))
+    if (PARTICLE.includes(s[i - 1])) score += 4
+    if ('、・'.includes(s[i - 1])) score += 9
+    if ('kKn'.includes(CLS(s[i]))) score += 3 // 次の行が漢字・カタカナ・数字で始まると、語の頭に見える
+    if (PARTICLE.includes(s[i])) score -= 5 // 行の頭が助詞になるのは避ける
+    if (!best || score > best.score) best = { score, i }
+  }
+  if (!best) return [s] // 折れるところが無ければ1行のまま（小さくなっても、切れた言葉は出さない）
+  return [s.slice(0, best.i).replace(/[、・―—–－\s]+$/, ''), s.slice(best.i)]
+}
+const thumb = planThumb ?? {}
+const tLines = (Array.isArray(thumb.lines) ? thumb.lines : thumb.lines ? [thumb.lines] : autoThumbLines(title))
+  .map((l) => String(l).trim())
+  .filter(Boolean)
+  .slice(0, 2)
+const HIT = /(更新率|乳量|長生き|牛乳|原価|子牛|飼料|繁殖|資金|給食|バター|乳価|乳脂肪|一番大変|堆肥|研修|非農家|乳房炎)/
+const hitRe = thumb.hit ? new RegExp(`(${thumb.hit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`) : HIT
+let hitDone = false
+// 1行に収まる字数から大きさを決める。1行目は右上の顔写真に重ならない幅（900px）まで
+const tf = Math.round(
+  Math.min(
+    tLines.length === 1 ? 150 : 132,
+    ...tLines.map((l, i) => (portrait && tLines.length > 1 && i === 0 ? 900 : 1120) / Math.max(5, l.length)),
+  ),
+)
+const autoSub = String(points[0] ?? '').split(/[。、（(]/)[0]
+const tSub = thumb.sub ?? (autoSub && autoSub.length <= 18 ? autoSub : '')
+const tKick = thumb.kicker ?? '出雲の酪農家が答える'
 await page.setViewportSize({ width: 1280, height: 720 })
 await page.setContent(`<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>${css}
 html,body{width:1280px;height:720px}
-.tw{position:absolute;inset:0;background:linear-gradient(150deg,#18291b,#0b140c);padding:60px 68px;display:flex;flex-direction:column;justify-content:center}
-.tw .k{font-size:32px;color:#f2cf7a;letter-spacing:.2em}
-.tw h1{font-size:${tf}px;font-weight:900;line-height:1.3;margin-top:20px;width:1130px}
-.tw h1 em{font-style:normal;color:#f2cf7a}
-.tw .sx{font-size:36px;color:#cfdccd;font-weight:700;margin-top:34px;letter-spacing:.04em}
-.tw .b{position:absolute;right:60px;bottom:52px;display:flex;align-items:center;gap:18px;font-size:29px;color:#cfdccd}
-.tw .b img{width:104px;height:104px;border-radius:50%;object-fit:cover;border:5px solid #f2cf7a}
-</style></head><body><div class="tw"><div class="k">出雲の酪農家が答える</div>
-<h1>${esc(thumbTitle).replace(/(更新率|乳量|長生き|牛乳|原価|子牛|飼料|繁殖|資金|給食|バター)/, '<em>$1</em>')}</h1>
-<div class="sx">${esc(short(points[0] ?? `配信 ${fmtDate(date)}`, 26))}</div>
-<div class="b">${portrait ? `<img src="${portrait}" alt="">` : ''}<span>川上牧場 酪農データバンク</span></div></div></body></html>`)
+.tw{position:absolute;inset:0;background:
+  radial-gradient(900px 620px at 12% 0%, rgba(127,174,132,.34), transparent 62%),
+  linear-gradient(145deg,#1e4023 0%,#16301a 46%,#0a1609 100%)}
+.tw .kick{position:absolute;left:56px;top:52px;background:#f2cf7a;color:#10200f;
+  font-size:31px;font-weight:900;letter-spacing:.14em;padding:11px 22px;border-radius:8px}
+.tw .face{position:absolute;right:56px;top:44px;width:240px;height:240px;border-radius:50%;
+  overflow:hidden;border:7px solid #f2cf7a;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+/* 顔（表情）が見えるところまで寄る。数字は data/photos/about.jpg に合わせてある */
+.tw .face img{position:absolute;width:900px;left:-498px;top:-235px;max-width:none}
+.tw .mid{position:absolute;left:56px;right:56px;top:150px;bottom:130px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.tw .hl{display:inline-block;background:rgba(6,13,7,.93);color:#fff;font-weight:900;
+  font-size:${tf}px;line-height:1.22;padding:8px 22px;border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.tw .hl + .hl{margin-top:14px}
+.tw .hl em{font-style:normal;color:#ffd76e}
+.tw .sub{margin-top:26px;display:inline-block;background:rgba(6,13,7,.72);color:#e6f0e4;
+  font-size:34px;font-weight:700;letter-spacing:.03em;padding:8px 18px;border-radius:8px}
+.tw .brand{position:absolute;left:58px;bottom:52px;display:flex;align-items:center;gap:12px;
+  font-size:27px;font-weight:700;color:#cfdccd;letter-spacing:.04em}
+.tw .brand i{display:block;width:14px;height:14px;border-radius:50%;background:#f2cf7a}
+</style></head><body><div class="tw">
+<div class="kick">${esc(tKick)}</div>
+${portrait ? `<div class="face"><img src="${portrait}" alt=""></div>` : ''}
+<div class="mid">
+${tLines
+  .map((l) => {
+    let h = esc(l)
+    if (!hitDone && hitRe.test(h)) {
+      h = h.replace(hitRe, '<em>$1</em>')
+      hitDone = true
+    }
+    return `<div class="hl">${h}</div>`
+  })
+  .join('\n')}
+${tSub ? `<div class="sub">${esc(tSub)}</div>` : ''}
+</div>
+<div class="brand"><i></i>川上牧場 酪農データバンク</div>
+</div></body></html>`)
 await page.evaluate(() => document.fonts.ready)
 await page.screenshot({ path: path.join(OUT, 'thumbnail.png') })
 await browser.close()
+if (THUMB_ONLY) {
+  console.log(`サムネイル: ${path.join(OUT, 'thumbnail.png')}（文字 ${tLines.join('／')}＝${tLines.join('').length}字）`)
+  process.exit(0)
+}
 
 const list = files.map((f, i) => `file '${f}'\nduration ${frames[i].dur.toFixed(3)}`).join('\n') + `\nfile '${files[files.length - 1]}'\n`
 await fs.writeFile(path.join(OUT, 'list.txt'), list)
@@ -476,7 +610,10 @@ await fs.writeFile(
     `${mmss(0)} はじめに`,
     ...body.map((c, i) => `${mmss(COVER + (bounds[i].from - audioStart) / tempo)} ${c.heading}`),
     '',
-    `この回の全文・用語・質問　${SITE}e/${epId}/`,
+    `この回の${ep.notePaid ? '要点' : '全文'}・用語・質問　${SITE}e/${epId}/`,
+    ...(ep.notePaid && ep.noteUrl
+      ? [`もっと詳しく読む（noteの記事${ep.notePrice ? `・${ep.notePrice.toLocaleString()}円` : ''}）　${ep.noteUrl}`]
+      : []),
     `酪農のことば帖　${SITE}terms/`,
     `届いた質問と、答えた回　${SITE}questions/`,
     '',
