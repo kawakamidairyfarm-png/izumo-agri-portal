@@ -1,0 +1,63 @@
+# 配信1回分を「本人の音声＋章立てスライド」の動画（mp4）にして、成果物として置く（学習教材の試作）
+# 材料: data/transcripts の全文（pody の章・用語・まとめ）と、pody の再生ページにある音声URLと章の再生秒。
+# できた mp4 は Actions の成果物からダウンロードして、YouTube に手でアップロードする（限定公開など）。
+name: 配信を動画にする（試作）
+
+on:
+  workflow_dispatch:
+    inputs:
+      key:
+        description: 本文ファイル名（例 2026-09-16_x5564f57.txt）
+        required: true
+      size:
+        description: 画面サイズ
+        required: false
+        default: "1920x1080"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: databank
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 道具（ffmpeg・日本語フォント・ブラウザ）
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-noto-cjk
+          mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null && npm i playwright@1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+      - name: pody から音声URLと章の秒を取る
+        run: node scripts/video/pody-meta.mjs --key "${{ inputs.key }}" --out /tmp/meta.json
+      - name: 音声を取得
+        run: |
+          AUDIO=$(node -e "console.log(require('/tmp/meta.json').audio)")
+          curl -sS -L -A "Mozilla/5.0" -o /tmp/ep.mp3 --max-time 300 "$AUDIO"
+          ls -la /tmp/ep.mp3
+          ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/ep.mp3
+      - name: スライドを描いて動画にする
+        env:
+          PLAYWRIGHT_DIR: /tmp/pw
+        run: |
+          CH=$(node -e "console.log(require('/tmp/meta.json').chapters.map(c=>c.seconds).join(','))")
+          node scripts/video/make.mjs --key "${{ inputs.key }}" --out /tmp/video --audio /tmp/ep.mp3 --chapters "$CH" --size "${{ inputs.size }}"
+          node -e "
+            const m=require('/tmp/meta.json');const f=(s)=>new Date(s*1000).toISOString().slice(11,19).replace(/^00:/,'');
+            const site='https://kawakamidairyfarm-png.github.io/izumo-agri-portal/';
+            console.log([m.title,'',m.date+' の配信（毎朝の音声配信「牛乳のむ？牧場配信」より）','','章','0:00 はじめに',...m.chapters.map(c=>f(c.seconds)+' '+c.heading),'','この回の全文・用語・質問: '+site+'e/'+m.id+'/','酪農のことば帖: '+site+'terms/','届いた質問と、答えた回: '+site+'questions/','','島根県出雲市・川上牧場 川上哲也'].join('\n'))
+          " > /tmp/video/youtube-description.txt
+          cat /tmp/video/youtube-description.txt
+          ls -la /tmp/video
+      - uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ inputs.key }}
+          path: |
+            /tmp/video/*.mp4
+            /tmp/video/youtube-description.txt
+            /tmp/meta.json
+          retention-days: 14
