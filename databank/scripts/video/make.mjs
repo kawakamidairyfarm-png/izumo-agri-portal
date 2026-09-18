@@ -545,16 +545,28 @@ const autoSub = String(points[0] ?? '').split(/[。、（(]/)[0]
 const tSub = thumb.sub ?? (autoSub && autoSub.length <= 18 ? autoSub : '')
 const tKick = thumb.kicker ?? '出雲の酪農家が答える'
 await page.setViewportSize({ width: 1280, height: 720 })
-/** 文字のまわりの縁取り（16方向）。写真の上でも字が読めるようにする */
+/* 色は「背景・文字・差し色」の3色だけ。地と文字の明度差は極端につける。
+ * 調べた結論（サムネAI「配色パターン10選」ほか）:
+ *   ・解説・教育で効くのは 紺×白×オレンジ／黒×白×金／白×黒×赤
+ *   ・似た色どうし（深緑に淡い金、灰に白、パステル同士）は、きれいでも埋もれる＝いちばんの失敗
+ *   ・差し色は彩度の高いものを1色だけ。3色を超えると視線が散る
+ *   ・スマホで小さく見て、色の差が分かるかで決める
+ */
+const THEMES = {
+  紺: { bg1: '#22407c', bg2: '#0b1730', ink: '#08122a', fg: '#ffffff', ac: '#ffd11a', acInk: '#132349', subBg: '#08122aeb', dim: '#c6d6f2', halo: 'rgba(150,190,255,.30)', grade: 'saturate(1.04) contrast(1.07) brightness(1.07)' },
+  黒: { bg1: '#2c2c31', bg2: '#08080a', ink: '#000000', fg: '#ffffff', ac: '#ffd700', acInk: '#141414', subBg: '#000000eb', dim: '#d2d2d2', halo: 'rgba(255,225,150,.22)', grade: 'saturate(1.05) contrast(1.09) brightness(1.08)' },
+  白: { bg1: '#ffffff', bg2: '#efe9dc', ink: '#ffffff', fg: '#14161a', ac: '#e0301e', acInk: '#ffffff', subBg: '#14161a', subFg: '#ffffff', dim: '#5d6066', halo: 'rgba(255,255,255,.65)', grade: 'saturate(1.06) contrast(1.05) brightness(1.02)' },
+}
+const TH = THEMES[args.get('thumb-theme') ?? '紺'] ?? THEMES['紺']
+/** 文字のまわりの縁取り（16方向）。写真の上に字が乗るところで効く */
 const stroke = (px, c) =>
   Array.from({ length: 16 }, (_, i) => {
     const r = (i * Math.PI) / 8
     return `${(Math.cos(r) * px).toFixed(1)}px ${(Math.sin(r) * px).toFixed(1)}px 0 ${c}`
   }).join(',')
-const INK = '#04120a'
 // 見出しは太い見出し書体で。取れないときは Noto Sans JP の一番太いものに落ちる
 const HEADFONT = "'Zen Kaku Gothic New','Noto Sans JP','Noto Sans CJK JP',sans-serif"
-/** 1行ぶんの組み（縁取りの層と、色の層を重ねる＝金色の文字にも縁が付く） */
+/** 1行ぶんの組み（縁取りの層と、色の層を重ねる＝差し色の字にも縁が付く） */
 const hlHtml = (l) => {
   let h = esc(l)
   if (!hitDone && hitRe.test(h)) {
@@ -568,45 +580,35 @@ await page.setContent(
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700;900&display=block">
 <style>${css}
 html,body{width:1280px;height:720px}
-.tw{position:absolute;inset:0;overflow:hidden;background:
-  radial-gradient(720px 620px at 74% 36%, rgba(242,207,122,.26), transparent 66%),
-  linear-gradient(118deg,#1f4a29 0%,#12301a 46%,#050f07 100%),#07150a}
-/* ななめの線の地紋（うるさくならない程度に） */
-.tw-tex{position:absolute;inset:0;opacity:.07;
-  background:repeating-linear-gradient(118deg, rgba(255,255,255,.55) 0 2px, transparent 2px 17px)}
-/* 右側に上半身。左のふちは時間をかけて地にとけこませる */
-.tw-ph{position:absolute;right:0;top:0;width:680px;height:720px;overflow:hidden;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 20%,rgba(0,0,0,.72) 44%,#000 66%);
-  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 20%,rgba(0,0,0,.72) 44%,#000 66%)}
-.tw-ph img{position:absolute;height:930px;left:-216px;top:-150px;max-width:none;filter:saturate(1.08) contrast(1.05)}
-/* 足元は地に沈める（画面の幅いっぱいに引くので、写真の左端に線が出ない） */
-.tw-vig{position:absolute;left:0;right:0;bottom:0;height:230px;
-  background:linear-gradient(0deg,#07150a 0%,rgba(7,21,10,.72) 42%,transparent 100%)}
-/* 左上の帯＝毎回おなじ名乗り */
-.tw-kick{position:absolute;left:46px;top:44px;transform:skewX(-9deg);
-  background:linear-gradient(180deg,#ffe9a8,#f2cf7a 52%,#e0b558);padding:12px 26px;
-  box-shadow:0 8px 22px rgba(0,0,0,.5)}
-.tw-kick span{display:block;transform:skewX(9deg);color:${INK};font-size:31px;font-weight:900;letter-spacing:.12em}
-.tw-mid{position:absolute;left:54px;right:40px;top:156px;bottom:146px;
+.tw{position:absolute;inset:0;overflow:hidden;
+  background:radial-gradient(460px 480px at 80% 34%, ${TH.halo}, transparent 68%),
+             linear-gradient(160deg,${TH.bg1} 0%,${TH.bg2} 72%)}
+/* 右に上半身。左のふちだけ地にとけこませる（覆いをかぶせると縦の線が出る） */
+.tw-ph{position:absolute;right:0;top:0;width:640px;height:720px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 22%,rgba(0,0,0,.86) 48%,#000 68%);
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 22%,rgba(0,0,0,.86) 48%,#000 68%)}
+.tw-ph img{position:absolute;height:930px;left:-216px;top:-150px;max-width:none;filter:${TH.grade}}
+.tw-vig{position:absolute;left:0;right:0;bottom:0;height:200px;
+  background:linear-gradient(0deg,${TH.bg2} 0%,transparent 100%)}
+/* 名乗りの帯＝毎回おなじ位置・おなじ色 */
+.tw-kick{position:absolute;left:52px;top:46px;background:${TH.ac};padding:12px 24px}
+.tw-kick span{display:block;color:${TH.acInk};font-size:30px;font-weight:900;letter-spacing:.14em}
+.tw-mid{position:absolute;left:52px;right:40px;top:150px;bottom:142px;
   display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
 .tw-hl{position:relative;display:block;font-family:${HEADFONT};font-weight:900;font-size:${tf}px;
-  line-height:1.16;letter-spacing:-.025em;transform:scaleX(.97);transform-origin:left center}
-.tw-hl + .tw-hl{margin-top:10px}
+  line-height:1.2;letter-spacing:-.008em}
+.tw-hl + .tw-hl{margin-top:8px}
 .tw-hl i{font-style:normal;display:block;white-space:nowrap}
-.tw-o{position:absolute;left:0;top:0;color:${INK};
-  text-shadow:${stroke(8, INK)},0 14px 30px rgba(0,0,0,.65)}
-.tw-t{position:relative;color:#fff}
-.tw-t em{font-style:normal;
-  background:linear-gradient(177deg,#fff6d8 4%,#f7d277 46%,#e5a92e 56%,#ffeeba 96%);
-  -webkit-background-clip:text;background-clip:text;color:transparent}
-.tw-sub{margin-top:26px;display:inline-flex;align-items:center;
-  background:rgba(4,18,10,.8);border-left:8px solid #f2cf7a;color:#f0f6ee;
-  font-size:33px;font-weight:700;letter-spacing:.02em;padding:11px 22px 11px 16px}
-.tw-brand{position:absolute;left:52px;bottom:42px;display:flex;align-items:center;gap:12px;
-  font-size:26px;font-weight:700;color:#d6e3d4;letter-spacing:.05em;text-shadow:0 2px 12px rgba(0,0,0,.9)}
-.tw-brand i{display:block;width:13px;height:13px;border-radius:50%;background:#f2cf7a}
+.tw-o{position:absolute;left:0;top:0;color:${TH.ink};text-shadow:${stroke(5, TH.ink)}}
+.tw-t{position:relative;color:${TH.fg}}
+.tw-t em{font-style:normal;color:${TH.ac}}
+.tw-sub{margin-top:24px;display:inline-flex;align-items:center;background:${TH.subBg};
+  border-left:9px solid ${TH.ac};color:${TH.subFg ?? TH.fg};
+  font-size:32px;font-weight:700;letter-spacing:.02em;padding:10px 22px 10px 16px}
+.tw-brand{position:absolute;left:54px;bottom:44px;display:flex;align-items:center;gap:12px;
+  font-size:25px;font-weight:700;color:${TH.dim};letter-spacing:.05em}
+.tw-brand i{display:block;width:12px;height:12px;border-radius:50%;background:${TH.ac}}
 </style></head><body><div class="tw">
-<div class="tw-tex"></div>
 ${portrait ? `<div class="tw-ph"><img src="${portrait}" alt=""></div>` : ''}
 <div class="tw-vig"></div>
 <div class="tw-kick"><span>${esc(tKick)}</span></div>
