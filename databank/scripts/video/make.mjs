@@ -526,59 +526,98 @@ const tLines = (Array.isArray(thumb.lines) ? thumb.lines : thumb.lines ? [thumb.
   .filter(Boolean)
   .slice(0, 2)
 const HIT = /(更新率|乳量|長生き|牛乳|原価|子牛|飼料|繁殖|資金|給食|バター|乳価|乳脂肪|一番大変|堆肥|研修|非農家|乳房炎)/
-const hitRe = thumb.hit ? new RegExp(`(${thumb.hit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`) : HIT
+let hitRe = thumb.hit ? new RegExp(`(${thumb.hit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`) : HIT
+// 決め打ちの語が無い回は、一番長い漢字のかたまりを金色にする（1語も光らない絵にしない）
+if (!thumb.hit && !tLines.some((l) => HIT.test(l))) {
+  const runs = tLines.flatMap((l) => l.match(/[\u4e00-\u9fff々]{2,}/g) ?? [])
+  const top = runs.sort((a, b) => b.length - a.length)[0]
+  if (top) hitRe = new RegExp(`(${top})`)
+}
 let hitDone = false
-// 1行に収まる字数から大きさを決める。1行目は右上の顔写真に重ならない幅（900px）まで
+// 1行に収まる字数から大きさを決める。顔にかからない幅までに収める（体の上は縁取りで読める）
 const tf = Math.round(
   Math.min(
-    tLines.length === 1 ? 150 : 132,
-    ...tLines.map((l, i) => (portrait && tLines.length > 1 && i === 0 ? 900 : 1120) / Math.max(5, l.length)),
+    tLines.length === 1 ? 158 : 138,
+    ...tLines.map((l, i) => (portrait && tLines.length > 1 && i === 0 ? 820 : portrait && tLines.length === 1 ? 1100 : 1150) / Math.max(5, l.length)),
   ),
 )
 const autoSub = String(points[0] ?? '').split(/[。、（(]/)[0]
 const tSub = thumb.sub ?? (autoSub && autoSub.length <= 18 ? autoSub : '')
 const tKick = thumb.kicker ?? '出雲の酪農家が答える'
 await page.setViewportSize({ width: 1280, height: 720 })
-await page.setContent(`<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>${css}
+/** 文字のまわりの縁取り（16方向）。写真の上でも字が読めるようにする */
+const stroke = (px, c) =>
+  Array.from({ length: 16 }, (_, i) => {
+    const r = (i * Math.PI) / 8
+    return `${(Math.cos(r) * px).toFixed(1)}px ${(Math.sin(r) * px).toFixed(1)}px 0 ${c}`
+  }).join(',')
+const INK = '#04120a'
+// 見出しは太い見出し書体で。取れないときは Noto Sans JP の一番太いものに落ちる
+const HEADFONT = "'Zen Kaku Gothic New','Noto Sans JP','Noto Sans CJK JP',sans-serif"
+/** 1行ぶんの組み（縁取りの層と、色の層を重ねる＝金色の文字にも縁が付く） */
+const hlHtml = (l) => {
+  let h = esc(l)
+  if (!hitDone && hitRe.test(h)) {
+    h = h.replace(hitRe, '<em>$1</em>')
+    hitDone = true
+  }
+  return `<div class="tw-hl"><i class="tw-o">${h}</i><i class="tw-t">${h}</i></div>`
+}
+await page.setContent(
+  `<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700;900&display=block">
+<style>${css}
 html,body{width:1280px;height:720px}
-.tw{position:absolute;inset:0;background:
-  radial-gradient(900px 620px at 12% 0%, rgba(127,174,132,.34), transparent 62%),
-  linear-gradient(145deg,#1e4023 0%,#16301a 46%,#0a1609 100%)}
-.tw .kick{position:absolute;left:56px;top:52px;background:#f2cf7a;color:#10200f;
-  font-size:31px;font-weight:900;letter-spacing:.14em;padding:11px 22px;border-radius:8px}
-.tw .face{position:absolute;right:56px;top:44px;width:240px;height:240px;border-radius:50%;
-  overflow:hidden;border:7px solid #f2cf7a;box-shadow:0 14px 40px rgba(0,0,0,.5)}
-/* 顔（表情）が見えるところまで寄る。数字は data/photos/about.jpg に合わせてある */
-.tw .face img{position:absolute;width:900px;left:-498px;top:-235px;max-width:none}
-.tw .mid{position:absolute;left:56px;right:56px;top:150px;bottom:130px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
-.tw .hl{display:inline-block;background:rgba(6,13,7,.93);color:#fff;font-weight:900;
-  font-size:${tf}px;line-height:1.22;padding:8px 22px;border-radius:10px;
-  box-shadow:0 10px 30px rgba(0,0,0,.45)}
-.tw .hl + .hl{margin-top:14px}
-.tw .hl em{font-style:normal;color:#ffd76e}
-.tw .sub{margin-top:26px;display:inline-block;background:rgba(6,13,7,.72);color:#e6f0e4;
-  font-size:34px;font-weight:700;letter-spacing:.03em;padding:8px 18px;border-radius:8px}
-.tw .brand{position:absolute;left:58px;bottom:52px;display:flex;align-items:center;gap:12px;
-  font-size:27px;font-weight:700;color:#cfdccd;letter-spacing:.04em}
-.tw .brand i{display:block;width:14px;height:14px;border-radius:50%;background:#f2cf7a}
+.tw{position:absolute;inset:0;overflow:hidden;background:
+  radial-gradient(720px 620px at 74% 36%, rgba(242,207,122,.26), transparent 66%),
+  linear-gradient(118deg,#1f4a29 0%,#12301a 46%,#050f07 100%),#07150a}
+/* ななめの線の地紋（うるさくならない程度に） */
+.tw-tex{position:absolute;inset:0;opacity:.07;
+  background:repeating-linear-gradient(118deg, rgba(255,255,255,.55) 0 2px, transparent 2px 17px)}
+/* 右側に上半身。左のふちは時間をかけて地にとけこませる */
+.tw-ph{position:absolute;right:0;top:0;width:680px;height:720px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 20%,rgba(0,0,0,.72) 44%,#000 66%);
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 20%,rgba(0,0,0,.72) 44%,#000 66%)}
+.tw-ph img{position:absolute;height:930px;left:-216px;top:-150px;max-width:none;filter:saturate(1.08) contrast(1.05)}
+/* 足元は地に沈める（画面の幅いっぱいに引くので、写真の左端に線が出ない） */
+.tw-vig{position:absolute;left:0;right:0;bottom:0;height:230px;
+  background:linear-gradient(0deg,#07150a 0%,rgba(7,21,10,.72) 42%,transparent 100%)}
+/* 左上の帯＝毎回おなじ名乗り */
+.tw-kick{position:absolute;left:46px;top:44px;transform:skewX(-9deg);
+  background:linear-gradient(180deg,#ffe9a8,#f2cf7a 52%,#e0b558);padding:12px 26px;
+  box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.tw-kick span{display:block;transform:skewX(9deg);color:${INK};font-size:31px;font-weight:900;letter-spacing:.12em}
+.tw-mid{position:absolute;left:54px;right:40px;top:156px;bottom:146px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.tw-hl{position:relative;display:block;font-family:${HEADFONT};font-weight:900;font-size:${tf}px;
+  line-height:1.16;letter-spacing:-.025em;transform:scaleX(.97);transform-origin:left center}
+.tw-hl + .tw-hl{margin-top:10px}
+.tw-hl i{font-style:normal;display:block;white-space:nowrap}
+.tw-o{position:absolute;left:0;top:0;color:${INK};
+  text-shadow:${stroke(8, INK)},0 14px 30px rgba(0,0,0,.65)}
+.tw-t{position:relative;color:#fff}
+.tw-t em{font-style:normal;
+  background:linear-gradient(177deg,#fff6d8 4%,#f7d277 46%,#e5a92e 56%,#ffeeba 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.tw-sub{margin-top:26px;display:inline-flex;align-items:center;
+  background:rgba(4,18,10,.8);border-left:8px solid #f2cf7a;color:#f0f6ee;
+  font-size:33px;font-weight:700;letter-spacing:.02em;padding:11px 22px 11px 16px}
+.tw-brand{position:absolute;left:52px;bottom:42px;display:flex;align-items:center;gap:12px;
+  font-size:26px;font-weight:700;color:#d6e3d4;letter-spacing:.05em;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+.tw-brand i{display:block;width:13px;height:13px;border-radius:50%;background:#f2cf7a}
 </style></head><body><div class="tw">
-<div class="kick">${esc(tKick)}</div>
-${portrait ? `<div class="face"><img src="${portrait}" alt=""></div>` : ''}
-<div class="mid">
-${tLines
-  .map((l) => {
-    let h = esc(l)
-    if (!hitDone && hitRe.test(h)) {
-      h = h.replace(hitRe, '<em>$1</em>')
-      hitDone = true
-    }
-    return `<div class="hl">${h}</div>`
-  })
-  .join('\n')}
-${tSub ? `<div class="sub">${esc(tSub)}</div>` : ''}
+<div class="tw-tex"></div>
+${portrait ? `<div class="tw-ph"><img src="${portrait}" alt=""></div>` : ''}
+<div class="tw-vig"></div>
+<div class="tw-kick"><span>${esc(tKick)}</span></div>
+<div class="tw-mid">
+${tLines.map(hlHtml).join('\n')}
+${tSub ? `<div class="tw-sub">${esc(tSub)}</div>` : ''}
 </div>
-<div class="brand"><i></i>川上牧場 酪農データバンク</div>
-</div></body></html>`)
+<div class="tw-brand"><i></i>川上牧場 酪農データバンク</div>
+</div></body></html>`,
+  { waitUntil: 'networkidle' },
+)
 await page.evaluate(() => document.fonts.ready)
 await page.screenshot({ path: path.join(OUT, 'thumbnail.png') })
 await browser.close()
