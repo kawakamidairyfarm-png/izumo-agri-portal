@@ -45,15 +45,14 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg'
 const FFPROBE = process.env.FFPROBE || FFMPEG.replace(/ffmpeg$/, 'ffprobe')
 const require = createRequire(process.env.PLAYWRIGHT_DIR ? path.join(process.env.PLAYWRIGHT_DIR, 'package.json') : import.meta.url)
 const { chromium } = require('playwright')
+const { resolveEpisode } = await import('./episode.mjs')
 
 const COVER = 5 // 表紙（音声より前・無音）
 const END = 8 // 締め（音声より後・無音）
 const EYECATCH = 3.0
 
 /* ---------- 材料 ---------- */
-const episodes = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'episodes.json'), 'utf8'))
-const km = /^(\d{4}-\d{2}-\d{2})_([0-9a-z]{8})/.exec(KEY)
-const ep = episodes.find((e) => e.date === km?.[1] && e.driveId.startsWith(km?.[2] ?? '\0'))
+const ep = await resolveEpisode(ROOT, KEY)
 /** 自動文字起こしの固有名詞の取り違えを、画面に出す前だけ直す（中身は変えない） */
 const ASR_FIX = [
   [/ポポポ/g, 'Pody'],
@@ -61,9 +60,9 @@ const ASR_FIX = [
   [/乳腺炎|入房院|乳房園/g, '乳房炎'],
 ]
 const text = ASR_FIX.reduce((s, [re, to]) => s.replace(re, to), await fs.readFile(path.join(ROOT, 'data', 'transcripts', KEY), 'utf8'))
-const title = ep?.title ?? KEY
-const date = ep?.date ?? km?.[1] ?? ''
-const epId = ep ? `${ep.date}_${ep.driveId.slice(0, 8)}` : KEY.replace(/\.txt$/, '')
+const title = ep.title
+const date = ep.date
+const epId = ep.id
 const portrait = await fs
   .readFile(path.join(ROOT, 'data', 'photos', 'about.jpg'))
   .then((b) => `data:image/jpeg;base64,${b.toString('base64')}`)

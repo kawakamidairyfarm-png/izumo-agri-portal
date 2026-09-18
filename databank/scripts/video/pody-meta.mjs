@@ -20,10 +20,9 @@ const KEY = args.get('key')
 const OUT = args.get('out') ?? 'meta.json'
 if (!KEY) throw new Error('--key が要ります')
 
-const episodes = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'episodes.json'), 'utf8'))
-const m = /^(\d{4}-\d{2}-\d{2})_([0-9a-z]{8})/.exec(KEY)
-const ep = episodes.find((e) => e.date === m?.[1] && e.driveId.startsWith(m?.[2] ?? '\0'))
-if (!ep?.podyUrl) throw new Error(`${KEY} に対応する pody の回が索引にありません`)
+const { resolveEpisode } = await import('./episode.mjs')
+const ep = await resolveEpisode(ROOT, KEY)
+if (!ep.podyUrl) throw new Error(`${KEY} に対応する pody の回が索引にありません（照合: ${ep.how || '×'}）`)
 
 const res = await fetch(ep.podyUrl, { headers: { 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36' } })
 if (!res.ok) throw new Error(`pody: HTTP ${res.status}`)
@@ -43,7 +42,7 @@ for (const mm of html.matchAll(/class="chapter-head"[^>]*id="section-(\d+)"[\s\S
 }
 chapters.sort((a, b) => a.n - b.n)
 
-const meta = { key: KEY, id: `${ep.date}_${ep.driveId.slice(0, 8)}`, date: ep.date, title: ep.title, podyUrl: ep.podyUrl, audio, chapters }
+const meta = { key: KEY, id: ep.id, date: ep.date, title: ep.title, podyUrl: ep.podyUrl, matched: ep.how, audio, chapters }
 await fs.writeFile(OUT, JSON.stringify(meta, null, 2) + '\n')
-console.log(`${ep.date} ${ep.title}\n音声: ${audio ? 'あり' : '見つからず'} / 章: ${chapters.length}（${chapters.map((c) => c.seconds).join(',')}）`)
+console.log(`${ep.date} ${ep.title}\npody との照合: ${ep.how} / 音声: ${audio ? 'あり' : '見つからず'} / 章: ${chapters.length}（${chapters.map((c) => c.seconds).join(',')}）`)
 if (!audio || chapters.length === 0) process.exitCode = 2
