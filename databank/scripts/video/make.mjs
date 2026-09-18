@@ -47,6 +47,8 @@ const ep = episodes.find((e) => e.date === m?.[1] && e.driveId.startsWith(m?.[2]
 const text = await fs.readFile(path.join(ROOT, 'data', 'transcripts', KEY), 'utf8')
 const title = ep?.title ?? KEY
 const date = ep?.date ?? m?.[1] ?? ''
+// 回のID（サイトの住所）は索引に無いので、サイト側（src/lib/data.ts）と同じ規則で組む
+const epId = ep ? `${ep.date}_${ep.driveId.slice(0, 8)}` : KEY.replace(/\.txt$/, '')
 
 const chapters = [] // {heading, lead, terms:[{term,text}], insight, points:[]}
 let cur = null
@@ -135,7 +137,7 @@ if (summary?.points.length) {
 <div class="foot"><span>川上牧場 酪農データバンク</span><b>${esc(fmtDate(date))}</b></div></div>`)
 }
 slides.push(`<div class="slide cover"><div class="top"><span>川上牧場 酪農データバンク</span><span class="n">つづきは、読める形で</span></div>
-<h2 class="serif big">この回の全文・用語・質問は、データバンクで。</h2><p class="url">${esc(site)}e/${esc(ep?.id ?? '')}/</p>
+<h2 class="serif big">この回の全文・用語・質問は、データバンクで。</h2><p class="url">${esc(site)}e/${esc(epId)}/</p>
 <p class="lead">牛乳のこと、牛のこと、酪農家になる道のこと。出雲の酪農家が、隠さず話します。質問は公式LINEへ。</p>
 <div class="foot"><span>登録もお金も要りません</span><b>島根県出雲市・川上牧場</b></div></div>`)
 
