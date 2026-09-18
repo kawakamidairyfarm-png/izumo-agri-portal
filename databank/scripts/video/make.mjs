@@ -89,7 +89,12 @@ for (const raw of text.split(/\n+/)) {
   cur.blocks.push({ mark: mm[1], who, t })
 }
 const summaryCh = chapters.find((c) => /^まとめ/.test(c.heading))
-const body = chapters.filter((c) => c !== summaryCh)
+let body = chapters.filter((c) => c !== summaryCh)
+// 全文に章の印が無い回（noteの記事から取り込んだ回）は、pody の章見出しを使う
+if (!body.length && args.get('meta')) {
+  const meta = JSON.parse(await fs.readFile(path.resolve(args.get('meta')), 'utf8'))
+  body = (meta.chapters ?? []).map((c) => ({ heading: c.heading, blocks: [] }))
+}
 const points = summaryCh?.blocks.filter((b) => b.mark === '--').map((b) => b.t) ?? []
 
 /* ---------- 画面の台本 ---------- */
