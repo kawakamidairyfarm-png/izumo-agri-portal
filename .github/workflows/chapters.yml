@@ -1,0 +1,35 @@
+# pody の章（見出しと再生位置）だけを取る。台本を書く前に、章の数と並びを知るために使う。
+name: podyの章を調べる
+
+on:
+  workflow_dispatch:
+    inputs:
+      keys:
+        description: 本文ファイル名（カンマ区切りで複数可）
+        required: true
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: databank
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 章を取る
+        run: |
+          IFS=',' read -ra KEYS <<< "${{ inputs.keys }}"
+          for k in "${KEYS[@]}"; do
+            k="$(echo "$k" | xargs)"
+            echo "=============== $k"
+            node scripts/video/pody-meta.mjs --key "$k" --out "/tmp/$k.json" || echo "（取れませんでした）"
+            node -e "
+              try{const m=require('/tmp/$k.json');
+              m.chapters.forEach(c=>console.log(String(c.n).padStart(2)+'. '+String(c.seconds).padStart(5)+'秒  '+c.heading));
+              }catch(e){}
+            "
+          done
