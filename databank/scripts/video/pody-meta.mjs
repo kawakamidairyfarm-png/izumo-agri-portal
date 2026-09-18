@@ -43,7 +43,7 @@ for (const mm of html.matchAll(/class="chapter-head"[^>]*id="section-(\d+)"[\s\S
 }
 chapters.sort((a, b) => a.n - b.n)
 
-const meta = { key: KEY, id: ep.id ?? null, date: ep.date, title: ep.title, podyUrl: ep.podyUrl, audio, chapters }
+const meta = { key: KEY, id: `${ep.date}_${ep.driveId.slice(0, 8)}`, date: ep.date, title: ep.title, podyUrl: ep.podyUrl, audio, chapters }
 await fs.writeFile(OUT, JSON.stringify(meta, null, 2) + '\n')
 console.log(`${ep.date} ${ep.title}\n音声: ${audio ? 'あり' : '見つからず'} / 章: ${chapters.length}（${chapters.map((c) => c.seconds).join(',')}）`)
 if (!audio || chapters.length === 0) process.exitCode = 2
