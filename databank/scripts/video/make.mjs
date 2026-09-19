@@ -15,6 +15,7 @@
  * 章の頭の時刻は pody の再生位置（--chapters）に必ず合わせるので、ずれが溜まらない。
  * --frames-only 画像だけ作って動画にしない（見た目の確認用）／--full 前置きの雑談も残す
  * --thumb-only  サムネイルだけ作り直す（画面も動画も作らない）
+ * --keep-tail   最後の章が長すぎても、後ろの雑談を切らない
  */
 import { createRequire } from 'node:module'
 import fs from 'node:fs/promises'
@@ -151,7 +152,7 @@ const STEPS = {
   summary: (s) => s.items.length,
   calc: (s) => s.rows.length + 1,
 }
-const frames = []
+let frames = []
 plan.forEach((slides, ci) => {
   frames.push({ ci, type: 'eyecatch', w: 0 })
   for (const s of slides) {
@@ -195,20 +196,85 @@ if (MAX_MIN > 0) {
     if (left > target) tempo = Math.min(1.2, left / target)
   }
 }
-const bounds = plan.map((_, i) => ({ from: CHAPTERS[i] ?? audioStart, to: i + 1 < plan.length ? (CHAPTERS[i + 1] ?? audioEnd) : audioEnd }))
-for (let ci = 0; ci < plan.length; ci++) {
-  const mine = frames.filter((f) => f.ci === ci)
-  const budget = Math.max(6, bounds[ci].to - bounds[ci].from)
-  const eyes = mine.filter((f) => f.type === 'eyecatch')
-  const rest = mine.filter((f) => f.type !== 'eyecatch')
-  const eye = Math.min(EYECATCH, budget / (eyes.length * 4 || 1))
-  eyes.forEach((f) => (f.dur = eye))
-  const pool = budget - eye * eyes.length
-  const total = rest.reduce((a, b) => a + b.w, 0) || 1
-  rest.forEach((f) => (f.dur = (pool * f.w) / total))
-  const diff = budget - mine.reduce((a, b) => a + b.dur, 0)
-  mine[mine.length - 1].dur += diff
+/* pody の章の秒を、そのまま画面の割り当てに使う。ただし次の2つだけ直す。
+ *  ① 数秒しかない章（podyの付け間違い）は、次の章に合わせて1つの窓にする
+ *  ② 最後の章だけが飛び抜けて長いとき＝話が終わったあとの雑談が続いているので、
+ *     ほかの章の真ん中の長さの2倍で切る（--keep-tail で切らない）
+ * 画面の時間の合計は章の窓と必ず同じにする（水増ししない＝音とずれない）。
+ */
+const MIN_CHAPTER = 12 // これより短い章は、次の章と1つにする
+const marks = plan.map((_, i) => CHAPTERS[i] ?? audioStart)
+if (!FULL && !args.has('keep-tail') && plan.length >= 3) {
+  const spans = marks.slice(1).map((m, i) => m - marks[i]).filter((x) => x > MIN_CHAPTER)
+  const sorted = [...spans].sort((a, b) => a - b)
+  const mid = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0
+  const lastSpan = audioEnd - marks[marks.length - 1]
+  if (mid > 0 && lastSpan > Math.max(150, mid * 2.5)) {
+    const cut = marks[marks.length - 1] + Math.round(mid * 2)
+    trimmed += audioEnd - cut
+    audioEnd = cut
+  }
 }
+// 数秒しかない章をまとめる（扉と枠だけ畳み、中身の画面は次の章の窓に入れる）
+const merged = new Map() // 章の番号 → 一緒にする章の番号
+for (let i = 0; i + 1 < marks.length; i++) {
+  if (marks[i + 1] - marks[i] < MIN_CHAPTER) merged.set(i, i + 1)
+}
+const bounds = plan.map((_, i) => ({ from: marks[i], to: i + 1 < plan.length ? marks[i + 1] : audioEnd }))
+const SLIDE_MAX = 20 // 1枚の持ち時間の上限。あふれた分は、その章の最後の1枚で待つ
+const groupOf = (ci) => {
+  let g = ci
+  while (merged.has(g)) g = merged.get(g)
+  return g
+}
+for (let gi = 0; gi < plan.length; gi++) {
+  if (merged.has(gi)) continue // まとめられる側は、まとめ先で一緒に配る
+  const own = plan.map((_, ci) => ci).filter((ci) => groupOf(ci) === gi)
+  const from = bounds[own[0]].from
+  const budget = Math.max(2, bounds[gi].to - from)
+  const mine = frames.filter((f) => own.includes(f.ci))
+  // まとめられた章の扉は出さない（数秒で流れる扉は邪魔なだけ）
+  for (const f of mine) if (f.type === 'eyecatch' && !f.matome && f.ci !== gi) f.drop = true
+  let rest = mine.filter((f) => !f.drop && f.type !== 'eyecatch')
+  // 窓に対して画面が多すぎるときは、途中の段（副題などの出し分け）をやめて最後の形だけ出す
+  if (rest.length && budget / rest.length < 1.8) {
+    for (const f of rest) if (f.n > 1 && f.k < f.n - 1) f.drop = true
+    rest = rest.filter((f) => !f.drop)
+  }
+  const eyes = mine.filter((f) => !f.drop && f.type === 'eyecatch')
+  const eye = Math.min(EYECATCH, (budget * 0.25) / (eyes.length || 1))
+  eyes.forEach((f) => (f.dur = eye))
+  const pool = Math.max(0, budget - eye * eyes.length)
+  const total = rest.reduce((a, b) => a + b.w, 0) || 1
+  let parked = 0
+  rest.forEach((f) => {
+    const d = (pool * f.w) / total
+    f.dur = Math.min(d, SLIDE_MAX)
+    parked += d - f.dur
+  })
+  if (rest.length) rest[rest.length - 1].dur += parked
+  const live = mine.filter((f) => !f.drop)
+  const diff = budget - live.reduce((a, b) => a + b.dur, 0)
+  if (live.length) live[live.length - 1].dur += diff
+}
+frames = frames.filter((f) => !f.drop)
+
+// 章の頭が音とずれていないか、ここで確かめる（ずれたら作り方が壊れている）
+{
+  const gap = []
+  for (let gi = 0; gi < plan.length; gi++) {
+    if (merged.has(gi)) continue
+    const own = plan.map((_, ci) => ci).filter((ci) => groupOf(ci) === gi)
+    const i = frames.findIndex((f) => own.includes(f.ci))
+    if (i < 0) continue
+    const at = frames.slice(0, i).reduce((a, b) => a + b.dur, 0)
+    const want = marks[own[0]] - audioStart
+    if (Math.abs(at - want) > 0.5) gap.push(`第${own[0] + 1}章 ${at.toFixed(1)}秒（音は ${want.toFixed(1)}秒）`)
+  }
+  if (gap.length) console.warn(`⚠ 画面と音がずれている: ${gap.join(' / ')}`)
+  else console.log(`章の頭は音とそろっている（${plan.length - merged.size} か所で確認${merged.size ? `・数秒しかない章を ${merged.size} つ、次の章にまとめた` : ''}）`)
+}
+
 // 速さを上げたぶん、画面の長さも縮める（章の頭が音とずれないように）
 if (tempo !== 1) for (const f of frames) f.dur /= tempo
 frames.unshift({ type: 'cover', dur: COVER })
@@ -714,7 +780,11 @@ await fs.writeFile(
     ...(points.length ? ['この回の要点', ...points.map((p) => `・${p}`), ''] : []),
     '章',
     `${mmss(0)} はじめに`,
-    ...body.map((c, i) => `${mmss(COVER + (bounds[i].from - audioStart) / tempo)} ${c.heading}`),
+    // YouTube は10秒より近い章を受け付けないので、近すぎる章は落とす
+    ...body
+      .map((c, i) => ({ at: COVER + (bounds[i].from - audioStart) / tempo, heading: c.heading }))
+      .filter((c, i, a) => i === 0 || c.at - a[i - 1].at >= 10)
+      .map((c) => `${mmss(c.at)} ${c.heading}`),
     '',
     `この回の${ep.notePaid ? '要点' : '全文'}・用語・質問　${SITE}e/${epId}/`,
     ...(ep.notePaid && ep.noteUrl
