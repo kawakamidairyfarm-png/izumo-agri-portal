@@ -136,6 +136,10 @@ if (points.length) plan[plan.length - 1] = [...plan[plan.length - 1], { type: 'm
 /* ---------- 画面（frame）へ展開 ---------- */
 const STEPS = {
   q: (s) => s.lines.length,
+  point: (s) => (s.sub ? 2 : 1),
+  note: (s) => (s.sub ? 2 : 1),
+  term: () => 2,
+  stat: (s) => (s.label || s.sub ? 2 : 1),
   compare: () => 2,
   balance: () => 2,
   list: (s) => (s.grid ? 1 : s.items.length),
@@ -218,11 +222,60 @@ const fmtDate = (iso) => {
 }
 const short = (s, n) => (String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s))
 const u = (r) => `${Math.round(H * r)}px`
+
+/* ---------- 日本語の折り返し ----------
+ * 画面の字が「までが短い」「均質化／の5つ」のように語の途中で折れていた。
+ * 折ってよいのは、助詞や読点のうしろか、文字の種類が変わるところだけ。
+ * その切れ目ごとに inline-block で包むと、ブラウザはそこでしか折れなくなる。
+ */
+const CLS = (c) => (/[一-鿿々]/.test(c) ? 'k' : /[ぁ-ん]/.test(c) ? 'h' : /[ァ-ヶー]/.test(c) ? 'K' : /[0-9A-Za-z０-９Ａ-Ｚａ-ｚ]/.test(c) ? 'n' : 'o')
+const PARTICLE = 'はがをにのとでもへ' // 「か・ね・よ・や」は言葉の途中にも出るので入れない
+const NO_HEAD = 'ーぁぃぅぇぉっゃゅょァィゥェォッャュョ々、。・？?！!」』）)％%℃' // 行の頭に置かない字
+const NO_TAIL = '（(「『【' // 行の終わりに置かない字（かっこの開き）
+/** i の位置で行を折ってよいか */
+function canBreak(s, i) {
+  if (i <= 0 || i >= s.length) return false
+  const prev = s[i - 1]
+  const cur = s[i]
+  if (NO_HEAD.includes(cur) || NO_TAIL.includes(prev)) return false
+  if (PARTICLE.includes(cur)) return false // 行の頭が助詞になるのは避ける
+  if ('、・'.includes(prev)) return true
+  if (PARTICLE.includes(prev)) return true
+  return CLS(prev) !== CLS(cur)
+}
+/** 折ってよいところだけで折れるように組む（語の途中では折れない） */
+const jp = (text) => {
+  const t = String(text ?? '')
+  const out = []
+  let start = 0
+  for (let i = 1; i < t.length; i++) {
+    if (canBreak(t, i)) {
+      out.push(t.slice(start, i))
+      start = i
+    }
+  }
+  out.push(t.slice(start))
+  return out
+    .filter(Boolean)
+    .map((c) => `<span class="w">${esc(c)}</span>`)
+    .join('')
+}
+/** 一覧が枠からはみ出さない字の大きさを選ぶ（はみ出すくらいなら小さくする） */
+function fitRatio(items, { maxH, maxW, base, min = 0.028, lh = 1.45, gap = 0.026, indent = 0 }) {
+  for (let r = base; r > min; r -= 0.002) {
+    const f = H * r
+    const w = maxW - H * indent
+    const lines = items.reduce((a, x) => a + Math.max(1, Math.ceil((String(x).length * f) / w)), 0)
+    if (lines * lh * f + (items.length - 1) * H * gap <= maxH) return r
+  }
+  return min
+}
+const CONTENT_W = W - 2 * H * 0.072
 const on = (k, i) => (i <= k ? 'on' : '')
 
 const css = `
 ${process.env.FONT_CSS ? await fs.readFile(process.env.FONT_CSS, 'utf8') : ''}
-:root{--bg:#0f1a10;--card:#18291b;--line:#2f462f;--fg:#ffffff;--dim:#9db09c;--hay:#f2cf7a;--hay2:#ffe6a8;--moss:#7fae84}
+:root{--bg:#0c1a34;--card:#16294a;--line:#2a4372;--fg:#ffffff;--dim:#9fb5d8;--hay:#ffd11a;--hay2:#ffe27a;--moss:#5f8fd8;--off:#3c5885}
 *{box-sizing:border-box;margin:0}
 html,body{width:${W}px;height:${H}px;overflow:hidden;background:var(--bg);color:var(--fg);
   font-family:"Noto Sans JP","Noto Sans CJK JP","IPAPGothic",sans-serif;font-weight:700;-webkit-font-smoothing:antialiased}
@@ -234,58 +287,62 @@ html,body{width:${W}px;height:${H}px;overflow:hidden;background:var(--bg);color:
 .prog i{display:block;height:100%;background:var(--hay);border-radius:999px}
 .mid{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:0}
 .t{font-size:${u(0.038)};color:var(--hay);letter-spacing:.06em;margin-bottom:${u(0.04)}}
-.big{font-size:${u(0.088)};font-weight:900;line-height:1.45;width:15.5em}
-.sub{font-size:${u(0.036)};font-weight:500;color:#cfdccd;line-height:1.6;margin-top:${u(0.032)};width:24em}
-.tag{display:inline-block;font-size:${u(0.027)};letter-spacing:.16em;color:#0b1410;background:var(--hay);padding:${u(0.009)} ${u(0.02)};border-radius:${u(0.008)};margin-bottom:${u(0.032)}}
+.w{display:inline-block}
+/* 行の長さを揃え、最後の行だけ極端に短くなるのを防ぐ */
+.big,.eyeh,.ct,.endh,.quote,.insight,.cmp .h{text-wrap:balance}
+.sub,.termd,.statl,.cmp .p,.ul li,.ck div span,.cp > span,.endn{text-wrap:pretty}
+.big{font-size:${u(0.102)};font-weight:900;line-height:1.38;width:13.6em}
+.sub{font-size:${u(0.044)};font-weight:500;color:#cfdcf0;line-height:1.6;margin-top:${u(0.034)};width:20em}
+.tag{display:inline-block;font-size:${u(0.027)};letter-spacing:.16em;color:#0b1424;background:var(--hay);padding:${u(0.009)} ${u(0.02)};border-radius:${u(0.008)};margin-bottom:${u(0.032)}}
 .tag.m{background:var(--moss)}
 /* 引用 */
 .quote{font-size:${u(0.062)};font-weight:900;line-height:1.6;width:18em;border-left:${u(0.012)} solid var(--hay);padding-left:${u(0.04)}}
 .by{font-size:${u(0.032)};color:var(--hay);margin-top:${u(0.03)}}
-.insight{background:var(--hay);color:#12200f;border-radius:${u(0.028)};padding:${u(0.05)} ${u(0.05)};font-size:${u(0.062)};line-height:1.6;width:19em}
+.insight{background:var(--hay);color:#12203f;border-radius:${u(0.028)};padding:${u(0.05)} ${u(0.05)};font-size:${u(0.062)};line-height:1.6;width:19em}
 .insight small{display:block;font-size:${u(0.03)};margin-top:${u(0.025)};color:#5d4a14}
 /* ことば */
 .term{font-size:${u(0.1)};font-weight:900;color:var(--hay)}
-.termd{font-size:${u(0.044)};font-weight:500;line-height:1.75;color:#e8efe6;width:23em;margin-top:${u(0.03)}}
+.termd{font-size:${u(0.044)};font-weight:500;line-height:1.75;color:#e6edf8;width:23em;margin-top:${u(0.03)}}
 /* 数字 */
 .stat{display:flex;align-items:baseline;gap:${u(0.02)}}
 .stat b{font-size:${u(0.24)};font-weight:900;color:var(--hay);line-height:1}
 .stat i{font-style:normal;font-size:${u(0.08)};color:var(--hay);font-weight:900}
 .statl{font-size:${u(0.046)};margin-top:${u(0.035)};width:22em;line-height:1.5}
 /* 一覧 */
-.ul{display:flex;flex-direction:column;gap:${u(0.026)};width:100%;font-size:${u(0.052)}}
-.ul li{list-style:none;font-size:inherit;line-height:1.45;padding-left:${u(0.055)};position:relative;color:#41543f;transition:none}
+.ul{display:flex;flex-direction:column;gap:${u(0.026)};width:100%;font-size:${u(0.056)}}
+.ul li{list-style:none;font-size:inherit;line-height:1.45;padding-left:${u(0.055)};position:relative;color:var(--off);transition:none}
 .ul li.on{color:#fff}
-.ul li:before{content:"";position:absolute;left:${u(0.012)};top:.55em;width:${u(0.016)};height:${u(0.016)};border-radius:50%;background:#41543f}
+.ul li:before{content:"";position:absolute;left:${u(0.012)};top:.55em;width:${u(0.016)};height:${u(0.016)};border-radius:50%;background:var(--off)}
 .ul li.on:before{background:var(--hay)}
 .grid{display:flex;flex-wrap:wrap;gap:${u(0.02)};width:100%}
-.grid span{font-size:${u(0.042)};background:var(--card);border:2px solid var(--line);border-radius:999px;padding:${u(0.016)} ${u(0.032)}}
+.grid > span{font-size:${u(0.042)};background:var(--card);border:2px solid var(--line);border-radius:999px;padding:${u(0.016)} ${u(0.032)}}
 /* チェック */
 .ck{display:flex;flex-direction:column;gap:${u(0.028)};width:100%}
-.ck div{display:flex;gap:${u(0.028)};align-items:flex-start;font-size:${u(0.05)};line-height:1.45;color:#41543f}
+.ck div{display:flex;gap:${u(0.028)};align-items:flex-start;font-size:${u(0.05)};line-height:1.45;color:var(--off)}
 .ck div.on{color:#fff}
-.ck b{flex:none;width:${u(0.06)};height:${u(0.06)};border-radius:${u(0.012)};border:${u(0.005)} solid #41543f;display:flex;align-items:center;justify-content:center;font-size:${u(0.034)};color:transparent}
-.ck div.on b{border-color:var(--hay);background:var(--hay);color:#12200f}
+.ck b{flex:none;width:${u(0.06)};height:${u(0.06)};border-radius:${u(0.012)};border:${u(0.005)} solid var(--off);display:flex;align-items:center;justify-content:center;font-size:${u(0.034)};color:transparent}
+.ck div.on b{border-color:var(--hay);background:var(--hay);color:#12203f}
 /* 段（初産→2産→3産） */
 .stp{display:flex;align-items:center;gap:${u(0.022)};flex-wrap:wrap}
-.stp span{font-size:${u(0.056)};font-weight:900;background:var(--card);border:3px solid var(--line);color:#41543f;border-radius:${u(0.02)};padding:${u(0.022)} ${u(0.04)}}
-.stp span.on{color:#12200f;background:var(--hay);border-color:var(--hay)}
-.stp b{color:#41543f;font-size:${u(0.05)}}
+.stp > span{font-size:${u(0.056)};font-weight:900;background:var(--card);border:3px solid var(--line);color:var(--off);border-radius:${u(0.02)};padding:${u(0.022)} ${u(0.04)}}
+.stp > span.on{color:#12203f;background:var(--hay);border-color:var(--hay)}
+.stp b{color:var(--off);font-size:${u(0.05)}}
 .stp b.on{color:var(--hay)}
 /* 棒 */
 .bars{display:flex;flex-direction:column;gap:${u(0.034)};width:100%}
 .bars .row{display:flex;align-items:center;gap:${u(0.03)}}
-.bars .lb{width:4.2em;font-size:${u(0.05)};color:#41543f;text-align:right}
+.bars .lb{width:4.2em;font-size:${u(0.05)};color:var(--off);text-align:right}
 .bars .row.on .lb{color:#fff}
 .bars .tr{flex:1;height:${u(0.085)};background:var(--card);border-radius:${u(0.014)};overflow:hidden}
-.bars .tr i{display:block;height:100%;background:linear-gradient(90deg,#c8a css,var(--hay));border-radius:${u(0.014)}}
+.bars .tr i{display:block;height:100%;background:linear-gradient(90deg,#e0a800 css,var(--hay));border-radius:${u(0.014)}}
 /* 時間の帯 */
 .tl{width:100%;display:flex;align-items:center;gap:0}
 .tl .n{flex:none;display:flex;flex-direction:column;align-items:center;gap:${u(0.018)}}
-.tl .dot{width:${u(0.036)};height:${u(0.036)};border-radius:50%;background:#33452f}
+.tl .dot{width:${u(0.036)};height:${u(0.036)};border-radius:50%;background:#2a4372}
 .tl .n.on .dot{background:var(--hay)}
-.tl .n span{font-size:${u(0.034)};color:#41543f;white-space:nowrap}
+.tl .n span{font-size:${u(0.034)};color:var(--off);white-space:nowrap}
 .tl .n.on span{color:#fff}
-.tl .seg{flex:1;height:${u(0.008)};background:#25361f;border-radius:999px}
+.tl .seg{flex:1;height:${u(0.008)};background:#1d3157;border-radius:999px}
 .tl .seg.on{background:var(--hay)}
 .tlend{font-size:${u(0.07)};color:var(--hay);font-weight:900;margin-top:${u(0.045)}}
 /* 二枚並べ */
@@ -294,43 +351,43 @@ html,body{width:${W}px;height:${H}px;overflow:hidden;background:var(--bg);color:
 .cmp .c.on{opacity:1;border-color:var(--hay)}
 .cmp .m{font-size:${u(0.05)};color:var(--hay);font-weight:900}
 .cmp .h{font-size:${u(0.052)};font-weight:900;line-height:1.4;margin-top:${u(0.014)}}
-.cmp .p{font-size:${u(0.034)};font-weight:500;color:#cfdccd;line-height:1.6;margin-top:${u(0.022)}}
+.cmp .p{font-size:${u(0.034)};font-weight:500;color:#cfdcf0;line-height:1.6;margin-top:${u(0.022)}}
 .cmp .vs{align-self:center;font-size:${u(0.05)};color:var(--hay);font-weight:900;flex:none}
 /* 計算 */
 .calc{display:flex;flex-direction:column;gap:${u(0.026)};width:100%}
-.calc .r{display:flex;align-items:baseline;justify-content:space-between;gap:${u(0.04)};font-size:${u(0.05)};color:#41543f;border-bottom:2px solid var(--line);padding-bottom:${u(0.02)}}
+.calc .r{display:flex;align-items:baseline;justify-content:space-between;gap:${u(0.04)};font-size:${u(0.05)};color:var(--off);border-bottom:2px solid var(--line);padding-bottom:${u(0.02)}}
 .calc .r.on{color:#fff}
-.calc .r b{font-size:${u(0.062)};color:#41543f;white-space:nowrap}
+.calc .r b{font-size:${u(0.062)};color:var(--off);white-space:nowrap}
 .calc .r.on b{color:var(--hay)}
 .calc .r.res{border-bottom:none;background:var(--card);border-radius:${u(0.02)};padding:${u(0.03)} ${u(0.035)}}
 .calc .r.res b{font-size:${u(0.09)}}
 /* 輪 */
 .web{display:flex;flex-wrap:wrap;gap:${u(0.022)};width:100%;align-items:center}
-.web .c{font-size:${u(0.062)};font-weight:900;color:#12200f;background:var(--hay);border-radius:999px;padding:${u(0.024)} ${u(0.045)}}
-.web .i{font-size:${u(0.046)};background:var(--card);border:3px solid var(--line);border-radius:999px;padding:${u(0.02)} ${u(0.038)};color:#41543f}
+.web .c{font-size:${u(0.062)};font-weight:900;color:#12203f;background:var(--hay);border-radius:999px;padding:${u(0.024)} ${u(0.045)}}
+.web .i{font-size:${u(0.046)};background:var(--card);border:3px solid var(--line);border-radius:999px;padding:${u(0.02)} ${u(0.038)};color:var(--off)}
 .web .i.on{color:#fff;border-color:var(--hay)}
 /* 下 */
 .foot{display:flex;align-items:center;gap:${u(0.018)};font-size:${u(0.025)};color:var(--dim);font-weight:500}
 .foot img{width:${u(0.058)};height:${u(0.058)};border-radius:50%;object-fit:cover}
-.foot b{color:#dfe7dd;font-weight:700}
+.foot b{color:#dde6f5;font-weight:700}
 .foot .r{margin-left:auto;letter-spacing:.06em}
 /* 章の見出し */
 .eye{justify-content:center;align-items:flex-start}
 .eyeno{font-size:${u(0.036)};color:var(--hay);letter-spacing:.24em}
-.eyeh{font-size:${u(0.098)};font-weight:900;line-height:1.35;width:15em;margin-top:${u(0.03)}}
+.eyeh{font-size:${u(0.118)};font-weight:900;line-height:1.32;width:12.5em;margin-top:${u(0.03)}}
 .rule{width:${u(0.14)};height:${u(0.008)};background:var(--hay);margin-top:${u(0.045)};border-radius:999px}
 /* 表紙・締め */
-.cover{background:linear-gradient(160deg,#18291b 0%,#0b140c 70%)}
-.ct{font-size:${u(0.086)};font-weight:900;line-height:1.4;width:17em;margin-top:${u(0.03)}}
+.cover{background:linear-gradient(160deg,#22407c 0%,#0b1730 72%)}
+.ct{font-size:${u(0.1)};font-weight:900;line-height:1.36;width:14.5em;margin-top:${u(0.03)}}
 .cp{display:flex;flex-direction:column;gap:${u(0.018)};margin-top:${u(0.05)}}
-.cp span{font-size:${u(0.036)};color:#cfdccd;font-weight:500;padding-left:${u(0.045)};position:relative;line-height:1.45}
-.cp span:before{content:"";position:absolute;left:${u(0.012)};top:.58em;width:${u(0.014)};height:${u(0.014)};border-radius:50%;background:var(--hay)}
+.cp > span{font-size:inherit;color:#cfdcf0;font-weight:500;padding-left:${u(0.045)};position:relative;line-height:1.45}
+.cp > span:before{content:"";position:absolute;left:${u(0.012)};top:.58em;width:${u(0.014)};height:${u(0.014)};border-radius:50%;background:var(--hay)}
 .mark{display:flex;align-items:center;gap:${u(0.018)};font-size:${u(0.028)};color:var(--hay);letter-spacing:.14em}
 .mark img{width:${u(0.07)};height:${u(0.07)};border-radius:50%;object-fit:cover}
 .url{font-size:${u(0.042)};color:var(--hay);font-weight:700;margin-top:${u(0.028)}}
-.endh{font-size:${u(0.072)};font-weight:900;line-height:1.45;width:16em;margin-top:${u(0.03)}}
-.endn{font-size:${u(0.032)};color:#cfdccd;font-weight:500;margin-top:${u(0.04)};line-height:1.7;width:26em}
-`.replace('linear-gradient(90deg,#c8a css,var(--hay))', 'linear-gradient(90deg,#c8a94f,var(--hay))')
+.endh{font-size:${u(0.082)};font-weight:900;line-height:1.42;width:14.5em;margin-top:${u(0.03)}}
+.endn{font-size:${u(0.036)};color:#cfdcf0;font-weight:500;margin-top:${u(0.04)};line-height:1.7;width:24em}
+`.replace('linear-gradient(90deg,#e0a800 css,var(--hay))', 'linear-gradient(90deg,#e0a800,var(--hay))')
 
 const footer = (right) =>
   `<div class="foot">${portrait ? `<img src="${portrait}" alt="">` : ''}<span><b>川上哲也</b>　島根県出雲市・川上牧場</span><span class="r">${esc(right)}</span></div>`
@@ -345,52 +402,58 @@ function inner(f) {
   const T = s?.title ? `<div class="t">${esc(s.title)}</div>` : ''
   switch (f.type) {
     case 'q':
-      return `<span class="tag m">${esc(s.who)}</span><div class="quote">${s.lines.slice(0, k + 1).map((l) => `<div>${esc(l)}</div>`).join('')}</div>`
+      return `<span class="tag m">${esc(s.who)}</span><div class="quote">${s.lines.slice(0, k + 1).map((l) => `<div>${jp(l)}</div>`).join('')}</div>`
     case 'point':
-      return `${T}<div class="big">${esc(s.big)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}`
+      return `${T}<div class="big">${jp(s.big)}</div>${s.sub && k >= 1 ? `<div class="sub">${jp(s.sub)}</div>` : ''}`
     case 'note':
-      return `<span class="tag m">ただし</span><div class="big" style="font-size:${u(0.07)}">${esc(s.big)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}`
+      return `<span class="tag m">ただし</span><div class="big" style="font-size:${u(0.082)}">${jp(s.big)}</div>${s.sub && k >= 1 ? `<div class="sub">${jp(s.sub)}</div>` : ''}`
     case 'quote':
-      return `<div class="quote">${esc(s.text)}</div><div class="by">── ${esc(s.who)}</div>`
+      return `<div class="quote">${jp(s.text)}</div><div class="by">── ${esc(s.who)}</div>`
     case 'insight':
-      return `<div class="insight">${esc(s.text)}<small>── ${esc(s.who)}</small></div>`
+      return `<div class="insight">${jp(s.text)}<small>── ${esc(s.who)}</small></div>`
     case 'term':
-      return `<span class="tag">ことば</span><div class="term">${esc(s.term)}</div><div class="termd">${esc(s.desc)}</div>`
+      return `<span class="tag">ことば</span><div class="term">${esc(s.term)}</div>${k >= 1 ? `<div class="termd">${jp(s.desc)}</div>` : ''}`
     case 'stat':
-      return `<div class="stat"><b>${esc(s.value)}</b><i>${esc(s.unit)}</i></div><div class="statl">${esc(s.label)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}`
+      return `<div class="stat"><b>${esc(s.value)}</b><i>${esc(s.unit)}</i></div>${
+        k >= 1 ? `<div class="statl">${jp(s.label)}</div>${s.sub ? `<div class="sub">${jp(s.sub)}</div>` : ''}` : ''
+      }`
     case 'list':
       return s.grid
-        ? `${T}<div class="grid">${s.items.map((x) => `<span>${esc(x)}</span>`).join('')}</div>${s.note ? `<div class="sub">${esc(s.note)}</div>` : ''}`
-        : `${T}<ul class="ul">${s.items.map((x, i) => `<li class="${on(k, i)}">${esc(x)}</li>`).join('')}</ul>${s.note ? `<div class="sub">${esc(s.note)}</div>` : ''}`
+        ? `${T}<div class="grid">${s.items.map((x) => `<span>${esc(x)}</span>`).join('')}</div>${s.note ? `<div class="sub">${jp(s.note)}</div>` : ''}`
+        : `${T}<ul class="ul" style="font-size:${u(
+            fitRatio(s.items, { maxH: H * (s.note ? 0.44 : 0.56), maxW: CONTENT_W, base: 0.056, indent: 0.055 }),
+          )}">${s.items.map((x, i) => `<li class="${on(k, i)}">${jp(x)}</li>`).join('')}</ul>${s.note ? `<div class="sub">${jp(s.note)}</div>` : ''}`
     case 'check':
-      return `${T}<div class="ck">${s.items.map((x, i) => `<div class="${on(k, i)}"><b>✓</b><span>${esc(x)}</span></div>`).join('')}</div>`
+      return `${T}<div class="ck">${s.items.map((x, i) => `<div class="${on(k, i)}"><b>✓</b><span>${jp(x)}</span></div>`).join('')}</div>`
     case 'steps':
       return `${T}<div class="stp">${s.items
         .map((x, i) => `${i ? `<b class="${on(k, i)}">→</b>` : ''}<span class="${on(k, i)}">${esc(x)}</span>`)
-        .join('')}</div>${s.note ? `<div class="sub">${esc(s.note)}</div>` : ''}`
+        .join('')}</div>${s.note ? `<div class="sub">${jp(s.note)}</div>` : ''}`
     case 'bars':
       return `${T}<div class="bars">${s.items
         .map((x, i) => `<div class="row ${on(k, i)}"><span class="lb">${esc(x.label)}</span><span class="tr"><i style="width:${i <= k ? Math.round(x.v * 100) : 0}%"></i></span></div>`)
-        .join('')}</div>${s.note ? `<div class="sub">${esc(s.note)}</div>` : ''}`
+        .join('')}</div>${s.note ? `<div class="sub">${jp(s.note)}</div>` : ''}`
     case 'timeline':
       return `${T}<div class="tl">${s.items
         .map((x, i) => `${i ? `<span class="seg ${on(k, i)}"></span>` : ''}<span class="n ${on(k, i)}"><span class="dot"></span><span>${esc(x)}</span></span>`)
         .join('')}</div>${s.tail ? `<div class="tlend ${k >= s.items.length - 1 ? '' : 'hidden'}" style="opacity:${k >= s.items.length - 1 ? 1 : 0}">${esc(s.tail)}</div>` : ''}`
     case 'compare':
-      return `${T}<div class="cmp"><div class="c ${on(k, 0)}"><div class="m">${esc(s.left.mark ?? '')}</div><div class="h">${esc(s.left.h)}</div>${s.left.t ? `<div class="p">${esc(s.left.t)}</div>` : ''}</div>
+      return `${T}<div class="cmp"><div class="c ${on(k, 0)}"><div class="m">${esc(s.left.mark ?? '')}</div><div class="h">${jp(s.left.h)}</div>${s.left.t ? `<div class="p">${jp(s.left.t)}</div>` : ''}</div>
         <div class="vs">${esc(s.vs ?? 'VS')}</div>
-        <div class="c ${on(k, 1)}"><div class="m">${esc(s.right.mark ?? '')}</div><div class="h">${esc(s.right.h)}</div>${s.right.t ? `<div class="p">${esc(s.right.t)}</div>` : ''}</div></div>`
+        <div class="c ${on(k, 1)}"><div class="m">${esc(s.right.mark ?? '')}</div><div class="h">${jp(s.right.h)}</div>${s.right.t ? `<div class="p">${jp(s.right.t)}</div>` : ''}</div></div>`
     case 'balance':
-      return `${T}<div class="cmp"><div class="c ${on(k, 0)}"><div class="h">${esc(s.left.h)}</div><div class="p">${esc(s.left.t)}</div></div>
+      return `${T}<div class="cmp"><div class="c ${on(k, 0)}"><div class="h">${jp(s.left.h)}</div><div class="p">${jp(s.left.t)}</div></div>
         <div class="vs">⇄</div>
-        <div class="c ${on(k, 1)}"><div class="h">${esc(s.right.h)}</div><div class="p">${esc(s.right.t)}</div></div></div>`
+        <div class="c ${on(k, 1)}"><div class="h">${jp(s.right.h)}</div><div class="p">${jp(s.right.t)}</div></div></div>`
     case 'calc':
-      return `${T}<div class="calc">${s.rows.map((r, i) => `<div class="r ${on(k, i)}"><span>${esc(r.l)}</span><b>${esc(r.r)}</b></div>`).join('')}
-        <div class="r res ${on(k, s.rows.length)}"><span>${esc(s.result.l)}</span><b>${esc(s.result.r)}</b></div></div>`
+      return `${T}<div class="calc">${s.rows.map((r, i) => `<div class="r ${on(k, i)}"><span>${jp(r.l)}</span><b>${esc(r.r)}</b></div>`).join('')}
+        <div class="r res ${on(k, s.rows.length)}"><span>${jp(s.result.l)}</span><b>${esc(s.result.r)}</b></div></div>`
     case 'web':
       return `${T}<div class="web"><span class="c">${esc(s.center)}</span>${s.items.map((x, i) => `<span class="i ${on(k, i)}">${esc(x)}</span>`).join('')}</div>`
     case 'summary':
-      return `<span class="tag">この回の要点</span><ul class="ul" style="font-size:${u(0.046)}">${s.items.map((x, i) => `<li class="${on(k, i)}">${esc(x)}</li>`).join('')}</ul>`
+      return `<span class="tag">この回の要点</span><ul class="ul" style="font-size:${u(
+        fitRatio(s.items, { maxH: H * 0.6, maxW: CONTENT_W, base: 0.05, indent: 0.055 }),
+      )}">${s.items.map((x, i) => `<li class="${on(k, i)}">${jp(x)}</li>`).join('')}</ul>`
     default:
       return `<div class="big">${esc(s?.big ?? '')}</div>`
   }
@@ -399,8 +462,10 @@ function inner(f) {
 function frame(f, prog) {
   if (f.type === 'cover') {
     return `<div class="s cover"><div class="mark">${portrait ? `<img src="${portrait}" alt="">` : ''}川上牧場 酪農データバンク</div>
-      <div class="mid"><div class="ct">${esc(title)}</div>
-      <div class="cp">${points.slice(0, 3).map((p) => `<span>${esc(short(p, 40))}</span>`).join('')}</div></div>
+      <div class="mid"><div class="ct">${jp(title)}</div>
+      <div class="cp" style="font-size:${u(
+        fitRatio(points.slice(0, 3), { maxH: H * 0.3, maxW: CONTENT_W * 0.86, base: 0.041, gap: 0.018, indent: 0.045 }),
+      )}">${points.slice(0, 3).map((p) => `<span>${jp(p)}</span>`).join('')}</div></div>
       ${footer(`${fmtDate(date)}の配信　全 ${plan.length} 章`)}</div>`
   }
   if (f.type === 'end') {
@@ -416,11 +481,24 @@ function frame(f, prog) {
   const h = head(f.ci, prog)
   const ft = footer(fmtDate(date))
   if (f.type === 'eyecatch') {
-    const heading = f.matome ? 'まとめ' : (body[f.ci]?.heading ?? '')
+    // 章の見出しは pody の章から。無い回は、その章の最初の言葉で代える（空の扉を出さない）
+    const first = plan[f.ci]?.find((x) => x.big || x.title || x.text)
+    const heading = f.matome
+      ? 'まとめ'
+      : body[f.ci]?.heading || first?.big || first?.title || first?.text || title
     return `<div class="s">${h}<div class="mid eye"><div class="eyeno">${f.matome ? 'MATOME' : `CHAPTER ${String(f.ci + 1).padStart(2, '0')}`}</div>
-      <div class="eyeh">${esc(heading)}</div><div class="rule"></div></div>${ft}</div>`
+      <div class="eyeh">${jp(heading)}</div><div class="rule"></div></div>${ft}</div>`
   }
   return `<div class="s">${h}<div class="mid">${inner(f)}</div>${ft}</div>`
+}
+
+/* 1枚を長く映しっぱなしにしない。長い枚は同じ絵のまま分け、上の帯だけ進める
+ * （台本の枚数が少ない回でも、画面が止まって見えないように） */
+const MAX_HOLD = 7
+const shots = []
+for (const f of frames) {
+  const parts = Math.max(1, Math.ceil(f.dur / MAX_HOLD))
+  for (let i = 0; i < parts; i++) shots.push({ ...f, dur: f.dur / parts })
 }
 
 /* ---------- 焼く ---------- */
@@ -430,8 +508,8 @@ const page = await browser.newPage({ viewport: { width: W, height: H }, deviceSc
 const files = []
 let t = 0
 const totalBody = bounds.length ? bounds[bounds.length - 1].to - bounds[0].from : audioEnd
-for (let i = 0; !THUMB_ONLY && i < frames.length; i++) {
-  const f = frames[i]
+for (let i = 0; !THUMB_ONLY && i < shots.length; i++) {
+  const f = shots[i]
   await page.setContent(`<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>${css}</style></head><body>${frame(f, Math.min(1, t / (totalBody || 1)))}</body></html>`)
   await page.evaluate(() => document.fonts.ready)
   const file = path.join(OUT, `f-${String(i).padStart(4, '0')}.png`)
@@ -454,23 +532,9 @@ for (let i = 0; !THUMB_ONLY && i < frames.length; i++) {
  *   "thumb": { "kicker": "…", "lines": ["…","…"], "hit": "強調する語", "sub": "…" }
  */
 /* 題名から、サムネイルに出す1〜2行を作る。
- * ここでの決まりごとは一つだけ＝「言葉の途中で折らない」。
- * 折ってよいのは、助詞や読点のうしろか、文字の種類が変わるところ（漢字↔かな↔カタカナ↔数字）。
+ * 決まりごとは画面の折り返しと同じ＝「言葉の途中で折らない」（上の canBreak を使う）。
  * 折れるところが無ければ、1行のまま小さくする（中途半端に切った行は出さない）。
  */
-const CLS = (c) => (/[一-鿿々]/.test(c) ? 'k' : /[ぁ-ん]/.test(c) ? 'h' : /[ァ-ヶー]/.test(c) ? 'K' : /[0-9A-Za-z０-９Ａ-Ｚａ-ｚ]/.test(c) ? 'n' : 'o')
-const PARTICLE = 'はがをにのとでもへ' // 「か・ね・よ・や」は言葉の途中にも出るので入れない（〜てから／やけ食い、で折れてしまう）
-const NO_HEAD = 'ーぁぃぅぇぉっゃゅょァィゥェォッャュョ々、。・？?！!」』）)'
-/** i の位置で行を折ってよいか */
-function canBreak(s, i) {
-  if (i <= 0 || i >= s.length) return false
-  const prev = s[i - 1]
-  const cur = s[i]
-  if (NO_HEAD.includes(cur)) return false
-  if ('、・'.includes(prev)) return true
-  if (PARTICLE.includes(prev)) return true
-  return CLS(prev) !== CLS(cur)
-}
 /** 題名から、サムネイルの芯になる一文を取る（問いがあれば問いを優先する） */
 function thumbCore(t) {
   const s = String(t)
@@ -629,7 +693,7 @@ if (THUMB_ONLY) {
   process.exit(0)
 }
 
-const list = files.map((f, i) => `file '${f}'\nduration ${frames[i].dur.toFixed(3)}`).join('\n') + `\nfile '${files[files.length - 1]}'\n`
+const list = files.map((f, i) => `file '${f}'\nduration ${shots[i].dur.toFixed(3)}`).join('\n') + `\nfile '${files[files.length - 1]}'\n`
 await fs.writeFile(path.join(OUT, 'list.txt'), list)
 
 // YouTube の説明欄（章の時刻は、前置きを落としたあとの動画の時刻）
@@ -664,7 +728,7 @@ await fs.writeFile(
   ].join('\n'),
 )
 
-const totalSec = frames.reduce((a, b) => a + b.dur, 0)
+const totalSec = shots.reduce((a, b) => a + b.dur, 0)
 console.log(`画面 ${files.length} 枚・${Math.round(totalSec)} 秒＝${(totalSec / 60).toFixed(1)} 分（本編 ${Math.round(audioStart)}秒〜${Math.round(audioEnd)}秒${FULL ? '' : '＝前置きの雑談は落とした'}）`)
 if (trimmed) console.log(`後ろの雑談を ${Math.round(trimmed)} 秒落とした`)
 if (tempo !== 1) console.log(`上限 ${MAX_MIN} 分に収めるため、話す速さを ${tempo.toFixed(3)} 倍にした（声の高さは変えていない）`)
