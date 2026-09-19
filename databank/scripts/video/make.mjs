@@ -557,6 +557,7 @@ const THEMES = {
   黒: { bg1: '#2c2c31', bg2: '#08080a', ink: '#000000', fg: '#ffffff', ac: '#ffd700', acInk: '#141414', subBg: '#000000eb', dim: '#d2d2d2', halo: 'rgba(255,225,150,.22)', grade: 'saturate(1.05) contrast(1.09) brightness(1.08)' },
   白: { bg1: '#ffffff', bg2: '#efe9dc', ink: '#ffffff', fg: '#14161a', ac: '#e0301e', acInk: '#ffffff', subBg: '#14161a', subFg: '#ffffff', dim: '#5d6066', halo: 'rgba(255,255,255,.65)', grade: 'saturate(1.06) contrast(1.05) brightness(1.02)' },
 }
+// 2026-09-19 使用者の裁定: 紺で通す。回ごとに変えず、チャンネルの見た目を揃える
 const TH = THEMES[args.get('thumb-theme') ?? '紺'] ?? THEMES['紺']
 /** 文字のまわりの縁取り（16方向）。写真の上に字が乗るところで効く */
 const stroke = (px, c) =>
