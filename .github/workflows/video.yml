@@ -17,6 +17,18 @@ on:
         description: 動画の上限（分）。Instagram は 20 分まで。0 で上限なし
         required: false
         default: "20"
+      mode:
+        description: long＝章立ての長い動画 / short＝60〜90秒の縦型（clips/<key>.json の範囲を切る）
+        required: false
+        default: "long"
+      from_to:
+        description: short のとき、切る範囲を秒で上書き（例 477-552）。空なら clips/<key>.json
+        required: false
+        default: ""
+      asr_model:
+        description: short のとき使う音声認識モデル
+        required: false
+        default: "kotoba-tech/kotoba-whisper-v2.0-faster"
 
 jobs:
   render:
@@ -45,6 +57,7 @@ jobs:
           ls -la /tmp/ep.mp3
           ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/ep.mp3
       - name: スライドを描いて動画にする
+        if: inputs.mode != 'short'
         env:
           PLAYWRIGHT_DIR: /tmp/pw
         run: |
@@ -53,6 +66,38 @@ jobs:
           rm -f /tmp/video/f-*.png
           cat /tmp/video/youtube.txt
           ls -la /tmp/video
+      # ---- 縦型（short）: 音声認識で字幕の時刻を作り、clips/<key>.json の範囲を切る ----
+      - uses: actions/setup-python@v5
+        if: inputs.mode == 'short'
+        with:
+          python-version: "3.11"
+      - name: 音声認識の準備
+        if: inputs.mode == 'short'
+        run: pip install -q faster-whisper
+      - name: 音声認識の結果を使い回す
+        if: inputs.mode == 'short'
+        id: asr-cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/asr.json
+          key: asr-v1-${{ inputs.key }}-${{ inputs.asr_model }}
+      - name: 音声から文ごとの時刻を取る
+        if: inputs.mode == 'short' && steps.asr-cache.outputs.cache-hit != 'true'
+        run: |
+          ffmpeg -y -loglevel error -i /tmp/ep.mp3 -ac 1 -ar 16000 /tmp/ep.wav
+          python3 scripts/video/asr.py --audio /tmp/ep.wav --out /tmp/asr.json --model "${{ inputs.asr_model }}"
+      - name: 縦型の短い動画にする
+        if: inputs.mode == 'short'
+        env:
+          PLAYWRIGHT_DIR: /tmp/pw
+        run: |
+          RANGE="${{ inputs.from_to }}"
+          EXTRA=""
+          if [ -n "$RANGE" ]; then EXTRA="--from ${RANGE%-*} --to ${RANGE#*-}"; fi
+          node scripts/video/short.mjs --key "${{ inputs.key }}" --asr /tmp/asr.json --audio /tmp/ep.mp3 --out /tmp/video $EXTRA
+          rm -f /tmp/video/s-*.png
+          echo "---- post.txt ----"; cat /tmp/video/post.txt
+          ls -la /tmp/video
       - uses: actions/upload-artifact@v4
         with:
           name: video-${{ inputs.key }}
@@ -60,5 +105,9 @@ jobs:
             /tmp/video/*.mp4
             /tmp/video/thumbnail.png
             /tmp/video/youtube.txt
+            /tmp/video/cover.png
+            /tmp/video/captions.srt
+            /tmp/video/post.txt
             /tmp/meta.json
+            /tmp/asr.json
           retention-days: 14

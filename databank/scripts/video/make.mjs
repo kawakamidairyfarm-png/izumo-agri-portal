@@ -49,6 +49,7 @@ const FFPROBE = process.env.FFPROBE || FFMPEG.replace(/ffmpeg$/, 'ffprobe')
 const require = createRequire(process.env.PLAYWRIGHT_DIR ? path.join(process.env.PLAYWRIGHT_DIR, 'package.json') : import.meta.url)
 const { chromium } = require('playwright')
 const { resolveEpisode } = await import('./episode.mjs')
+const { esc, CLS, PARTICLE, NO_HEAD, canBreak, jp } = await import('./text.mjs')
 
 const COVER = 5 // 表紙（音声より前・無音）
 const END = 8 // 締め（音声より後・無音）
@@ -281,7 +282,6 @@ frames.unshift({ type: 'cover', dur: COVER })
 frames.push({ type: 'end', dur: END })
 
 /* ---------- 絵 ---------- */
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 const fmtDate = (iso) => {
   const [y, mo, d] = iso.split('-')
   return y ? `${y}年${Number(mo)}月${Number(d)}日` : ''
@@ -289,43 +289,6 @@ const fmtDate = (iso) => {
 const short = (s, n) => (String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s))
 const u = (r) => `${Math.round(H * r)}px`
 
-/* ---------- 日本語の折り返し ----------
- * 画面の字が「までが短い」「均質化／の5つ」のように語の途中で折れていた。
- * 折ってよいのは、助詞や読点のうしろか、文字の種類が変わるところだけ。
- * その切れ目ごとに inline-block で包むと、ブラウザはそこでしか折れなくなる。
- */
-const CLS = (c) => (/[一-鿿々]/.test(c) ? 'k' : /[ぁ-ん]/.test(c) ? 'h' : /[ァ-ヶー]/.test(c) ? 'K' : /[0-9A-Za-z０-９Ａ-Ｚａ-ｚ]/.test(c) ? 'n' : 'o')
-const PARTICLE = 'はがをにのとでもへ' // 「か・ね・よ・や」は言葉の途中にも出るので入れない
-const NO_HEAD = 'ーぁぃぅぇぉっゃゅょァィゥェォッャュョ々、。・？?！!」』）)％%℃' // 行の頭に置かない字
-const NO_TAIL = '（(「『【' // 行の終わりに置かない字（かっこの開き）
-/** i の位置で行を折ってよいか */
-function canBreak(s, i) {
-  if (i <= 0 || i >= s.length) return false
-  const prev = s[i - 1]
-  const cur = s[i]
-  if (NO_HEAD.includes(cur) || NO_TAIL.includes(prev)) return false
-  if (PARTICLE.includes(cur)) return false // 行の頭が助詞になるのは避ける
-  if ('、・'.includes(prev)) return true
-  if (PARTICLE.includes(prev)) return true
-  return CLS(prev) !== CLS(cur)
-}
-/** 折ってよいところだけで折れるように組む（語の途中では折れない） */
-const jp = (text) => {
-  const t = String(text ?? '')
-  const out = []
-  let start = 0
-  for (let i = 1; i < t.length; i++) {
-    if (canBreak(t, i)) {
-      out.push(t.slice(start, i))
-      start = i
-    }
-  }
-  out.push(t.slice(start))
-  return out
-    .filter(Boolean)
-    .map((c) => `<span class="w">${esc(c)}</span>`)
-    .join('')
-}
 /** 一覧が枠からはみ出さない字の大きさを選ぶ（はみ出すくらいなら小さくする） */
 function fitRatio(items, { maxH, maxW, base, min = 0.028, lh = 1.45, gap = 0.026, indent = 0 }) {
   for (let r = base; r > min; r -= 0.002) {
