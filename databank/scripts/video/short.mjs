@@ -101,6 +101,10 @@ if (Array.isArray(clip.captions) && clip.captions.length) {
     caps.push({ start: Math.max(FROM, s.start), end: Math.min(TO, s.end), text })
   }
 }
+// 手で直したい字幕（clips/<key>.json の replace: [["聞き間違い","正しい語"], ...]）
+for (const [from, to] of Array.isArray(clip.replace) ? clip.replace : []) {
+  for (const c of caps) c.text = c.text.split(String(from)).join(String(to))
+}
 // 長い字幕は、折ってよいところで割っていく（時刻は字数で按分）。短すぎる字幕は次にくっつける
 const splitCap = (c) => {
   if (c.text.length <= MAX_CAPTION) return [c]
