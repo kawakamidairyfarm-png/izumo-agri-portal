@@ -24,12 +24,26 @@ except Exception as e:  # 日本語向けが取れないときは small に落�
     name = 'small'
     model = WhisperModel(name, device='cpu', compute_type='int8')
 t1 = time.time()
-segs, info = model.transcribe(
-    a.audio, language='ja', beam_size=1, vad_filter=True,
-    vad_parameters=dict(min_silence_duration_ms=400),
-    initial_prompt='酪農、乳牛、牛乳、搾乳、乳価、乳房炎、給食、パスチャライズ、超高温殺菌、乳脂肪率、更新率、子牛。',
-)
-out = [{'start': round(s.start, 2), 'end': round(s.end, 2), 'text': s.text.strip()} for s in segs]
+
+def run(model, cond):
+    segs, info = model.transcribe(
+        a.audio, language='ja', beam_size=1, vad_filter=True,
+        vad_parameters=dict(min_silence_duration_ms=400),
+        condition_on_previous_text=cond,  # True だと蒸留モデルが途中で黙ることがある
+        initial_prompt='酪農、乳牛、牛乳、搾乳、乳価、乳房炎、給食、パスチャライズ、超高温殺菌、乳脂肪率、更新率、子牛。',
+    )
+    out = [{'start': round(s.start, 2), 'end': round(s.end, 2), 'text': s.text.strip()} for s in segs]
+    return out, info
+
+out, info = run(model, False)
+# 音声の長さに対して文が届いていなければ（途中で黙った）、small でやり直す
+def coverage(out, dur):
+    return (max((s['end'] for s in out), default=0)) / max(1, dur)
+if coverage(out, info.duration) < 0.7:
+    print(f'モデル {name} は音声の {coverage(out, info.duration)*100:.0f}% までしか起こせなかったので small でやり直す', file=sys.stderr)
+    name = 'small'
+    model = WhisperModel(name, device='cpu', compute_type='int8')
+    out, info = run(model, True)
 t2 = time.time()
 json.dump({'model': name, 'audio_sec': info.duration, 'load_sec': round(t1 - t0, 1), 'transcribe_sec': round(t2 - t1, 1), 'segments': out},
           open(a.out, 'w'), ensure_ascii=False, indent=1)

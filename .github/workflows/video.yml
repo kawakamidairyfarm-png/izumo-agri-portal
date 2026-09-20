@@ -80,7 +80,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/asr.json
-          key: asr-v1-${{ inputs.key }}-${{ inputs.asr_model }}
+          key: asr-v2-${{ inputs.key }}-${{ inputs.asr_model }}
       - name: 音声から文ごとの時刻を取る
         if: inputs.mode == 'short' && steps.asr-cache.outputs.cache-hit != 'true'
         run: |
