@@ -11,6 +11,10 @@ on:
         description: ログに出す最大バイト数
         required: false
         default: "120000"
+      pattern:
+        description: これを指定すると、本文の代わりに grep -oE の一致だけを出す（大きなページの調査用）
+        required: false
+        default: ""
 
 jobs:
   fetch:
@@ -21,10 +25,16 @@ jobs:
         env:
           URL: ${{ inputs.url }}
           LIMIT: ${{ inputs.limit }}
+          PATTERN: ${{ inputs.pattern }}
         run: |
           curl -sS -L -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36" \
             -D headers.txt -o body.bin --max-time 40 "$URL" || true
           echo "=== HEADERS ==="; cat headers.txt
           echo "=== SIZE ==="; wc -c body.bin
           echo "=== LINKS ==="; grep -oE 'https?://[^"'"'"' <>)]+' body.bin | sort -u | head -200 || true
-          echo "=== BODY ==="; head -c "$LIMIT" body.bin; echo
+          if [ -n "$PATTERN" ]; then
+            echo "=== GREP ($PATTERN) ==="; grep -oE "$PATTERN" body.bin | head -120 || true
+            echo "=== data-* 属性の種類 ==="; grep -oE 'data-[a-z0-9-]+=' body.bin | sort | uniq -c | sort -rn | head -40 || true
+          else
+            echo "=== BODY ==="; head -c "$LIMIT" body.bin; echo
+          fi
