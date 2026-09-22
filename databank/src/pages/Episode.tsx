@@ -78,7 +78,16 @@ export default function EpisodePage() {
         </div>
         <h1 className="mt-3 font-serif text-2xl md:text-3xl font-bold leading-snug text-ink-900">{episode.title}</h1>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {(a?.tags ?? episode.topics.map((k) => TOPICS.find((t) => t.key === k)?.label ?? k)).map((t) => (
+          {/* テーマの札。押すと、その話をした回・質問・ことばがまとまった入口へ */}
+          {episode.topics.map((k) => {
+            const t = TOPICS.find((x) => x.key === k)
+            return t ? (
+              <Link key={k} to={`/t/${k}`} className="rounded-full bg-moss-50 border border-moss-300/60 px-2.5 py-0.5 text-xs font-bold text-moss-900 hover:bg-moss-100">
+                {t.label}
+              </Link>
+            ) : null
+          })}
+          {(a?.tags ?? []).map((t) => (
             <Link key={t} to={`/browse?q=${encodeURIComponent(t)}`} className="rounded-full bg-cream-100 px-2.5 py-0.5 text-xs text-ink-700 hover:bg-moss-100">
               #{t}
             </Link>

@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "prebuild": "node scripts/build-transcripts-json.mjs",
+    "prebuild": "node scripts/build-transcripts-json.mjs && node scripts/build-topics.mjs",
     "postbuild": "node scripts/prerender.mjs"
   },
   "dependencies": {

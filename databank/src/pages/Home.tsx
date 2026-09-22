@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen, ChevronRight, FileText, Headphones, MessageCircle
 import NextSteps from '../components/NextSteps'
 import SearchBox from '../components/SearchBox'
 import Section from '../components/Section'
-import { ARTICLES, EPISODES, SERIES, formatDate, stats } from '../lib/data'
+import { ARTICLES, EPISODES, SERIES, formatDate, stats, GROUPS } from '../lib/data'
 import { PATHS, resolvePath, seriesEpisodes } from '../lib/paths'
 import { LINKS } from '../lib/links'
 import { PHOTOS } from '../lib/photos'
@@ -190,6 +190,32 @@ export default function Home() {
       </Section>
 
       {/* よく聞かれる質問（文の一覧） */}
+      <Section title="テーマから探す" lead="気になる言葉から入ると、その話をした回、届いた質問、ことばがまとめて読めます。" more={{ to: '/topics', label: 'テーマをすべて見る' }}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {GROUPS.map((g) => (
+            <div key={g.key} className="rounded-2xl bg-white border border-cream-200 p-4">
+              <p className="font-serif font-bold text-ink-900">{g.label}</p>
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {g.subs.slice(0, 4).map((t) => (
+                  <li key={t.key}>
+                    <Link to={`/t/${t.key}`} className="inline-block rounded-full bg-cream-100 px-2.5 py-1 text-xs font-bold text-ink-700 hover:bg-moss-50 hover:text-moss-900">
+                      {t.label}
+                    </Link>
+                  </li>
+                ))}
+                {g.subs.length > 4 && (
+                  <li>
+                    <Link to="/topics" className="inline-block px-1 py-1 text-xs text-ink-500 hover:text-moss-900">
+                      ほか {g.subs.length - 4}
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Section>
+
       <Section title="よく聞かれる質問" lead="配信に届いた質問と、そのとき答えた回です。" more={{ to: '/questions', label: '届いた質問をすべて見る' }}>
         <ul className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
           {questions.map((x, i) => (

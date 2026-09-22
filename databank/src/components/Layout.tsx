@@ -8,6 +8,7 @@ import { LINKS } from '../lib/links'
 const NAV = [
   { to: '/for-consumers', label: '牛乳の疑問' },
   { to: '/for-students', label: '酪農を志す人へ' },
+  { to: '/topics', label: 'テーマ' },
   { to: '/questions', label: '質問と答え' },
   { to: '/terms', label: 'ことば帖' },
   { to: '/browse', label: '全配信を探す' },

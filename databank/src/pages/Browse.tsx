@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp, SlidersHorizontal, X } from 'lucide-react'
 import SearchBox from '../components/SearchBox'
 import EpisodeCard from '../components/EpisodeCard'
-import { AUDIENCE_META, CATEGORY_META, EPISODES, SERIES, TOPICS, type Audience, type Category, type Episode } from '../lib/data'
+import { AUDIENCE_META, CATEGORY_META, EPISODES, SERIES, type Audience, type Category, type Episode, GROUPS } from '../lib/data'
 import { ensureSearchReady, search, searchHasBodies } from '../lib/search'
 
 const CATS = Object.keys(CATEGORY_META) as Category[]
@@ -150,11 +150,20 @@ export default function Browse() {
           </Filter>
 
           <Filter label="テーマ">
-            {TOPICS.map((t) => (
-              <Chip key={t.key} active={topic === t.key} onClick={() => set('topic', topic === t.key ? null : t.key)}>
-                {t.label}
-              </Chip>
-            ))}
+            <div className="space-y-2">
+              {GROUPS.map((g) => (
+                <div key={g.key}>
+                  <p className="text-[11px] font-bold text-ink-500 mb-1">{g.label}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {g.subs.map((t) => (
+                      <Chip key={t.key} active={topic === t.key} onClick={() => set('topic', topic === t.key ? null : t.key)}>
+                        {t.label}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </Filter>
 
           <Filter label="シリーズ">

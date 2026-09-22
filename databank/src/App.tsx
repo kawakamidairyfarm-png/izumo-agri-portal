@@ -7,6 +7,8 @@ import Archive from './pages/Archive'
 import Browse from './pages/Browse'
 import EpisodePage from './pages/Episode'
 import { PathsIndex, PathDetail } from './pages/Paths'
+import { TopicsIndex, FlowDetail } from './pages/Topics'
+import TopicPage from './pages/Topic'
 import { ForStudents, ForConsumers } from './pages/Entrances'
 import About from './pages/About'
 import Expert from './pages/Expert'
@@ -35,6 +37,9 @@ export default function App() {
           <Route path="questions" element={<Questions />} />
           <Route path="terms" element={<Terms />} />
           <Route path="e/:id" element={<EpisodePage />} />
+          <Route path="topics" element={<TopicsIndex />} />
+          <Route path="t/:key" element={<TopicPage />} />
+          <Route path="flow/:key" element={<FlowDetail />} />
           <Route path="paths" element={<PathsIndex />} />
           <Route path="paths/:key" element={<PathDetail />} />
           <Route path="for-students" element={<ForStudents />} />

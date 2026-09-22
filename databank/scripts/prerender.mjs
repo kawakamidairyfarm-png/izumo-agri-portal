@@ -156,6 +156,16 @@ async function loadEpisodes() {
   return out
 }
 
+/** src/lib/flows.ts から、流れで読む道の key・題名・段階の小分類を取り出す */
+async function loadFlows() {
+  const src = await fs.readFile(path.join(ROOT, 'src', 'lib', 'flows.ts'), 'utf8')
+  const out = []
+  for (const m of src.matchAll(/key: '([a-z0-9-]+)',\s*title: '([^']+)',\s*lead: '([^']+)',\s*steps: \[([\s\S]*?)\n\s*\],/g)) {
+    out.push({ key: m[1], title: m[2], lead: m[3], steps: [...m[4].matchAll(/topic: '([a-z0-9-]+)', why: '([^']+)'/g)].map((x) => ({ topic: x[1], why: x[2] })) })
+  }
+  return out
+}
+
 /** src/lib/paths.ts から、学びの道筋の key と題名だけを取り出す */
 async function loadPaths() {
   const src = await fs.readFile(path.join(ROOT, 'src', 'lib', 'paths.ts'), 'utf8')
@@ -300,6 +310,16 @@ async function main() {
   const template = await fs.readFile(path.join(DIST, 'index.html'), 'utf8')
   const episodes = await loadEpisodes()
   const paths = await loadPaths()
+  const taxonomy = await readJson(path.join(DATA, 'taxonomy.json'))
+  const topicMap = await readJson(path.join(DATA, 'topics.json'))
+  const subs = taxonomy.groups.flatMap((g) => g.subs.map((t) => ({ ...t, group: g })))
+  const episodesForTopic = (key) => {
+    const rank = (e) => (e.summary ? 0 : e.transcriptFile ? 1 : 2)
+    return episodes
+      .filter((e) => (topicMap[e.id] ?? []).includes(key))
+      .sort((a, b) => rank(a) - rank(b) || (a.date < b.date ? 1 : -1))
+  }
+  const flows = await loadFlows()
   const urls = []
 
   const write = async (url, html) => {
@@ -341,6 +361,7 @@ async function main() {
     { url: '/archive', title: `全配信の一覧｜${NAME}`, description: `2019年から続く川上牧場の音声配信 ${episodes.length} 回を、日付順にすべて並べた一覧です。`, h1: '全配信の一覧', lead: `2019年からの ${episodes.length} 回を、新しい順に並べています。`, priority: '0.9' },
     { url: '/questions', title: `届いた質問と、答えた回｜${NAME}`, description: `牛乳や酪農について牧場に届いた質問 ${questions.length} 件と、出雲の酪農家がそのとき配信で答えたこと。原価、バター、給食の牛乳、雄の子牛、就農の資金など。`, h1: '届いた質問と、答えた回', lead: `配信に届いた質問と、そのとき酪農家が答えたことを ${questions.length} 件並べています。答えは配信時点の経験と意見です。`, priority: '0.9' },
     { url: '/terms', title: `酪農のことば帖｜${NAME}`, description: `配信の中で出てきた酪農の言葉 ${terms.length} 語を、現場の酪農家が自分の言葉で説明したまま並べた帖。乳糖不耐症、牛群検定、初乳、TMR、ルーメンなど。`, h1: '酪農のことば帖', lead: `配信の中で出てきた言葉を、そのとき酪農家が自分の言葉で説明したまま ${terms.length} 語並べています。辞書の定義ではなく、現場の言い方です。`, priority: '0.9' },
+    { url: '/topics', title: `テーマから探す｜${NAME}`, description: `牛乳の値段、給食の牛乳、子牛、乳房炎、資金、後継、AI、環境、アニマルウェルフェア。配信 ${episodes.length} 回を ${taxonomy.groups.length} つの大きなテーマと ${taxonomy.groups.reduce((a, g) => a + g.subs.length, 0)} の小さなテーマに分けた入口。`, h1: 'テーマから探す', lead: '気になる言葉から入って、その話をした回・届いた質問・ことばをまとめて読めます。', priority: '0.9' },
     { url: '/paths', title: `学びの道筋｜${NAME}`, description: '何から読めばいいかを順番にした道筋。ゼロから酪農を始める、牛を健康に飼う、ほか。', h1: '学びの道筋', lead: '読む順番をたどれます。', priority: '0.8' },
     { url: '/for-students', title: `酪農を志す人へ｜${NAME}`, description: '酪農をやってみたい人が最初に知りたいこと。資金、資格、非農家からの道、研修のこと。', h1: '酪農を志す人へ', lead: '', priority: '0.8' },
     { url: '/for-consumers', title: `牛乳を飲む人へ｜${NAME}`, description: '牛乳と酪農について、消費者からよく聞かれる質問に酪農家が答えます。', h1: '牛乳を飲む人へ', lead: '', priority: '0.8' },
@@ -369,6 +390,16 @@ async function main() {
       f.url === '/archive' || f.url === '/browse'
         ? // 全配信の索引。ここから 1 回ずつに辿れる（/archive は画面にも同じ一覧が出る）
           byYear2().map(([y, list]) => `<h2>${esc(y)}年</h2><ul>${list.map(epLink).join('')}</ul>`).join('')
+        : f.url === '/topics'
+          ? `<h2>流れで読む</h2><ul>${flows.map((fl) => `<li><a href="${esc(SITE)}flow/${esc(fl.key)}/">${esc(fl.title)}</a> ${esc(fl.lead)}</li>`).join('')}</ul>` +
+            taxonomy.groups
+              .map(
+                (g) =>
+                  `<h2>${esc(g.label)}</h2><p>${esc(g.blurb)}</p><ul>${g.subs
+                    .map((t) => `<li><a href="${esc(SITE)}t/${esc(t.key)}/">${esc(t.label)}</a>（${episodesForTopic(t.key).length}回） ${esc(t.blurb)}</li>`)
+                    .join('')}</ul>`,
+              )
+              .join('')
         : f.url === '/'
           ? `<h2>最近の配信</h2><ul>${byDate.slice(0, 30).map(epLink).join('')}</ul>`
           : f.url === '/questions'
@@ -445,6 +476,47 @@ async function main() {
                     ]
                   : []),
             ],
+    }))
+  }
+
+  // テーマ（小分類）: その話をした回の一覧を静的にも置く
+  for (const t of subs) {
+    const list = episodesForTopic(t.key)
+    const sib = t.group.subs.filter((x) => x.key !== t.key)
+    await write(`/t/${t.key}`, render(template, {
+      url: `/t/${t.key}`,
+      title: `${t.label}｜${t.group.label}｜${NAME}`,
+      description: clip(`${t.blurb} 出雲の酪農家が配信で話した ${list.length} 回。`, 110),
+      body:
+        `<article><h1>${esc(t.label)}</h1><p>${esc(t.blurb)}</p><p>${esc(t.group.label)}のテーマ。${list.length} 回。</p>` +
+        `<h2>この話をした回</h2><ul>${list.map(epLink).join('')}</ul>` +
+        `<h2>同じ「${esc(t.group.label)}」の中</h2><ul>${sib.map((x) => `<li><a href="${esc(SITE)}t/${esc(x.key)}/">${esc(x.label)}</a></li>`).join('')}</ul></article>${menu}`,
+      jsonLd: [
+        { '@context': 'https://schema.org', '@type': 'CollectionPage', name: t.label, url: `${SITE}t/${t.key}/`, description: t.blurb, inLanguage: 'ja', isPartOf: { '@type': 'WebSite', name: NAME, url: SITE }, hasPart: list.slice(0, 50).map((e) => ({ '@type': 'Article', headline: e.title, url: `${SITE}e/${e.id}/`, datePublished: e.date })) },
+        breadcrumb([
+          { name: NAME, url: SITE },
+          { name: 'テーマから探す', url: `${SITE}topics/` },
+          { name: t.label, url: `${SITE}t/${t.key}/` },
+        ]),
+      ],
+    }))
+  }
+  // 流れで読む
+  for (const fl of flows) {
+    const steps = fl.steps.map((st) => ({ ...st, sub: subs.find((x) => x.key === st.topic) })).filter((st) => st.sub)
+    await write(`/flow/${fl.key}`, render(template, {
+      url: `/flow/${fl.key}`,
+      title: `${fl.title}｜流れで読む｜${NAME}`,
+      description: clip(fl.lead, 110),
+      body:
+        `<article><h1>${esc(fl.title)}</h1><p>${esc(fl.lead)}</p><ol>${steps
+          .map((st) => `<li><a href="${esc(SITE)}t/${esc(st.sub.key)}/">${esc(st.sub.label)}</a> ${esc(st.why)}<ul>${episodesForTopic(st.sub.key).slice(0, 3).map(epLink).join('')}</ul></li>`)
+          .join('')}</ol></article>${menu}`,
+      jsonLd: breadcrumb([
+        { name: NAME, url: SITE },
+        { name: 'テーマから探す', url: `${SITE}topics/` },
+        { name: fl.title, url: `${SITE}flow/${fl.key}/` },
+      ]),
     }))
   }
 
@@ -576,6 +648,7 @@ async function main() {
       `- [牛乳を飲む人へ](${SITE}for-consumers/): 牛乳の原価、バターの値段、雄の子牛、給食の牛乳`,
       `- [届いた質問と、答えた回](${SITE}questions/): 牧場に届いた質問 ${questions.length} 件と、そのとき配信で答えたこと（FAQ）`,
       `- [酪農のことば帖](${SITE}terms/): 配信で出てきた言葉 ${terms.length} 語を、酪農家が自分の言葉で説明したまま（用語集）`,
+      `- [テーマから探す](${SITE}topics/): ${taxonomy.groups.length} つの大きなテーマと小さなテーマの入口（/t/<テーマ>/ に回の一覧）`,
       `- [学びの道筋](${SITE}paths/): テーマごとに読む順番を決めた案内`,
       `- [牧場について](${SITE}about/): 川上牧場と、このサイトの成り立ち`,
       `- [企業・研究・メディアの方へ](${SITE}expert/): 現場への取材・相談の窓口`,

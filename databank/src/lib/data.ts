@@ -118,23 +118,56 @@ export function classify(title: string): Category {
   return '酪農技術管理'
 }
 
-export const TOPICS: { key: string; label: string; re: RegExp }[] = [
-  { key: 'milk', label: '牛乳・乳製品', re: /牛乳|ミルク|バター|チーズ|ヨーグルト|乳製品|練乳|生乳|加工乳|乳飲料|乳脂肪|A2|カルシウム|乳糖/ },
-  { key: 'cow', label: '牛の体と行動', re: /牛の|牛は|牛に|牛も|牛さん|牛って|行動|性格|気質|胃|歯|目は|模様|鳴く|なつ|ストレス|しつけ|好かれる|社会|リーダー|血液型|夏バテ|熱中症|視力|毛を|反すう|野生|ホルスタイン|ジャージー|ガンジー|和牛/ },
-  { key: 'repro', label: '繁殖・子牛', re: /繁殖|人工授精|妊娠|出産|分娩|子牛|初乳|哺乳|去勢|羊水|逆子|子宮|フリーマーチン|雄|オス|ゲノム|遺伝|改良|血統|種雄牛|ハプロタイプ|体型評価/ },
-  { key: 'feed', label: '飼料・栄養', re: /飼料|餌|エサ|草|放牧|TMR|消化|ルーメン|副産物|グラスフェッド|グレインフェッド|A飼料|AMTS|好き嫌い/ },
-  { key: 'health', label: '乳房炎・健康', re: /乳房炎|乳腺炎|病気|感染|インフル|細菌|獣医|レントゲン|アレルギー|治療|炎症|防虫|虫/ },
-  { key: 'money', label: '経営・お金', re: /原価|資金|お金|マネー|価格|相場|経営|後継|廃業|倒産|土地|数字|規模|コスト|儲|クラファン|投資|値上/ },
-  { key: 'career', label: '就農・キャリア', re: /就農|始める|始められる|資格|農業大学|非農家|研修|辞める|大変|飽きる|マンネリ|わざわざ|よかった|なぜ、酪農|一番すごい|後継者|継がせる/ },
-  { key: 'env', label: '環境・堆肥', re: /堆肥|糞|フン|メタン|CO2|環境|循環|リン|排せつ物|保水|温暖化|バイオ|エネルギー|匂い/ },
-  { key: 'ai', label: 'AI・DX・発信', re: /AI|DX|ロボット|Gemini|GImini|GPT|Vibe|バイブ|動画配信|音声配信|YouTube|TikTok|Instagram|Kindle|Note|SNS|メディア|無人|カメラ/i },
-  { key: 'society', label: '社会・制度・歴史', re: /法|制度|給食|政策|農協|JA|大臣|総裁選|補助|歴史|昔|3\.11|災害|防疫|らくのう乳業|全農|海外|世界|中国|アメリカ|イスラエル|国産|輸入/ },
-  { key: 'dialogue', label: '消費者との対話', re: /コメント|リスナー|質問|消費者|応援|可哀想|ヴィーガン|アニマルウェルフェア|仲間|好循環|架け橋|海外からの|イベント|ミルクフェス|お便り/ },
-]
+// ---------- テーマ（大分類→小分類） ----------
+// 分け方は data/taxonomy.json。回ごとの小分類は scripts/build-topics.mjs が全文の見出し・ことば・要旨・質問から
+// 決めて data/topics.json に書く（prebuild）。全文の無い回は、ここで題名だけから補う。
 
-export function topicsFor(title: string, tags: string[] = []): string[] {
+export interface Topic {
+  key: string
+  label: string
+  blurb: string
+  group: string
+  re: RegExp
+}
+export interface TopicGroup {
+  key: string
+  label: string
+  blurb: string
+  audience: 'consumer' | 'student' | 'both'
+  subs: Topic[]
+}
+interface RawTaxonomy {
+  groups: { key: string; label: string; blurb: string; audience: 'consumer' | 'student' | 'both'; subs: { key: string; label: string; blurb: string; re: string }[] }[]
+}
+const taxonomyModules = import.meta.glob<RawTaxonomy>('../../data/taxonomy.json', { eager: true, import: 'default' })
+const topicMapModules = import.meta.glob<Record<string, string[]>>('../../data/topics.json', { eager: true, import: 'default' })
+const RAW_TAX: RawTaxonomy = Object.values(taxonomyModules)[0] ?? { groups: [] }
+const TOPIC_MAP: Record<string, string[]> = Object.values(topicMapModules)[0] ?? {}
+
+export const GROUPS: TopicGroup[] = RAW_TAX.groups.map((g) => ({
+  key: g.key,
+  label: g.label,
+  blurb: g.blurb,
+  audience: g.audience,
+  subs: g.subs.map((s) => ({ key: s.key, label: s.label, blurb: s.blurb, group: g.key, re: new RegExp(s.re, 'i') })),
+}))
+/** 小分類の一覧（平ら）。EpisodeCard などが label を引くのに使う */
+export const TOPICS: Topic[] = GROUPS.flatMap((g) => g.subs)
+export function topicByKey(key: string): Topic | undefined {
+  return TOPICS.find((t) => t.key === key)
+}
+export function groupByKey(key: string): TopicGroup | undefined {
+  return GROUPS.find((g) => g.key === key)
+}
+
+/** 回のテーマ。prebuild で決めたものがあればそれ、無ければ題名と札から（最大2つ） */
+export function topicsFor(id: string, title: string, tags: string[] = []): string[] {
+  const pre = TOPIC_MAP[id]
+  if (pre && pre.length) return pre
   const hay = title + ' ' + tags.join(' ')
-  return TOPICS.filter((t) => t.re.test(hay)).map((t) => t.key)
+  return TOPICS.filter((t) => t.re.test(hay))
+    .slice(0, 2)
+    .map((t) => t.key)
 }
 
 export const SERIES: { key: string; label: string; description: string; re: RegExp }[] = [
@@ -194,10 +227,10 @@ function toEpisode(
   indexEntry?: IndexEntry,
 ): Episode {
   const category = article?.category ?? ledgerCategory ?? classify(title)
-  const topics = topicsFor(title, article?.tags ?? [])
+  const id = article?.id ?? `${date}_${driveId.slice(0, 8)}`
+  const topics = topicsFor(id, title, article?.tags ?? [])
   const series = seriesFor(title)
   const audience: Audience[] = article?.audience ?? defaultAudience(category, topics)
-  const id = article?.id ?? `${date}_${driveId.slice(0, 8)}`
   const noteUrl = article?.noteUrl || indexEntry?.noteUrl || null
   const paidInfo = noteUrl ? PAID_NOTE[noteUrl.split('?')[0]] : undefined
   const paidNote = Boolean(paidInfo)
@@ -230,8 +263,9 @@ function toEpisode(
 
 function defaultAudience(category: Category, topics: string[]): Audience[] {
   if (category === '研修生教育') return ['student']
-  const consumerish = topics.some((t) => ['milk', 'dialogue', 'society'].includes(t))
-  const studentish = topics.some((t) => ['repro', 'feed', 'health', 'money', 'career'].includes(t))
+  const groups = topics.map((t) => topicByKey(t)?.group).filter(Boolean) as string[]
+  const consumerish = groups.some((g) => ['milk', 'voice'].includes(g)) || topics.some((t) => ['welfare', 'cow-mind', 'cow-body', 'milk-taste'].includes(t))
+  const studentish = groups.some((g) => ['repro', 'care', 'farm', 'career'].includes(g))
   if (consumerish && !studentish) return ['consumer']
   if (studentish && !consumerish) return ['student']
   return ['student', 'consumer']
@@ -252,6 +286,17 @@ export const BY_TRANSCRIPT = new Map<string, Episode>(EPISODES.filter((e) => e.t
 
 export function findEpisode(id: string): Episode | undefined {
   return EPISODES.find((e) => e.id === id)
+}
+
+/** ある小分類の回。読める順（要約つき → 全文あり → 題名だけ）、同じ中では新しい順 */
+export function episodesForTopic(key: string): Episode[] {
+  const rank = (e: Episode) => (e.summary ? 0 : e.hasTranscript ? 1 : 2)
+  return EPISODES.filter((e) => e.topics.includes(key)).sort((a, b) => rank(a) - rank(b) || (a.date < b.date ? 1 : -1))
+}
+/** ある大分類の回（小分類のどれかに当たる回） */
+export function episodesForGroup(key: string): Episode[] {
+  const subs = new Set(groupByKey(key)?.subs.map((s) => s.key) ?? [])
+  return EPISODES.filter((e) => e.topics.some((t) => subs.has(t)))
 }
 
 export const CATEGORY_META: Record<Category, { label: string; blurb: string; tone: string }> = {
