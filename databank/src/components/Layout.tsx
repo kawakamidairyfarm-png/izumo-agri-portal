@@ -142,6 +142,11 @@ export default function Layout() {
                   </Link>
                 </li>
                 <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/topics">
+                    テーマから探す（8つの大分類）
+                  </Link>
+                </li>
+                <li>
                   <Link className="underline decoration-moss-300 hover:text-moss-700" to="/paths">
                     学びの道筋（読む順番）
                   </Link>
