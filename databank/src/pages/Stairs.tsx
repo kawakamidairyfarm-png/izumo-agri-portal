@@ -98,7 +98,7 @@ export function StairDetail() {
       </nav>
       <h1 className="mt-2 font-serif text-3xl font-bold text-ink-900 [text-wrap:balance]">{stair.title}</h1>
       <p className="mt-2 text-ink-700 leading-relaxed">{stair.lead}</p>
-      <p className="mt-1 text-sm text-ink-500">{parts.length} つのテーマ、{total} 回。各テーマは要約のある回から順に並べています。</p>
+      <p className="mt-1 text-sm text-ink-500">あわせて {total} 回。各テーマは要約のある回から順に並べています。</p>
 
       <ol className="mt-8 space-y-8">
         {parts.map((p, i) => (

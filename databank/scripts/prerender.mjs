@@ -187,7 +187,7 @@ async function loadPaths() {
 }
 
 /** 型紙の <head> と #root を、このページ用の中身で差し替える */
-function render(template, { url, title, description, body, jsonLd, type = 'website' }) {
+function render(template, { url, title, description, body, jsonLd, type = 'website', ogTitle, ogDescription }) {
   // GitHub Pages はフォルダの住所に「/」を付けて返すので、正式な住所も「/」付きにそろえる
   const abs = url === '/' ? SITE : SITE + url.replace(/^\//, '') + '/'
   const head = [
@@ -195,8 +195,9 @@ function render(template, { url, title, description, body, jsonLd, type = 'websi
     `<meta name="description" content="${esc(description)}" />`,
     `<link rel="canonical" href="${esc(abs)}" />`,
     `<meta property="og:type" content="${type}" />`,
-    `<meta property="og:title" content="${esc(title)}" />`,
-    `<meta property="og:description" content="${esc(description)}" />`,
+    // 共有カード（LINE・X・Discord）の題名と説明は、検索向けの <title>・description と分けてよい
+    `<meta property="og:title" content="${esc(ogTitle ?? title)}" />`,
+    `<meta property="og:description" content="${esc(ogDescription ?? description)}" />`,
     `<meta property="og:url" content="${esc(abs)}" />`,
     ...[jsonLd ?? []].flat().filter(Boolean).map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`),
   ].filter(Boolean).join('\n    ')
@@ -369,7 +370,7 @@ async function main() {
 
   // 固定のページ
   const fixed = [
-    { url: '/', title: NAME, description: `原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 出雲の酪農家が毎朝の配信で答えてきた${episodes.length}回を、読める形にまとめました。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, h1: NAME, lead: `牛乳のこと、牛のこと、酪農家になる道のこと。配信 ${episodes.length} 回分を、言葉で検索できる形にまとめています。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, priority: '1.0' },
+    { url: '/', title: NAME, ogTitle: '酪農データバンク｜牛乳の「なぜ？」に、出雲の酪農家が答える', ogDescription: '原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 毎朝の配信で答えてきたことを、登録なしで読めます。', description: `原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 出雲の酪農家が毎朝の配信で答えてきた${episodes.length}回を、読める形にまとめました。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, h1: NAME, lead: `牛乳のこと、牛のこと、酪農家になる道のこと。配信 ${episodes.length} 回分を、言葉で検索できる形にまとめています。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, priority: '1.0' },
     { url: '/browse', title: `全配信を探す｜${NAME}`, description: `川上牧場の配信 ${episodes.length} 回を、言葉・分類・年月から探せます。乳房炎、資金、飼料、繁殖、就農など。`, h1: '全配信を探す', lead: '言葉で全文を検索できます。', priority: '0.9' },
     { url: '/archive', title: `全配信の一覧｜${NAME}`, description: `2019年から続く川上牧場の音声配信 ${episodes.length} 回を、日付順にすべて並べた一覧です。`, h1: '全配信の一覧', lead: `2019年からの ${episodes.length} 回を、新しい順に並べています。`, priority: '0.9' },
     { url: '/questions', title: `届いた質問と、答えた回｜${NAME}`, description: `牛乳や酪農について牧場に届いた質問 ${questions.length} 件と、出雲の酪農家がそのとき配信で答えたこと。原価、バター、給食の牛乳、雄の子牛、就農の資金など。`, h1: '届いた質問と、答えた回', lead: `配信に届いた質問と、そのとき酪農家が答えたことを ${questions.length} 件並べています。答えは配信時点の経験と意見です。`, priority: '0.9' },
@@ -445,7 +446,9 @@ async function main() {
                   .join('')}</dl>`
               : ''
     await write(f.url, render(template, {
-      url: f.url, title: f.title, description: f.description,
+      url: f.url,
+      ogTitle: f.ogTitle,
+      ogDescription: f.ogDescription, title: f.title, description: f.description,
       body: `<article><h1>${esc(f.h1)}</h1><p>${esc(f.lead || f.description)}</p>${extra}</article>${menu}`,
       jsonLd:
         f.url === '/'

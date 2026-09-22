@@ -153,7 +153,7 @@ export default function Browse() {
             <div className="space-y-2">
               {GROUPS.map((g) => (
                 <div key={g.key}>
-                  <p className="text-[11px] font-bold text-ink-500 mb-1">{g.label}</p>
+                  <p className="text-xs font-bold text-ink-500 mb-1">{g.label}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {g.subs.map((t) => (
                       <Chip key={t.key} active={topic === t.key} onClick={() => set('topic', topic === t.key ? null : t.key)}>

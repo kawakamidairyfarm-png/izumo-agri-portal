@@ -12,7 +12,7 @@ import { PHOTOS } from '../lib/photos'
 // 旗は「酪農の現場を、隠さず話す」。来る人の多くは牛乳を飲む人なので（2026-09 アクセスログ）、
 // 飲む人の道筋を先に、志す人の道筋をそのあとに並べる。志す人の道は消さない
 const PATH_ORDER = ['milk-truth', 'bridge', 'start-dairy', 'raise-healthy-cows']
-const HOME_SUGGESTIONS = ['牛乳の原価', 'バター', '給食', '乳糖不耐症', '雄の子牛', '資金', '研修', '非農家', '乳房炎']
+const HOME_SUGGESTIONS = ['牛乳の原価', 'バター', '給食', '乳糖不耐症', '雄の子牛', '資金', '研修']
 
 export default function Home() {
   const paths = PATH_ORDER.map((k) => PATHS.find((p) => p.key === k)!).filter(Boolean)
@@ -32,16 +32,17 @@ export default function Home() {
   return (
     <>
       {/* 最初の画面: 誰に・何が・次の一歩。旗は「隠さず話す」、入口は飲む人を先に */}
+      {/* 写真は暗い膜の下に沈めず、文字の面（深緑）と写真の面を左右で分ける（金継ぎ 見立て問い2・2026-09-22）。共有画像も同じ組み方 */}
       <section className="relative overflow-hidden bg-moss-900 text-white">
         {PHOTOS.hero && (
-          <>
-            <img src={PHOTOS.hero} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-b from-moss-900/95 to-moss-900/85 md:bg-gradient-to-r md:from-moss-900/95 md:via-moss-900/92 md:to-moss-900/60" />
-          </>
+          <div className="absolute inset-y-0 right-0 hidden w-[42%] md:block">
+            <img src={PHOTOS.hero} alt="川上牧場の牛舎。餌を食べる牛たち" className="h-full w-full object-cover" />
+            <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-moss-900 to-moss-900/0" />
+          </div>
         )}
-        <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-8 md:py-16">
+        <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-8 md:py-16 md:pr-[44%]">
           <p className="text-sm font-bold tracking-[0.2em] text-hay-100">島根県出雲市・川上牧場</p>
-          <h1 className="mt-3 font-serif text-3xl md:text-5xl font-bold leading-tight [text-wrap:balance]">
+          <h1 className="mt-3 font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-tight [text-wrap:balance]">
             牛乳のこと、牛のこと、酪農家になる道のこと。
             <br />
             出雲の酪農家が、隠さず話します。
@@ -77,7 +78,7 @@ export default function Home() {
           <div className="mt-6 md:mt-8 max-w-2xl">
             <SearchBox large placeholder="例：なぜバターだけ高いの？" suggestions={HOME_SUGGESTIONS} />
           </div>
-          <p className="mt-4 md:mt-6 max-w-2xl text-sm leading-relaxed text-white">
+          <p className="mt-4 md:mt-6 hidden max-w-2xl text-sm leading-relaxed text-white md:block">
             {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約つきの回は {stats.withSummary} 本。
           </p>
         </div>

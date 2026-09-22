@@ -302,8 +302,8 @@ export function episodesForGroup(key: string): Episode[] {
 export const CATEGORY_META: Record<Category, { label: string; blurb: string; tone: string }> = {
   酪農技術管理: { label: '酪農技術・管理', blurb: '牛の飼い方、搾乳、健康、牛乳の科学', tone: 'bg-moss-100 text-moss-800' },
   研修生教育: { label: '研修生教育', blurb: '研修生・学生と一緒に学ぶ回', tone: 'bg-hay-100 text-hay-700' },
-  ビジョン社会提言: { label: 'ビジョン・社会', blurb: '酪農の未来、制度、業界の見方', tone: 'bg-sky-100 text-sky-800' },
-  日常配信雑談: { label: '日常・コメント返し', blurb: 'リスナーとのやりとり、日々の話', tone: 'bg-rose-100 text-rose-800' },
+  ビジョン社会提言: { label: 'ビジョン・社会', blurb: '酪農の未来、制度、業界の見方', tone: 'bg-cream-200 text-ink-900' },
+  日常配信雑談: { label: '日常・コメント返し', blurb: 'リスナーとのやりとり、日々の話', tone: 'bg-white border border-cream-200 text-ink-700' },
 }
 
 export const AUDIENCE_META: Record<Audience, { label: string; short: string }> = {
