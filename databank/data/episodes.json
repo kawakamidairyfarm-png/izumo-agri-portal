@@ -1,5 +1,59 @@
 [
   {
+    "date": "2026-09-22",
+    "title": "スリック牛は冬も大丈夫？暑熱耐性のメリットとデメリット",
+    "driveId": "x60e43428da47566",
+    "bytes": 16769,
+    "source": "pody",
+    "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/vEnW7svPVcvRY2Nw9p5Z",
+    "bodySource": "pody"
+  },
+  {
+    "date": "2026-09-21",
+    "title": "牛も“予定日超過”する？分娩予定日を過ぎたとき、酪農家は何を見ているのか",
+    "driveId": "xe36378e0a869833",
+    "bytes": 19427,
+    "source": "pody",
+    "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/zbnKPmZzQTxJugW1B1Ij",
+    "bodySource": "pody"
+  },
+  {
+    "date": "2026-09-20",
+    "title": "日曜日のコメント返し！命を預かる仕事で、忘れられない判断。",
+    "driveId": "xfcf40b2f0440916",
+    "bytes": 13394,
+    "source": "pody",
+    "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/9URzgosm3PWeKxKE5ieX",
+    "bodySource": "pody"
+  },
+  {
+    "date": "2026-09-19",
+    "title": "牛の尻尾って何のためにある？“ハエたたき”だけじゃない、牛の尻尾を調べてみた",
+    "driveId": "xf75ea8f0e9bf59d",
+    "bytes": 12311,
+    "source": "pody",
+    "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/Yvl6nVf2oL5bgIk1WBnF",
+    "bodySource": "pody"
+  },
+  {
+    "date": "2026-09-18",
+    "title": "生の牧草と干し草、牛乳は変わる？“草は新鮮なほど良い”ではない理由",
+    "driveId": "xc9fea5dfe207212",
+    "bytes": 14662,
+    "source": "pody",
+    "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/j7P6ppFWWauCwjDNEEoW",
+    "bodySource": "pody"
+  },
+  {
+    "date": "2026-09-17",
+    "title": "ブレベミルクって何？普通の牛乳より“クリーミー”な理由を酪農家が解説",
+    "driveId": "xdc99da0979b7772",
+    "bytes": 14414,
+    "source": "pody",
+    "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/XfOZIBOeQRU07UUNcLji",
+    "bodySource": "pody"
+  },
+  {
     "date": "2026-09-16",
     "title": "乳牛は長生きするほどいい？“更新率”と3産目の乳量から考える、牛の世代交代",
     "driveId": "x5564f57e7fbedb3",
@@ -7,6 +61,14 @@
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/AJgGvUadDUit6w1APHYF",
     "bodySource": "pody"
+  },
+  {
+    "date": "2026-09-16",
+    "title": "川上牧場🐮牛群検定・バルク乳成績（R8/9月）",
+    "driveId": "n1879189ceec4",
+    "bytes": 0,
+    "source": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/n1879189ceec4"
   },
   {
     "date": "2026-09-15",
@@ -507,55 +569,61 @@
     "date": "2026-07-30",
     "title": "牛も風邪をひく？牛の風邪と鳥インフルエンザの違いを獣医学から解説",
     "driveId": "xe6913f70f09a493",
-    "bytes": 8418,
+    "bytes": 16554,
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/M10XpLQIcoupvV42Vtck",
-    "bodySource": "pody"
+    "bodySource": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/nc055bac5a964"
   },
   {
     "date": "2026-07-29",
     "title": "牛も熱中症になる？治っても後遺症は残るのか？",
     "driveId": "x3b95100c14387e1",
-    "bytes": 7872,
+    "bytes": 16426,
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/K0AB3mTFwfQv30UVQv6E",
-    "bodySource": "pody"
+    "bodySource": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/n62386b5c9b19"
   },
   {
     "date": "2026-07-28",
     "title": "牛と豚、実習するならどっち？畜産を学ぶ学生の質問に答えます",
     "driveId": "xf614d488535bc38",
-    "bytes": 7370,
+    "bytes": 16548,
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/ifWy7LTxGgTCLTqjxrUA",
-    "bodySource": "pody"
+    "bodySource": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/nc89806e27dde"
   },
   {
     "date": "2026-07-27",
     "title": "牛のエサ箱はなぜ必要？\"地面にエサを置く理由\"を酪農家が解説",
     "driveId": "x635a5b45dd42d31",
-    "bytes": 8176,
+    "bytes": 9834,
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/Kk06X3veEPYScNt2Be2l",
-    "bodySource": "pody"
+    "bodySource": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/nabb6de392692"
   },
   {
     "date": "2026-07-26",
     "title": "日曜コメント返し！「かわいそう」で終わらせない、酪農の命の現実",
     "driveId": "xea3268cd2ea0079",
-    "bytes": 11140,
+    "bytes": 16966,
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/SGMTR8sMNLw7GUDirvxY",
-    "bodySource": "pody"
+    "bodySource": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/na9798212b077"
   },
   {
     "date": "2026-07-25",
     "title": "経済動物の命を、酪農家はどう判断しているのか",
     "driveId": "x71c472483534862",
-    "bytes": 12512,
+    "bytes": 12747,
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/oSSbSEvQ8Q6jq1f4JYTN",
-    "bodySource": "pody"
+    "bodySource": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/n9b74ba8ce047"
   },
   {
     "date": "2026-07-24",
