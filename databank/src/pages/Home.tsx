@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, ChevronRight, FileText, Headphones, MessageCircle
 import NextSteps from '../components/NextSteps'
 import SearchBox from '../components/SearchBox'
 import Section from '../components/Section'
+import { StairLadder } from './Stairs'
 import { ARTICLES, EPISODES, SERIES, formatDate, stats, GROUPS } from '../lib/data'
 import { PATHS, resolvePath, seriesEpisodes } from '../lib/paths'
 import { LINKS } from '../lib/links'
@@ -82,35 +83,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 二つの入口: 飲む人を先に（スマホでは上に）、志す人をそのあとに。どちらの人も自分の場所が見つかるように */}
-      <section className="mx-auto max-w-6xl px-4 mt-6 md:mt-10">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Link
-            to="/for-consumers"
-            className="group rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-7 hover:border-moss-300 transition-colors"
-          >
-            <p className="text-sm font-bold text-moss-700">牛乳を飲む人へ</p>
-            <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">牛乳の「なぜ？」に、酪農家が答える</h2>
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
-              原価はいくら？ なぜバターだけ高い？ 給食の牛乳とスーパーの牛乳は何が違う？ 消費者から届いた質問に、現場から率直に答えています。
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
-              飲む人の入口へ <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </Link>
-          <Link
-            to="/for-students"
-            className="group rounded-2xl bg-white border border-cream-200 shadow-card p-6 md:p-7 hover:border-moss-300 transition-colors"
-          >
-            <p className="text-sm font-bold text-moss-700">酪農を志す人へ</p>
-            <h2 className="mt-1 font-serif text-xl font-bold text-ink-900">就農の現実を、順番に読む</h2>
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
-              資金はいくらかかるのか、資格は要るのか、非農家から入れるのか。研修生に話してきたことを、読む順番をつけて並べています。
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
-              志す人の入口へ <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </Link>
+      {/* 入口は相手の「いまの状態」で切る（変化の階段・2026-09-22の裁定）。飲む人を先に、志す人をそのあとに。テーマ（棚）は下に一段下げる */}
+      <section className="mx-auto max-w-6xl px-4 mt-8 md:mt-12">
+        <div className="mb-5">
+          <h2 className="font-serif text-2xl font-bold text-ink-900">あなたはいま、どこ？</h2>
+          <p className="mt-1 text-sm text-ink-700">テーマの名前より、いまの自分に近い段から入るほうが早く着きます。どの段にも、読んだあとの次の一歩を一つだけ置いています。</p>
+        </div>
+        <div className="grid gap-8 lg:grid-cols-2">
+          <div>
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="font-serif text-lg font-bold text-ink-900">牛乳を飲む人</h3>
+              <Link to="/for-consumers" className="inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+                飲む人の入口へ <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="mt-3">
+              <StairLadder audience="consumer" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="font-serif text-lg font-bold text-ink-900">酪農を志す人</h3>
+              <Link to="/for-students" className="inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+                志す人の入口へ <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="mt-3">
+              <StairLadder audience="student" />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -189,33 +190,6 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* よく聞かれる質問（文の一覧） */}
-      <Section title="テーマから探す" lead="気になる言葉から入ると、その話をした回、届いた質問、ことばがまとめて読めます。" more={{ to: '/topics', label: 'テーマをすべて見る' }}>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {GROUPS.map((g) => (
-            <div key={g.key} className="rounded-2xl bg-white border border-cream-200 p-4">
-              <p className="font-serif font-bold text-ink-900">{g.label}</p>
-              <ul className="mt-2 flex flex-wrap gap-1.5">
-                {g.subs.slice(0, 4).map((t) => (
-                  <li key={t.key}>
-                    <Link to={`/t/${t.key}`} className="inline-block rounded-full bg-cream-100 px-2.5 py-1 text-xs font-bold text-ink-700 hover:bg-moss-50 hover:text-moss-900">
-                      {t.label}
-                    </Link>
-                  </li>
-                ))}
-                {g.subs.length > 4 && (
-                  <li>
-                    <Link to="/topics" className="inline-block px-1 py-1 text-xs text-ink-500 hover:text-moss-900">
-                      ほか {g.subs.length - 4}
-                    </Link>
-                  </li>
-                )}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </Section>
-
       <Section title="よく聞かれる質問" lead="配信に届いた質問と、そのとき答えた回です。" more={{ to: '/questions', label: '届いた質問をすべて見る' }}>
         <ul className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
           {questions.map((x, i) => (
@@ -228,6 +202,26 @@ export default function Home() {
             </li>
           ))}
         </ul>
+      </Section>
+
+      {/* 棚（テーマ）は段の下に一段下げる。話した中身で分けた分類なので、言葉で探す人のために残す */}
+      <Section title="テーマから探す" lead="話した中身で分けた棚です。段から入りにくいときは、気になる言葉から。" more={{ to: '/topics', label: 'テーマをすべて見る' }}>
+        <div className="rounded-2xl bg-white border border-cream-200 divide-y divide-cream-200">
+          {GROUPS.map((g) => (
+            <div key={g.key} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 px-5 py-3">
+              <p className="sm:w-44 shrink-0 text-sm font-bold text-ink-900">{g.label}</p>
+              <ul className="flex flex-wrap gap-x-3 gap-y-1">
+                {g.subs.map((t) => (
+                  <li key={t.key}>
+                    <Link to={`/t/${t.key}`} className="text-sm text-ink-700 underline decoration-cream-200 underline-offset-4 hover:text-moss-900 hover:decoration-moss-300">
+                      {t.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </Section>
 
       {/* 読んだあとの次の一歩（無料の受け皿はメルマガ1つ。来る人の多くは飲む人なので、飲む人向けの文面を既定にする） */}

@@ -166,6 +166,16 @@ async function loadFlows() {
   return out
 }
 
+/** src/lib/stairs.ts から、変化の階段（相手の状態別の入口）の key・相手・題名・段の小分類を取り出す */
+async function loadStairs() {
+  const src = await fs.readFile(path.join(ROOT, 'src', 'lib', 'stairs.ts'), 'utf8')
+  const out = []
+  for (const m of src.matchAll(/key: '([a-z0-9-]+)',\s*audience: '(consumer|student)',\s*title: '([^']+)',\s*lead: '([^']+)',\s*topics: \[([^\]]*)\],\s*next: \{\s*label: '([^']+)',\s*text: '([^']+)',\s*href: [^,]+,\s*cta: '([^']+)'/g)) {
+    out.push({ key: m[1], audience: m[2], title: m[3], lead: m[4], topics: [...m[5].matchAll(/'([a-z0-9-]+)'/g)].map((x) => x[1]), next: { label: m[6], text: m[7], cta: m[8] } })
+  }
+  return out
+}
+
 /** src/lib/paths.ts から、学びの道筋の key と題名だけを取り出す */
 async function loadPaths() {
   const src = await fs.readFile(path.join(ROOT, 'src', 'lib', 'paths.ts'), 'utf8')
@@ -320,6 +330,9 @@ async function main() {
       .sort((a, b) => rank(a) - rank(b) || (a.date < b.date ? 1 : -1))
   }
   const flows = await loadFlows()
+  const stairs = await loadStairs()
+  if (stairs.length !== 7) throw new Error(`stairs.ts の読み取りが ${stairs.length} 段（7段のはず）`)
+  const AUD_LABEL = { consumer: '牛乳を飲む人', student: '酪農を志す人' }
   const urls = []
 
   const write = async (url, html) => {
@@ -361,6 +374,7 @@ async function main() {
     { url: '/archive', title: `全配信の一覧｜${NAME}`, description: `2019年から続く川上牧場の音声配信 ${episodes.length} 回を、日付順にすべて並べた一覧です。`, h1: '全配信の一覧', lead: `2019年からの ${episodes.length} 回を、新しい順に並べています。`, priority: '0.9' },
     { url: '/questions', title: `届いた質問と、答えた回｜${NAME}`, description: `牛乳や酪農について牧場に届いた質問 ${questions.length} 件と、出雲の酪農家がそのとき配信で答えたこと。原価、バター、給食の牛乳、雄の子牛、就農の資金など。`, h1: '届いた質問と、答えた回', lead: `配信に届いた質問と、そのとき酪農家が答えたことを ${questions.length} 件並べています。答えは配信時点の経験と意見です。`, priority: '0.9' },
     { url: '/terms', title: `酪農のことば帖｜${NAME}`, description: `配信の中で出てきた酪農の言葉 ${terms.length} 語を、現場の酪農家が自分の言葉で説明したまま並べた帖。乳糖不耐症、牛群検定、初乳、TMR、ルーメンなど。`, h1: '酪農のことば帖', lead: `配信の中で出てきた言葉を、そのとき酪農家が自分の言葉で説明したまま ${terms.length} 語並べています。辞書の定義ではなく、現場の言い方です。`, priority: '0.9' },
+    { url: '/stairs', title: `あなたはいま、どこ？｜${NAME}`, description: 'スーパーで気になった、牛のことが気になってきた、応援したい。憧れている、現実を知りたい、準備を始める、飼い始めた。いまの自分に近い段から入る、牛乳を飲む人と酪農を志す人の入口。', h1: 'あなたはいま、どこ？', lead: 'テーマの名前より、いまの自分に近い段から入るほうが早く着きます。牛乳を飲む人は3段、酪農を志す人は4段。どの段にも、読んだあとの次の一歩を一つだけ置いています。', priority: '0.9' },
     { url: '/topics', title: `テーマから探す｜${NAME}`, description: `牛乳の値段、給食の牛乳、子牛、乳房炎、資金、後継、AI、環境、アニマルウェルフェア。配信 ${episodes.length} 回を ${taxonomy.groups.length} つの大きなテーマと ${taxonomy.groups.reduce((a, g) => a + g.subs.length, 0)} の小さなテーマに分けた入口。`, h1: 'テーマから探す', lead: '気になる言葉から入って、その話をした回・届いた質問・ことばをまとめて読めます。', priority: '0.9' },
     { url: '/paths', title: `学びの道筋｜${NAME}`, description: '何から読めばいいかを順番にした道筋。ゼロから酪農を始める、牛を健康に飼う、ほか。', h1: '学びの道筋', lead: '読む順番をたどれます。', priority: '0.8' },
     { url: '/for-students', title: `酪農を志す人へ｜${NAME}`, description: '酪農をやってみたい人が最初に知りたいこと。資金、資格、非農家からの道、研修のこと。', h1: '酪農を志す人へ', lead: '', priority: '0.8' },
@@ -390,6 +404,16 @@ async function main() {
       f.url === '/archive' || f.url === '/browse'
         ? // 全配信の索引。ここから 1 回ずつに辿れる（/archive は画面にも同じ一覧が出る）
           byYear2().map(([y, list]) => `<h2>${esc(y)}年</h2><ul>${list.map(epLink).join('')}</ul>`).join('')
+        : f.url === '/stairs'
+          ? ['consumer', 'student']
+              .map(
+                (au) =>
+                  `<h2>${esc(AUD_LABEL[au])}</h2><ol>${stairs
+                    .filter((st) => st.audience === au)
+                    .map((st) => `<li><a href="${esc(SITE)}stair/${esc(st.key)}/">${esc(st.title)}</a> ${esc(st.lead)}</li>`)
+                    .join('')}</ol>`,
+              )
+              .join('')
         : f.url === '/topics'
           ? `<h2>流れで読む</h2><ul>${flows.map((fl) => `<li><a href="${esc(SITE)}flow/${esc(fl.key)}/">${esc(fl.title)}</a> ${esc(fl.lead)}</li>`).join('')}</ul>` +
             taxonomy.groups
@@ -501,6 +525,31 @@ async function main() {
       ],
     }))
   }
+  // 変化の階段（相手の状態別の入口）
+  for (const st of stairs) {
+    const list = stairs.filter((x) => x.audience === st.audience)
+    const n = list.indexOf(st) + 1
+    const parts = st.topics.map((k) => subs.find((x) => x.key === k)).filter(Boolean)
+    const ids = new Set(parts.flatMap((t) => episodesForTopic(t.key).map((e) => e.id)))
+    await write(`/stair/${st.key}`, render(template, {
+      url: `/stair/${st.key}`,
+      title: `${st.title}｜${AUD_LABEL[st.audience]}の${n}段目｜${NAME}`,
+      description: clip(st.lead, 110),
+      body:
+        `<article><h1>${esc(st.title)}</h1><p>${esc(AUD_LABEL[st.audience])}の ${n} 段目／${list.length}。${ids.size} 回。</p><p>${esc(st.lead)}</p><ol>${parts
+          .map((t) => `<li><a href="${esc(SITE)}t/${esc(t.key)}/">${esc(t.label)}</a> ${esc(t.blurb)}<ul>${episodesForTopic(t.key).slice(0, 3).map(epLink).join('')}</ul></li>`)
+          .join('')}</ol><h2>この段を読んだら</h2><p>${esc(st.next.label)}。${esc(st.next.text)}</p></article>${menu}`,
+      jsonLd: [
+        { '@context': 'https://schema.org', '@type': 'CollectionPage', name: st.title, url: `${SITE}stair/${st.key}/`, description: st.lead, inLanguage: 'ja', isPartOf: { '@type': 'WebSite', name: NAME, url: SITE }, hasPart: parts.map((t) => ({ '@type': 'CollectionPage', name: t.label, url: `${SITE}t/${t.key}/` })) },
+        breadcrumb([
+          { name: NAME, url: SITE },
+          { name: 'あなたはいま、どこ？', url: `${SITE}stairs/` },
+          { name: st.title, url: `${SITE}stair/${st.key}/` },
+        ]),
+      ],
+    }))
+  }
+
   // 流れで読む
   for (const fl of flows) {
     const steps = fl.steps.map((st) => ({ ...st, sub: subs.find((x) => x.key === st.topic) })).filter((st) => st.sub)
@@ -648,6 +697,7 @@ async function main() {
       `- [牛乳を飲む人へ](${SITE}for-consumers/): 牛乳の原価、バターの値段、雄の子牛、給食の牛乳`,
       `- [届いた質問と、答えた回](${SITE}questions/): 牧場に届いた質問 ${questions.length} 件と、そのとき配信で答えたこと（FAQ）`,
       `- [酪農のことば帖](${SITE}terms/): 配信で出てきた言葉 ${terms.length} 語を、酪農家が自分の言葉で説明したまま（用語集）`,
+      `- [あなたはいま、どこ？](${SITE}stairs/): 読む人のいまの状態から入る入口。牛乳を飲む人は3段、酪農を志す人は4段（/stair/<段>/）`,
       `- [テーマから探す](${SITE}topics/): ${taxonomy.groups.length} つの大きなテーマと小さなテーマの入口（/t/<テーマ>/ に回の一覧）`,
       `- [学びの道筋](${SITE}paths/): テーマごとに読む順番を決めた案内`,
       `- [牧場について](${SITE}about/): 川上牧場と、このサイトの成り立ち`,

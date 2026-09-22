@@ -9,6 +9,7 @@ import EpisodePage from './pages/Episode'
 import { PathsIndex, PathDetail } from './pages/Paths'
 import { TopicsIndex, FlowDetail } from './pages/Topics'
 import TopicPage from './pages/Topic'
+import { StairsIndex, StairDetail } from './pages/Stairs'
 import { ForStudents, ForConsumers } from './pages/Entrances'
 import About from './pages/About'
 import Expert from './pages/Expert'
@@ -40,6 +41,8 @@ export default function App() {
           <Route path="topics" element={<TopicsIndex />} />
           <Route path="t/:key" element={<TopicPage />} />
           <Route path="flow/:key" element={<FlowDetail />} />
+          <Route path="stairs" element={<StairsIndex />} />
+          <Route path="stair/:key" element={<StairDetail />} />
           <Route path="paths" element={<PathsIndex />} />
           <Route path="paths/:key" element={<PathDetail />} />
           <Route path="for-students" element={<ForStudents />} />

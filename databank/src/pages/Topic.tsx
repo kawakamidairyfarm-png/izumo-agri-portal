@@ -5,6 +5,7 @@ import EpisodeCard from '../components/EpisodeCard'
 import NextSteps from '../components/NextSteps'
 import { BY_TRANSCRIPT, episodesForTopic, groupByKey, topicByKey } from '../lib/data'
 import { flowsForTopic } from '../lib/flows'
+import { stairsForTopic } from '../lib/stairs'
 import { useIndexes } from '../lib/indexes'
 
 const PAGE = 12
@@ -24,6 +25,7 @@ export default function TopicPage() {
     return TERMS.filter((t) => ids.has(t.key) && !seen.has(t.term) && seen.add(t.term)).slice(0, 12)
   }, [ids, TERMS])
   const flows = topic ? flowsForTopic(topic.key) : []
+  const stairs = topic ? stairsForTopic(topic.key) : []
 
   if (!topic || !group) {
     return (
@@ -122,6 +124,20 @@ export default function TopicPage() {
                   <li key={t.term}>
                     <Link to={`/terms?q=${encodeURIComponent(t.term)}`} className="inline-block rounded-full bg-cream-100 px-3 py-1 text-sm text-ink-900 hover:bg-moss-50">
                       {t.term}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {stairs.length > 0 && (
+            <section className="rounded-2xl bg-white border border-cream-200 p-5">
+              <h2 className="text-sm font-bold text-moss-700">このテーマが入っている段</h2>
+              <ul className="mt-3 space-y-2">
+                {stairs.map((s) => (
+                  <li key={s.key}>
+                    <Link to={`/stair/${s.key}`} className="font-serif font-bold text-ink-900 hover:text-moss-700">
+                      {s.title} →
                     </Link>
                   </li>
                 ))}

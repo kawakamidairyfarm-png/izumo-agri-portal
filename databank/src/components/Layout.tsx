@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { formatDate, stats } from '../lib/data'
 import { LINKS } from '../lib/links'
 
-// 来る人の多くは牛乳を飲む人なので、飲む人の入口を先に置く（志す人の入口は残す）
+// 来る人の多くは牛乳を飲む人なので、飲む人の入口を先に置く（志す人の入口は残す）。
+// 入口は相手別の二つを主に、棚（テーマ・質問・ことば・全配信）は副として一段軽く見せる
 const NAV = [
-  { to: '/for-consumers', label: '牛乳の疑問' },
-  { to: '/for-students', label: '酪農を志す人へ' },
+  { to: '/for-consumers', label: '牛乳の疑問', primary: true },
+  { to: '/for-students', label: '酪農を志す人へ', primary: true },
   { to: '/topics', label: 'テーマ' },
   { to: '/questions', label: '質問と答え' },
   { to: '/terms', label: 'ことば帖' },
@@ -33,8 +34,8 @@ export default function Layout() {
                 key={n.to}
                 to={n.to}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                    isActive ? 'bg-moss-50 text-moss-900' : 'text-ink-700 hover:bg-cream-100'
+                  `px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${n.primary ? 'font-bold' : 'font-medium'} ${
+                    isActive ? 'bg-moss-50 text-moss-900' : n.primary ? 'text-ink-900 hover:bg-cream-100' : 'text-ink-700 hover:bg-cream-100'
                   }`
                 }
               >
@@ -66,7 +67,7 @@ export default function Layout() {
                 to={n.to}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  `px-3 py-3 rounded-lg text-sm font-medium ${isActive ? 'bg-moss-50 text-moss-900' : 'text-ink-700'}`
+                  `px-3 py-3 rounded-lg text-sm ${n.primary ? 'font-bold' : 'font-medium'} ${isActive ? 'bg-moss-50 text-moss-900' : n.primary ? 'text-ink-900' : 'text-ink-700'}`
                 }
               >
                 {n.label}
@@ -139,6 +140,11 @@ export default function Layout() {
                 <li>
                   <Link className="underline decoration-moss-300 hover:text-moss-700" to="/archive">
                     全配信の一覧（{stats.episodes} 回）
+                  </Link>
+                </li>
+                <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/stairs">
+                    あなたはいま、どこ？（7つの段）
                   </Link>
                 </li>
                 <li>

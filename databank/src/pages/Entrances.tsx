@@ -4,7 +4,8 @@ import Section from '../components/Section'
 import EpisodeCard from '../components/EpisodeCard'
 import SearchBox from '../components/SearchBox'
 import NextSteps from '../components/NextSteps'
-import { ARTICLES, EPISODES, TOPICS, leadOf, paragraphs } from '../lib/data'
+import { ARTICLES, GROUPS, episodesForTopic, leadOf, paragraphs } from '../lib/data'
+import { StairLadder } from './Stairs'
 import { PATHS, resolvePath } from '../lib/paths'
 
 function Hero({
@@ -46,7 +47,6 @@ function Hero({
 export function ForStudents() {
   const paths = PATHS.filter((p) => p.audience !== 'consumer')
   const picks = ARTICLES.filter((e) => e.audience.includes('student')).slice(0, 6)
-  const topicKeys = ['career', 'money', 'health', 'feed', 'repro', 'cow']
   return (
     <>
       <Hero
@@ -55,6 +55,10 @@ export function ForStudents() {
         title="酪農家になるための、読む順番。"
         lead="川上牧場は毎年、研修生と高校生・中学生を受け入れています。配信では、その人たちに実際に話してきたことをそのまま語っています。就農の準備、資金、資格、牛の健康、飼料設計、改良。迷わないように、読む順番を決めました。"
       />
+
+      <Section title="あなたはいま、どこ？" lead="憧れの段から、飼っている段まで。いまの自分に近い段から読むと早く着きます。">
+        <StairLadder audience="student" />
+      </Section>
 
       <Section title="学ぶ順番" lead="迷ったら、この順で。">
         <div className="grid gap-4 md:grid-cols-2">
@@ -75,17 +79,15 @@ export function ForStudents() {
         </div>
       </Section>
 
-      <Section title="テーマから探す">
+      <Section title="テーマから探す" lead="話した中身で分けた棚です。" more={{ to: '/topics', label: 'テーマをすべて見る' }}>
         <div className="flex flex-wrap gap-2">
-          {topicKeys.map((k) => {
-            const t = TOPICS.find((x) => x.key === k)!
-            const n = EPISODES.filter((e) => e.topics.includes(k)).length
-            return (
-              <Link key={k} to={`/browse?topic=${k}`} className="rounded-full bg-white border border-cream-200 px-4 py-2 text-sm font-medium hover:border-moss-300">
-                {t.label} <span className="text-ink-500">{n}</span>
+          {GROUPS.filter((g) => g.audience !== 'consumer')
+            .flatMap((g) => g.subs)
+            .map((t) => (
+              <Link key={t.key} to={`/t/${t.key}`} className="rounded-full bg-white border border-cream-200 px-4 py-2 text-sm font-medium hover:border-moss-300">
+                {t.label} <span className="text-ink-500">{episodesForTopic(t.key).length}</span>
               </Link>
-            )
-          })}
+            ))}
           <Link to="/browse?series=trainee" className="rounded-full bg-hay-100 border border-hay-300/60 px-4 py-2 text-sm font-medium hover:border-hay-500">
             研修生と配信シリーズ
           </Link>
@@ -123,6 +125,10 @@ export function ForConsumers() {
         placeholder="例：なぜバターだけ高いの？"
         hint="気になる言葉を入れると、822回の中から探せます。たとえば「バター」「給食」「乳糖不耐症」。"
       />
+
+      <Section title="あなたはいま、どこ？" lead="スーパーで気になった段から、応援したくなった段まで。いまの自分に近い段から。">
+        <StairLadder audience="consumer" />
+      </Section>
 
       <Section title="よくある質問" lead="配信で実際に答えた質問から。" more={{ to: '/questions', label: '届いた質問をすべて見る' }}>
         <div className="grid gap-3 md:grid-cols-2">

@@ -14,6 +14,9 @@ export function TopicsIndex() {
       <p className="mt-1 text-sm text-ink-700">
         {stats.episodes} 回の配信を、{GROUPS.length} つの大きなテーマと {GROUPS.reduce((a, g) => a + g.subs.length, 0)} の小さなテーマに分けました。気になる言葉から入って、深く読めます。
       </p>
+      <p className="mt-2 text-sm text-ink-700">
+        いまの自分に近いところから入りたい人は <Link to="/stairs" className="font-bold text-moss-700 hover:underline">あなたはいま、どこ？</Link> へ。
+      </p>
 
       <section className="mt-8">
         <h2 className="font-serif text-xl font-bold text-ink-900">流れで読む</h2>
