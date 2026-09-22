@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react'
 import EpisodeCard from '../components/EpisodeCard'
-import NextSteps from '../components/NextSteps'
 import type { Audience } from '../lib/data'
 import { AUDIENCE_LABEL, STAIRS, findStair, resolveStair, stairEpisodeCount, stairPosition, stairsFor } from '../lib/stairs'
 
@@ -161,8 +160,7 @@ export function StairDetail() {
           </Link>
         )}
       </div>
-
-      <NextSteps audience={stair.audience} compact />
+      {/* 共通の受け皿（NextSteps）はここでは出さない。段の「次の一歩」が同じメルマガ案内と二重になるため（2026-09-22 スマホでの指摘） */}
     </div>
   )
 }
