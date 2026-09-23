@@ -29,7 +29,8 @@ const BODY_LIMIT = 12000
 const FARM = {
   '@type': 'Organization',
   name: '川上牧場',
-  url: SITE,
+  // 組織の正式な住所は牧場のホームページ。データバンクは その牧場が出している読み物
+  url: 'https://kawakamibokuzyou.hp.peraichi.com/',
   address: { '@type': 'PostalAddress', addressRegion: '島根県', addressLocality: '出雲市', addressCountry: 'JP' },
 }
 const AUTHOR = {
@@ -399,6 +400,7 @@ async function main() {
     `<nav><ul>` +
     fixed.map((f) => `<li><a href="${esc(SITE)}${f.url === '/' ? '' : f.url.replace(/^\//, '') + '/'}">${esc(f.h1)}</a></li>`).join('') +
     paths.map((p) => `<li><a href="${esc(SITE)}paths/${esc(p.key)}/">${esc(p.title)}</a></li>`).join('') +
+    `<li><a href="https://kawakamibokuzyou.hp.peraichi.com/">川上牧場のホームページ</a></li>` +
     `</ul></nav>`
   for (const f of fixed) {
     const extra =
@@ -626,7 +628,7 @@ async function main() {
           inLanguage: 'ja',
           isAccessibleForFree: true,
           author: AUTHOR,
-          publisher: { ...FARM, name: NAME },
+          publisher: FARM,
           mainEntityOfPage: `${SITE}e/${ep.id}/`,
           isPartOf: { '@type': 'WebSite', name: NAME, url: SITE },
         },

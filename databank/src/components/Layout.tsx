@@ -1,5 +1,5 @@
 import { NavLink, Link, Outlet } from 'react-router-dom'
-import { Menu, MessageCircle, X } from 'lucide-react'
+import { ExternalLink, Menu, MessageCircle, X } from 'lucide-react'
 import { useState } from 'react'
 import { formatDate, stats } from '../lib/data'
 import { LINKS } from '../lib/links'
@@ -103,6 +103,14 @@ export default function Layout() {
               <p className="text-ink-700 leading-relaxed">
                 島根県出雲市の牧場から、酪農の現場を毎朝配信しています。このサイトは配信の文字起こしをもとに、牛乳を飲む人も酪農を志す人も、知りたいことから読めるように整理したものです。
               </p>
+              <a
+                className="mt-3 inline-flex items-center gap-1 font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900"
+                href={LINKS.home}
+                target="_blank"
+                rel="noreferrer"
+              >
+                川上牧場のホームページ <ExternalLink size={14} />
+              </a>
             </div>
             <div>
               <p className="font-bold text-ink-900 mb-2">聴く・読む・聞く</p>

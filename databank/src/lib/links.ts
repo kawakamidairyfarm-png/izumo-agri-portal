@@ -23,6 +23,8 @@ export const LINKS = {
    * PDFを直接開けるURL（kawakamifarm.net/l/m/qz9dEPIITIU2mT）はサイトには載せない。
    * 登録ボタンの隣に無料で開けるリンクを置くと、登録せずに持っていかれて特典の意味が消えるため。
    */
+  /** 川上牧場の公式ホームページ（牧場そのものの案内） */
+  home: 'https://kawakamibokuzyou.hp.peraichi.com/',
   /** 川上牧場 研修生募集ページ（牧場の公式サイト） */
   recruit: 'https://kawakamibokuzyou.hp.peraichi.com/recruit/',
   /** Kindle本『酪農未経験者のために』（Kindle Unlimited 対象） */
