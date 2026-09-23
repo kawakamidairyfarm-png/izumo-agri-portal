@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MessageCircle } from 'lucide-react'
+import { ExternalLink, MessageCircle } from 'lucide-react'
 import { stats } from '../lib/data'
 import { LINKS } from '../lib/links'
 import { PHOTOS } from '../lib/photos'
@@ -20,6 +20,14 @@ export default function About() {
             <p>第31回 全農酪農経営体験発表会 優秀賞。島根県指導農業士。{stats.earliest.slice(0, 4)}年から毎朝の音声配信を続けています。</p>
             <p>研修生や高校生・中学生の受け入れ、スポットワークを通じて、これまで400人以上を牧場に迎えてきました。</p>
           </div>
+          <a
+            href={LINKS.home}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900"
+          >
+            川上牧場のホームページを見る <ExternalLink size={14} />
+          </a>
         </div>
       </section>
 

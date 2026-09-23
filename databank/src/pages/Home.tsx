@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, ChevronRight, FileText, Headphones, MessageCircle, Milk } from 'lucide-react'
+import { ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Headphones, MessageCircle, Milk } from 'lucide-react'
 import NextSteps from '../components/NextSteps'
 import SearchBox from '../components/SearchBox'
 import Section from '../components/Section'
@@ -129,9 +129,14 @@ export default function Home() {
             <p className="mt-2 text-sm text-ink-700 leading-relaxed">
               第31回 全農酪農経営体験発表会 優秀賞。{stats.earliest.slice(0, 4)}年から毎朝の音声配信を続け、研修生や高校生・中学生の受け入れ、スポットワークを通じて400人以上を牧場に迎えてきました。
             </p>
-            <Link to="/about" className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
-              牧場とこのサイトについて <ArrowRight size={16} />
-            </Link>
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+              <Link to="/about" className="inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+                牧場とこのサイトについて <ArrowRight size={16} />
+              </Link>
+              <a href={LINKS.home} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+                川上牧場のホームページ <ExternalLink size={14} />
+              </a>
+            </div>
           </div>
         </div>
       </section>
