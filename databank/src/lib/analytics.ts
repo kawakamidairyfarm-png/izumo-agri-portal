@@ -123,8 +123,24 @@ function notice(text: string) {
   setTimeout(() => el.remove(), 4000)
 }
 
+/**
+ * 機械（検索エンジンの巡回・Search Console のテスト・自動ブラウザ）は数えない。
+ * 2026-09-24 の分析で、7日の訪問 125 のうち 55 が機械だった（PC・直接・回ページを順番なく読む）。
+ */
+function isMachine(): boolean {
+  try {
+    if (navigator.webdriver) return true
+    return /bot|crawl|spider|slurp|google-inspectiontool|lighthouse|headless|pagespeed|preview|facebookexternalhit|bingpreview|yandex|baidu|petal|semrush|ahrefs/i.test(
+      navigator.userAgent,
+    )
+  } catch {
+    return false
+  }
+}
+
 export function installAnalytics() {
   if (navigator.doNotTrack === '1') return
+  if (isMachine()) return
   if (ownerExcluded()) return
 
   const own = import.meta.env.VITE_LOG_ENDPOINT as string | undefined
