@@ -380,6 +380,7 @@ async function main() {
     { url: '/topics', title: `テーマから探す｜${NAME}`, description: `牛乳の値段、給食の牛乳、子牛、乳房炎、資金、後継、AI、環境、アニマルウェルフェア。配信 ${episodes.length} 回を ${taxonomy.groups.length} つの大きなテーマと ${taxonomy.groups.reduce((a, g) => a + g.subs.length, 0)} の小さなテーマに分けた入口。`, h1: 'テーマから探す', lead: '気になる言葉から入って、その話をした回・届いた質問・ことばをまとめて読めます。', priority: '0.9' },
     { url: '/paths', title: `学びの道筋｜${NAME}`, description: '何から読めばいいかを順番にした道筋。ゼロから酪農を始める、牛を健康に飼う、ほか。', h1: '学びの道筋', lead: '読む順番をたどれます。', priority: '0.8' },
     { url: '/for-students', title: `酪農を志す人へ｜${NAME}`, description: '酪農をやってみたい人が最初に知りたいこと。資金、資格、非農家からの道、研修のこと。', h1: '酪農を志す人へ', lead: '', priority: '0.8' },
+    { url: '/live', title: `LIVEを見てくれている人へ｜${NAME}`, description: '川上牧場のLIVEを見てくれている人へ。LIVEで話したことを、毎朝の配信の記録からあとで読めます。聞けなかった質問は公式LINEへ。', h1: 'LIVEで話したことを、あとから読めます。', lead: 'LIVEで出てきた言葉から、その話をした回を探せます。聞けなかった質問は公式LINEへ送れます。', priority: '0.7' },
     { url: '/for-consumers', title: `牛乳を飲む人へ｜${NAME}`, description: '牛乳と酪農について、消費者からよく聞かれる質問に酪農家が答えます。', h1: '牛乳を飲む人へ', lead: '', priority: '0.8' },
     { url: '/expert', title: `企業・研究・メディアの方へ｜${NAME}`, description: '島根県出雲市の酪農家が、飼養管理・経営・人手・遺伝改良・資材の実態についてお答えします。専門家インタビュー、取材、新規事業の伴走のご相談を承ります。', h1: '酪農の現場に、直接たずねる', lead: '搾乳牛40頭・全体80頭を1人で管理する酪農家が、統計や資料では出てこない粒度で現場の実態をお話しします。', priority: '0.8' },
     { url: '/about', title: `牧場について｜${NAME}`, description: '島根県出雲市・川上牧場について。研修生の受け入れ、酪農家・牧場向けの相談、講演や取材のご依頼。', h1: '牧場について', lead: '', priority: '0.7' },

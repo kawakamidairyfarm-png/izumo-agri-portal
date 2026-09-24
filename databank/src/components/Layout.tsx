@@ -146,6 +146,11 @@ export default function Layout() {
                   </a>
                 </li>
                 <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/live">
+                    LIVEを見てくれている人へ
+                  </Link>
+                </li>
+                <li>
                   <Link className="underline decoration-moss-300 hover:text-moss-700" to="/archive">
                     全配信の一覧（{stats.episodes} 回）
                   </Link>

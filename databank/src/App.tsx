@@ -15,6 +15,7 @@ import About from './pages/About'
 import Expert from './pages/Expert'
 import Questions from './pages/Questions'
 import Terms from './pages/Terms'
+import Live from './pages/Live'
 
 /** ページが変わったら先頭に戻し、計測にも知らせる */
 function OnRouteChange() {
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="t/:key" element={<TopicPage />} />
           <Route path="flow/:key" element={<FlowDetail />} />
           <Route path="stairs" element={<StairsIndex />} />
+          <Route path="live" element={<Live />} />
           <Route path="stair/:key" element={<StairDetail />} />
           <Route path="paths" element={<PathsIndex />} />
           <Route path="paths/:key" element={<PathDetail />} />
