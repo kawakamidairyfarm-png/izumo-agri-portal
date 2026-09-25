@@ -43,7 +43,7 @@ export default function EpisodeCard({
         )}
         <div className="min-w-0 flex-1">
           {/* 札は減らす（2026-09-25 金継ぎ: 1枚に分類・対象・テーマ・状態の4種類が並んでいた）。日付と題名を先に */}
-          <p className="mb-1 text-xs text-ink-500 tabular-nums">{formatDate(episode.date)}</p>
+          <time dateTime={episode.date} className="mb-1 block text-xs text-ink-500 tabular-nums">{formatDate(episode.date)}</time>
           <h3 className="font-bold text-ink-900 leading-snug group-hover:text-moss-700">
             <Highlighted text={episode.title} query={query} />
           </h3>

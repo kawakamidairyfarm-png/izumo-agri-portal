@@ -68,7 +68,7 @@ export default function EpisodePage() {
 
       <header className="mt-4">
         {/* 頭は「いつ・何の話か・どう読むか」だけ。分類と対象の札、ハッシュタグ、共有は本文の後ろへ（2026-09-25 金継ぎ） */}
-        <p className="text-sm text-ink-500 tabular-nums">{formatDate(episode.date)} 配信</p>
+        <p className="text-sm text-ink-500 tabular-nums"><time dateTime={episode.date}>{formatDate(episode.date)}</time> 配信</p>
         <h1 className="mt-1 font-serif text-2xl md:text-3xl font-bold leading-snug text-ink-900 [text-wrap:balance]">{episode.title}</h1>
         {episode.topics.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
