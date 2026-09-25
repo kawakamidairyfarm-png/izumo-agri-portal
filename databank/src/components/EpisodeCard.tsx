@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { FileText, Headphones } from 'lucide-react'
-import { AUDIENCE_META, CATEGORY_META, TOPICS, formatDate, leadOf, type Episode } from '../lib/data'
+import { TOPICS, formatDate, leadOf, type Episode } from '../lib/data'
 import { highlight } from '../lib/search'
 
 export function Badge({ children, tone = 'bg-cream-200 text-ink-700' }: { children: React.ReactNode; tone?: string }) {
@@ -29,8 +29,7 @@ export default function EpisodeCard({
   why?: string
   index?: number
 }) {
-  const cat = CATEGORY_META[episode.category]
-  const topicLabels = episode.topics.slice(0, 3).map((k) => TOPICS.find((t) => t.key === k)?.label ?? k)
+  const topicLabels = episode.topics.slice(0, 2).map((k) => TOPICS.find((t) => t.key === k)?.label ?? k)
   return (
     <Link
       to={`/e/${episode.id}`}
@@ -43,13 +42,8 @@ export default function EpisodeCard({
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-            <Badge tone={cat.tone}>{cat.label}</Badge>
-            {episode.audience.map((a) => (
-              <Badge key={a}>{AUDIENCE_META[a].short}</Badge>
-            ))}
-            <span className="text-xs text-ink-500 ml-auto">{formatDate(episode.date)}</span>
-          </div>
+          {/* 札は減らす（2026-09-25 金継ぎ: 1枚に分類・対象・テーマ・状態の4種類が並んでいた）。日付と題名を先に */}
+          <p className="mb-1 text-xs text-ink-500 tabular-nums">{formatDate(episode.date)}</p>
           <h3 className="font-bold text-ink-900 leading-snug group-hover:text-moss-700">
             <Highlighted text={episode.title} query={query} />
           </h3>
@@ -76,13 +70,9 @@ export default function EpisodeCard({
               <Highlighted text={snippet} query={query} />
             </p>
           )}
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-ink-500">
-            {topicLabels.map((t) => (
-              <span key={t} className="rounded-full bg-cream-100 px-2 py-0.5">
-                {t}
-              </span>
-            ))}
-            <span className="ml-auto inline-flex items-center gap-1">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
+            {topicLabels.length > 0 && <span className="min-w-0">{topicLabels.join('・')}</span>}
+            <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap">
               {episode.article || episode.hasTranscript ? <FileText size={13} /> : <Headphones size={13} />}
               {episode.summary ? '要約・全文あり' : episode.hasTranscript ? '全文あり' : '音声のみ'}
             </span>

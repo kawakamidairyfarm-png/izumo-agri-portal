@@ -1,6 +1,6 @@
 import { NavLink, Link, Outlet } from 'react-router-dom'
 import { ExternalLink, Menu, MessageCircle, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { formatDate, stats } from '../lib/data'
 import { LINKS } from '../lib/links'
 
@@ -18,6 +18,20 @@ const NAV = [
 
 export default function Layout() {
   const [open, setOpen] = useState(false)
+  const [fabHidden, setFabHidden] = useState(false)
+  useEffect(() => {
+    let last = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      const nearBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 200
+      if (y < 200) setFabHidden(false)
+      else if (nearBottom) setFabHidden(true)
+      else if (Math.abs(y - last) > 8) setFabHidden(y > last)
+      last = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-30 bg-white border-b border-cream-200">
@@ -84,13 +98,16 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* スマホ: いつでも質問できる浮きボタン */}
+      {/* スマホ: いつでも質問できる浮きボタン。下へ読み進める間は引っ込め、上へ戻すと出す（本文を隠さないため・2026-09-25） */}
       <a
         href={LINKS.line}
         target="_blank"
         rel="noreferrer"
-        className="md:hidden fixed bottom-4 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-line px-4 py-3 text-sm font-bold text-white shadow-lg"
+        className={`md:hidden fixed bottom-4 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-line px-4 py-3 text-sm font-bold text-white shadow-lg transition-transform duration-200 motion-reduce:transition-none ${
+          fabHidden ? 'translate-y-24' : 'translate-y-0'
+        }`}
         aria-label="LINEで質問する"
+        tabIndex={fabHidden ? -1 : 0}
       >
         <MessageCircle size={18} /> 質問する
       </a>
@@ -114,7 +131,7 @@ export default function Layout() {
             </div>
             <div>
               <p className="font-bold text-ink-900 mb-2">聴く・読む・聞く</p>
-              <ul className="space-y-1.5 text-ink-700">
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-ink-700 md:grid-cols-1 md:gap-y-1.5">
                 <li>
                   <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.pody} target="_blank" rel="noreferrer">
                     Pody で音声配信を聴く

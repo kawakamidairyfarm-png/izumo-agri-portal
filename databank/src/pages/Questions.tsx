@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { HelpCircle, MessageCircle, Search } from 'lucide-react'
-import { ARTICLES, BY_TRANSCRIPT, formatDate, leadOf, type Episode } from '../lib/data'
+import { ARTICLES, BY_TRANSCRIPT, formatDate, leadOf, topicByKey, type Episode } from '../lib/data'
 import { LINKS } from '../lib/links'
+import GroupFilter, { MoreButton } from '../components/GroupFilter'
 import { splitParagraph } from '../lib/transcript'
 import { useNarrow } from '../lib/useNarrow'
 
 type QA = { q: string; a: string; episode: Episode }
+
+const PAGE = 30
+/** 回のテーマ（小分類）から、大分類のキーを集める */
+const groupsOf = (e: Episode) => new Set(e.topics.map((k) => topicByKey(k)?.group).filter(Boolean) as string[])
 
 /**
  * 届いた質問と、答えた回。
@@ -19,6 +24,8 @@ type QA = { q: string; a: string; episode: Episode }
 export default function Questions() {
   const [fromBodies, setFromBodies] = useState<QA[] | null>(null)
   const [q, setQ] = useState('')
+  const [group, setGroup] = useState<string | null>(null)
+  const [limit, setLimit] = useState(PAGE)
   const narrow = useNarrow()
   useEffect(() => {
     let alive = true
@@ -42,7 +49,19 @@ export default function Questions() {
   }, [fromBodies])
 
   const needle = q.trim()
-  const shown = needle ? all.filter((x) => x.q.includes(needle) || x.a.includes(needle)) : all
+  const counts = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const x of all) for (const g of groupsOf(x.episode)) m.set(g, (m.get(g) ?? 0) + 1)
+    return m
+  }, [all])
+  const matched = all.filter(
+    (x) => (!needle || x.q.includes(needle) || x.a.includes(needle)) && (!group || groupsOf(x.episode).has(group)),
+  )
+  const shown = matched.slice(0, limit)
+  const pick = (g: string | null) => {
+    setGroup(g)
+    setLimit(PAGE)
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -57,7 +76,10 @@ export default function Questions() {
           <Search size={18} className="shrink-0 text-ink-500" />
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => {
+              setQ(e.target.value)
+              setLimit(PAGE)
+            }}
             placeholder="例：バター、子牛、給食"
             className="search-input min-w-0 flex-1 bg-white text-ink-900 placeholder:text-ink-500 outline-none"
             aria-label="質問を絞り込む"
@@ -74,7 +96,10 @@ export default function Questions() {
       </div>
       <p className="mt-2 text-sm text-ink-500">送ってもらった質問は、朝の配信で答えることがあります。答えた回は、ここに加わります。</p>
 
-      {needle && <p className="mt-6 text-sm text-ink-700">{shown.length} 件</p>}
+      {/* テーマで絞る（2026-09-25: 173問が一度に並び、スマホで長さ5万pxあった） */}
+      <GroupFilter value={group} onChange={pick} counts={counts} total={all.length} label="テーマで絞る" />
+
+      {(needle || group) && <p className="mt-4 text-sm text-ink-700">{matched.length} 件</p>}
 
       <ul className="mt-4 space-y-3">
         {shown.map((x, i) => (
@@ -98,6 +123,7 @@ export default function Questions() {
           </li>
         ))}
       </ul>
+      <MoreButton rest={matched.length - shown.length} onClick={() => setLimit((n) => n + PAGE)} />
       {fromBodies === null && <p className="mt-4 text-sm text-ink-500">配信に届いた質問を読み込んでいます…</p>}
     </div>
   )

@@ -5,17 +5,13 @@ import SearchBox from '../components/SearchBox'
 import Section from '../components/Section'
 import { StairLadder } from './Stairs'
 import { ARTICLES, EPISODES, SERIES, formatDate, stats, GROUPS } from '../lib/data'
-import { PATHS, resolvePath, seriesEpisodes } from '../lib/paths'
+import { seriesEpisodes } from '../lib/paths'
 import { LINKS } from '../lib/links'
 import { PHOTOS } from '../lib/photos'
 
-// 旗は「酪農の現場を、隠さず話す」。来る人の多くは牛乳を飲む人なので（2026-09 アクセスログ）、
-// 飲む人の道筋を先に、志す人の道筋をそのあとに並べる。志す人の道は消さない
-const PATH_ORDER = ['milk-truth', 'bridge', 'start-dairy', 'raise-healthy-cows']
 const HOME_SUGGESTIONS = ['牛乳の原価', 'バター', '給食', '乳糖不耐症', '雄の子牛', '資金', '研修']
 
 export default function Home() {
-  const paths = PATH_ORDER.map((k) => PATHS.find((p) => p.key === k)!).filter(Boolean)
   // 両方の相手の質問を交互に並べる。どちらの人が見ても自分の疑問が入っているように
   const pick = (au: 'student' | 'consumer') =>
     ARTICLES.filter((e) => e.audience.includes(au)).flatMap((e) => e.article!.qa.slice(0, 1).map((qa) => ({ q: qa.q, episode: e })))
@@ -36,7 +32,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-moss-900 text-white">
         {PHOTOS.hero && (
           <div className="absolute inset-y-0 right-0 hidden w-[42%] md:block">
-            <img src={PHOTOS.hero} alt="川上牧場の牛舎。餌を食べる牛たち" className="h-full w-full object-cover" />
+            <img src={PHOTOS.hero} alt="川上牧場の牛舎。餌を食べる牛たち" loading="lazy" decoding="async" className="h-full w-full object-cover" />
             <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-moss-900 to-moss-900/0" />
           </div>
         )}
@@ -99,7 +95,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="mt-3">
-              <StairLadder audience="consumer" />
+              <StairLadder audience="consumer" compact />
             </div>
           </div>
           <div>
@@ -110,7 +106,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="mt-3">
-              <StairLadder audience="student" />
+              <StairLadder audience="student" compact />
             </div>
           </div>
         </div>
@@ -119,7 +115,7 @@ export default function Home() {
       {/* 話しているのは（実名・実物・時間） */}
       <section className="mx-auto max-w-6xl px-4 mt-10">
         <div className="grid md:grid-cols-[300px_minmax(0,1fr)] rounded-2xl bg-white border border-cream-200 shadow-card overflow-hidden">
-          {profilePhoto && <img src={profilePhoto} alt={PHOTOS.about ? '川上哲也' : '川上牧場の牛'} className="aspect-square w-full object-cover md:aspect-auto md:h-full" />}
+          {profilePhoto && <img loading="lazy" decoding="async" src={profilePhoto} alt={PHOTOS.about ? '川上哲也' : '川上牧場の牛'} className="aspect-square w-full object-cover md:aspect-auto md:h-full" />}
           <div className="p-6 md:p-8">
             <p className="text-sm font-bold text-moss-700">話しているのは</p>
             <h2 className="mt-1 font-serif text-2xl font-bold text-ink-900">川上哲也（川上牧場）</h2>
@@ -141,30 +137,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 読む順番（番号つきの一覧） */}
-      <Section title="まず、この順で読む" lead="配信は日付順ですが、知るには順番があります。牛乳の疑問からでも、就農の準備からでも。">
-        <ol className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
-          {paths.map((p, i) => {
-            const n = resolvePath(p).length
-            return (
-              <li key={p.key}>
-                <Link to={`/paths/${p.key}`} className="group flex items-start gap-4 p-5 md:p-6 hover:bg-cream-50 transition-colors">
-                  <span className="shrink-0 h-10 w-10 rounded-full bg-moss-700 text-white font-serif text-lg font-bold flex items-center justify-center">
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-lg text-ink-900 group-hover:text-moss-700">
-                      {p.title} <span className="text-sm font-normal text-ink-500">{n} 回</span>
-                    </h3>
-                    <p className="mt-1 text-sm text-ink-700 leading-relaxed">{p.lead}</p>
-                  </div>
-                  <ChevronRight className="shrink-0 text-ink-500 mt-2" size={20} />
-                </Link>
-              </li>
-            )
-          })}
-        </ol>
-      </Section>
+      {/* 「まず、この順で読む」（学びの道筋4本）は、入口の階段7段と重なるのでトップから外した（2026-09-25）。道筋は /paths・二つの入口ページ・フッターに残る */}
 
       {/* まとまった連続回 */}
       <Section title="まとまった話を、続けて読む" lead="一つのテーマを何回かに分けて話した回です。">
@@ -235,28 +208,21 @@ export default function Home() {
 
       {/* 最近の配信（一覧） */}
       <Section title="最近の配信" lead="毎朝の配信から。要約がない回も、タイトルで探せます。" more={{ to: '/browse', label: '全配信を探す' }}>
-        <div className="overflow-x-auto rounded-2xl bg-white border border-cream-200 shadow-card">
-          <table className="w-full text-sm">
-            <tbody className="divide-y divide-cream-200">
-              {latest.map((e) => (
-                <tr key={e.id} className="hover:bg-cream-50">
-                  <td className="whitespace-nowrap px-4 py-3 text-ink-500 tabular-nums align-top">{formatDate(e.date)}</td>
-                  <td className="px-2 py-3">
-                    <Link to={`/e/${e.id}`} className="font-bold text-ink-900 hover:text-moss-700">
-                      {e.title}
-                    </Link>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-ink-500 align-top">
-                    <span className="inline-flex items-center gap-1">
-                      {e.summary ? <FileText size={14} /> : <Headphones size={14} />}
-                      {e.summary ? '要約あり' : e.hasTranscript ? '全文あり' : '音声'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* スマホで題名が細い列に押し込まれて4文字ずつ折れていたので、表をやめて行ごとのリンクにする（2026-09-25） */}
+        <ul className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
+          {latest.map((e) => (
+            <li key={e.id}>
+              <Link to={`/e/${e.id}`} className="group flex flex-col gap-0.5 px-5 py-3.5 hover:bg-cream-50 sm:flex-row sm:items-baseline sm:gap-4">
+                <span className="shrink-0 text-sm text-ink-500 tabular-nums sm:w-28">{formatDate(e.date)}</span>
+                <span className="min-w-0 flex-1 font-bold text-ink-900 group-hover:text-moss-700">{e.title}</span>
+                <span className="inline-flex shrink-0 items-center gap-1 text-xs text-ink-500">
+                  {e.summary ? <FileText size={13} /> : <Headphones size={13} />}
+                  {e.summary ? '要約あり' : e.hasTranscript ? '全文あり' : '音声'}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </Section>
 
     </>

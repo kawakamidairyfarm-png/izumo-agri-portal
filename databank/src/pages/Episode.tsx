@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, AudioLines, BookOpen, ChevronDown, ChevronUp, Headphones, Info, Quote, Youtube } from 'lucide-react'
-import { Badge } from '../components/EpisodeCard'
 import EpisodeCard from '../components/EpisodeCard'
-import { AUDIENCE_META, CATEGORY_META, EPISODES, TOPICS, findEpisode, formatDate, paragraphs as toParagraphs } from '../lib/data'
+import { EPISODES, TOPICS, findEpisode, formatDate, paragraphs as toParagraphs } from '../lib/data'
 import { LINKS, noteLinkFor, spotifyLinkFor, youtubeLinkFor } from '../lib/links'
 import { loadTranscript } from '../lib/transcripts'
 import { extractSummary } from '../lib/transcript'
@@ -50,7 +49,6 @@ export default function EpisodePage() {
     )
   }
 
-  const cat = CATEGORY_META[episode.category]
   const a = episode.article
   // 編集した記事が無い回は、全文の「まとめ」を要約として先頭に出し、全文からはその節を外す
   const sum = !a && transcript ? extractSummary(transcript) : null
@@ -69,31 +67,44 @@ export default function EpisodePage() {
       </Link>
 
       <header className="mt-4">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Badge tone={cat.tone}>{cat.label}</Badge>
-          {episode.audience.map((au) => (
-            <Badge key={au}>{AUDIENCE_META[au].label}</Badge>
-          ))}
-          <span className="text-xs text-ink-500 ml-auto">{formatDate(episode.date)} 配信</span>
+        {/* 頭は「いつ・何の話か・どう読むか」だけ。分類と対象の札、ハッシュタグ、共有は本文の後ろへ（2026-09-25 金継ぎ） */}
+        <p className="text-sm text-ink-500 tabular-nums">{formatDate(episode.date)} 配信</p>
+        <h1 className="mt-1 font-serif text-2xl md:text-3xl font-bold leading-snug text-ink-900 [text-wrap:balance]">{episode.title}</h1>
+        {episode.topics.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {/* テーマの札。押すと、その話をした回・質問・ことばがまとまった入口へ */}
+            {episode.topics.map((k) => {
+              const t = TOPICS.find((x) => x.key === k)
+              return t ? (
+                <Link key={k} to={`/t/${k}`} className="rounded-full bg-moss-50 border border-moss-300/60 px-3 py-1 text-xs font-bold text-moss-900 hover:bg-moss-100">
+                  {t.label}
+                </Link>
+              ) : null
+            })}
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <a
+            href={episode.podyUrl ?? LINKS.pody}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-moss-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-moss-900"
+          >
+            <Headphones size={16} /> 音声で聴く
+          </a>
+          {transcript && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowTranscript(true)
+                requestAnimationFrame(() => document.getElementById('zenbun')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-white border border-cream-200 px-4 py-2.5 text-sm font-bold text-ink-900 hover:border-moss-300"
+            >
+              <BookOpen size={16} /> 全文を読む
+            </button>
+          )}
         </div>
-        <h1 className="mt-3 font-serif text-2xl md:text-3xl font-bold leading-snug text-ink-900">{episode.title}</h1>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {/* テーマの札。押すと、その話をした回・質問・ことばがまとまった入口へ */}
-          {episode.topics.map((k) => {
-            const t = TOPICS.find((x) => x.key === k)
-            return t ? (
-              <Link key={k} to={`/t/${k}`} className="rounded-full bg-moss-50 border border-moss-300/60 px-2.5 py-0.5 text-xs font-bold text-moss-900 hover:bg-moss-100">
-                {t.label}
-              </Link>
-            ) : null
-          })}
-          {(a?.tags ?? []).map((t) => (
-            <Link key={t} to={`/browse?q=${encodeURIComponent(t)}`} className="rounded-full bg-cream-100 px-2.5 py-0.5 text-xs text-ink-700 hover:bg-moss-100">
-              #{t}
-            </Link>
-          ))}
-        </div>
-        <ShareBar title={episode.title} url={`${location.origin}${location.pathname}`} />
       </header>
 
       {a ? (
@@ -202,9 +213,10 @@ export default function EpisodePage() {
       )}
 
       {transcript && (
-        <section className="mt-10">
+        <section id="zenbun" className="mt-10 scroll-mt-20">
           <button
             onClick={() => setShowTranscript((v) => !v)}
+            aria-expanded={showTranscript}
             className="w-full flex items-center justify-between rounded-2xl bg-white border border-cream-200 px-5 py-4 text-left hover:border-moss-300"
           >
             <span>
@@ -279,7 +291,7 @@ export default function EpisodePage() {
       )}
 
       <section className="mt-8">
-        <p className="text-sm font-bold text-ink-500 mb-2">この回を聴く・読む</p>
+        <p className="text-sm font-bold text-ink-500 mb-2">ほかの場所で聴く・読む</p>
         <div className="flex flex-wrap gap-2">
           <a href={note.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-moss-700 text-white px-4 py-2.5 text-sm font-bold hover:bg-moss-900">
             <BookOpen size={16} />{' '}
@@ -305,6 +317,21 @@ export default function EpisodePage() {
           「探す」のボタンは、この回のタイトルで各サービス内を検索します。通常は先頭に該当回が表示されます。
           {!episode.podyUrl && <>Podyでは配信日（{formatDate(episode.date)} 前後）から探せます。</>}
         </p>
+      </section>
+
+      <section className="mt-8 rounded-2xl bg-white border border-cream-200 p-5">
+        <p className="text-sm font-bold text-ink-900">この回を人に教える</p>
+        <ShareBar title={episode.title} url={`${location.origin}${location.pathname}`} />
+        {(a?.tags ?? []).length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-bold text-ink-500">この回のことば：</span>
+            {(a?.tags ?? []).map((t) => (
+              <Link key={t} to={`/browse?q=${encodeURIComponent(t)}`} className="rounded-full bg-cream-100 px-2.5 py-1 text-xs text-ink-700 hover:bg-moss-100">
+                #{t}
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 両方の相手に当たる回は、来る人の多い飲む人向けの文面を既定にする */}
