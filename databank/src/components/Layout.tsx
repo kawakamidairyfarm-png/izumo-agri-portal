@@ -3,6 +3,7 @@ import { ExternalLink, Menu, MessageCircle, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatDate, stats } from '../lib/data'
 import { LINKS } from '../lib/links'
+import DeepReaderNote from './DeepReaderNote'
 
 // 来る人の多くは牛乳を飲む人なので、飲む人の入口を先に置く（志す人の入口は残す）。
 // 入口は相手別の二つを主に、棚（テーマ・質問・ことば・全配信）は副として一段軽く見せる
@@ -97,6 +98,8 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
+
+      <DeepReaderNote />
 
       {/* スマホ: いつでも質問できる浮きボタン。下へ読み進める間は引っ込め、上へ戻すと出す（本文を隠さないため・2026-09-25） */}
       <a

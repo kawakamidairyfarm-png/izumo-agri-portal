@@ -47,14 +47,31 @@ export function trackEvent(label: string) {
 
 function installOwnLog(endpoint: string) {
   const device = () => (window.innerWidth < 768 ? 'sp' : 'pc')
-  const send = (t: 'view' | 'click', extra: Record<string, string> = {}) => {
-    const body = JSON.stringify({ t, p: currentPath(), r: referrerSource(), d: device(), ...extra })
+  const post = (body: string) => {
     try {
       // Apps Script の受け口は応答を読めない（no-cors）が、書き込みは届く
       void fetch(endpoint, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain' }, body })
     } catch {
       /* 計測の失敗はサイトの動作に影響させない */
     }
+  }
+  // 人の手の動き（指で触る・マウスを動かす・キーを押す・ホイール）があるまでは送らずに貯めておく。
+  // 名乗らない機械（夜中にテーマと回を数秒おきに飛び回る・クリック0）を記録から外すため（2026-09-26）。
+  // その代わり、何も触らずに閉じた人は数えない（1ページで帰る人の数は少なめに出る）。
+  let human = false
+  const queue: string[] = []
+  const HUMAN_EVENTS = ['pointerdown', 'pointermove', 'touchstart', 'keydown', 'wheel'] as const
+  const onHuman = () => {
+    if (human) return
+    human = true
+    for (const ev of HUMAN_EVENTS) window.removeEventListener(ev, onHuman, true)
+    queue.splice(0).forEach(post)
+  }
+  for (const ev of HUMAN_EVENTS) window.addEventListener(ev, onHuman, { capture: true, passive: true })
+  const send = (t: 'view' | 'click', extra: Record<string, string> = {}) => {
+    const body = JSON.stringify({ t, p: currentPath(), r: referrerSource(), d: device(), ...extra })
+    if (human) post(body)
+    else if (queue.length < 30) queue.push(body)
   }
   track = (label) => send('click', { l: label })
   let last = ''
