@@ -37,7 +37,15 @@ export default function Home() {
           </div>
         )}
         <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-8 md:py-16 md:pr-[44%]">
-          <p className="text-sm font-bold tracking-[0.2em] text-hay-100">島根県出雲市・川上牧場</p>
+          {/* 「川上牧場」で検索して来た人は牧場そのもの（見学・体験）を探している。最初の画面からホームページへ（2026-09-26 ログ: Yahoo検索の3人中2人がホームページを押した） */}
+          <a
+            href={LINKS.home}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 py-1 text-sm font-bold tracking-[0.2em] text-hay-100 underline decoration-hay-100/40 underline-offset-4 hover:decoration-hay-100"
+          >
+            島根県出雲市・川上牧場のホームページ <ExternalLink size={14} />
+          </a>
           <h1 className="mt-3 font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-tight [text-wrap:balance]">
             牛乳のこと、牛のこと、酪農家になる道のこと。
             <br />
