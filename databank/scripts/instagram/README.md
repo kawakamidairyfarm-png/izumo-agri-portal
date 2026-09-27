@@ -27,3 +27,12 @@ Claude に「今日の質問カードを作って」と頼めば、同じこと�
 - `--latest` は、要約に川上さんの答えがはっきり入っている質問だけを選ぶ（前置きだけ・空のものは外す）。
 - 色はサイトと同じ3色。英語・絵文字の飾りは入れない。
 - 投稿文の最後にあるURL（`?utm_source=instagram` 付き）は、ストーリーズのリンクやプロフィールのリンクに使う。アクセスログで「instagram」として数えられる。
+
+## 毎日のSNSルーティンとのつなぎ（2026-09-27）
+
+- 公開（pages.yml）のたびに、新しい質問から7組を `dist/instagram/<id>/` に作り、次の2つを置く。
+  - `https://kawakamidairyfarm-png.github.io/izumo-agri-portal/instagram/` … スマホで画像を長押し保存・投稿文をコピーできる一覧（検索には出さない）
+  - `https://kawakamidairyfarm-png.github.io/izumo-agri-portal/instagram/cards.json` … ルーティンが読む一覧（id・質問・画像3枚のURL・投稿文）
+- 配信の取り込み（ingest.yml・毎日12時）で新しい回が入ると公開が走るので、カードも自動で新しくなる。
+- 毎日のSNSルーティン（アカウントのスキル kawakami-sns-daily）は cards.json から、メモリ `instagram-posted` に `質問カード: <id>` の無い最初の1組を選んで渡す。スキルの改訂版は `kawakami-sns-daily_SKILL.md`。
+- 質問の形の文（？・ですか・ますか・でしょうか）で、答えの要約に川上さんの答えが入っているものだけを選ぶ。
