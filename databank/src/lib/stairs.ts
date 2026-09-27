@@ -45,9 +45,9 @@ export const STAIRS: Stair[] = [
     topics: ['cow-mind', 'cow-body', 'welfare', 'male-calf', 'cow-life', 'cow-season', 'cow-breed', 'env'],
     next: {
       label: '牛舎の話を、続けて受け取る',
-      text: '「牛乳の見方が変わる川上牧場メルマガ」。牛舎で起きていること、子牛が育つ現場、SNSでは書きにくい話をメールで届けます。無料で、いつでも解除できます。',
+      text: '「牛乳の見方が変わる川上牧場メルマガ」。牛舎で起きていること、子牛が育つ現場、SNSでは書きにくい話をメールで届けます。登録すると、PDF『牛乳の「なぜ？」10の答え』がすぐ届きます。無料で、いつでも解除できます。',
       href: LINKS.newsletter,
-      cta: 'メルマガに登録する（無料）',
+      cta: '登録してPDFを受け取る（無料）',
     },
   },
   {
