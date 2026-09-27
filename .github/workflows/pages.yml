@@ -37,6 +37,14 @@ jobs:
           VITE_LOG_ENDPOINT: ${{ vars.LOG_ENDPOINT }}
           VITE_GOATCOUNTER: ${{ vars.GOATCOUNTER_CODE }}
           VITE_CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
+      # Instagram の質問カード（新しい質問7組）を dist/instagram/ に作る。毎日のSNSルーティンが cards.json を読む。
+      # 失敗してもサイトの公開は止めない
+      - name: Instagram 質問カード
+        continue-on-error: true
+        run: |
+          npm install --no-save playwright@1.62.1
+          npx playwright install --with-deps chromium
+          node scripts/instagram/make-cards.mjs --latest 7 --site dist/instagram
       - uses: actions/upload-pages-artifact@v3
         with:
           path: databank/dist
