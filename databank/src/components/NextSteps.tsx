@@ -1,16 +1,43 @@
 import { BookOpen, FileText, Mail, MapPin, MessageCircle } from 'lucide-react'
 import type { Audience } from '../lib/data'
-import { CONSUMER_BONUS_READY, LINKS } from '../lib/links'
+import { LINKS } from '../lib/links'
 
 /**
  * 読んだあとの「次の一歩」。
  * 無料の受け皿はメルマガ1つだけをボタンにし、そのほかの段（本・note・現地）は文中リンクの見た目に格下げする。
  *
- * 登録すると何が届くかを先に言う。メルマガの登録特典はPDF『ゼロから酪農を始める 読む順番』で、
- * 酪農を志す人にはそれを見出しに立て、牛乳を飲む人には牛乳の話を主にしてPDFは添える。
+ * 登録すると何が届くかを先に言う。メルマガの登録特典は冊子3冊（MyASP 本登録完了時メールと同じ並び・同じ呼び方）。
+ * 見出しには相手に合う1冊を立て、3冊すべてを下の一覧で見せる（1冊だけ書くと、ほかの特典が消えたように見える＝2026-09-27 本人指摘）。
  *
  * 文面はすべて配信本文・サイト内で本人が語っている事実の範囲で書く（新しい実績や価格を発明しない）。
  */
+/** 登録するとすぐ届く冊子。並びと呼び方はメルマガの本登録完了時メールに合わせる */
+const BONUSES = [
+  { who: '牛乳を飲む方へ', title: '牛乳の「なぜ？」10の答え' },
+  { who: '酪農のことを知りたい方へ', title: 'ゼロから酪農を始める 読む順番' },
+  { who: '黒毛和牛の繁殖をされている方へ', title: '和牛交配チェック 活用ガイド' },
+]
+
+function BonusList({ first }: { first: number }) {
+  const list = [BONUSES[first], ...BONUSES.filter((_, i) => i !== first)]
+  return (
+    <div className="mt-4 rounded-xl bg-white border border-moss-100 p-4">
+      <p className="text-sm font-bold text-ink-900">登録するとすぐ届く冊子（PDF 3冊・無料）</p>
+      <ul className="mt-3 space-y-3">
+        {list.map((b) => (
+          <li key={b.title} className="flex gap-2 text-sm leading-snug">
+            <FileText size={16} className="shrink-0 mt-0.5 text-moss-700" />
+            <span>
+              <span className="block text-ink-500">{b.who}</span>
+              <span className="mt-0.5 block font-bold text-ink-900">{b.title}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export default function NextSteps({
   audience = 'student',
   compact = false,
@@ -83,7 +110,8 @@ export default function NextSteps({
                   資金はいくらかかるのか、資格は要るのか、非農家から入れるのか。研修生に話してきたことを、読む順番をつけてPDFにまとめました。
                   <span className="font-bold">無料メルマガに登録すると、すぐに届きます。</span>
                 </p>
-                <p className="mt-2 text-sm text-ink-700 leading-relaxed">
+                <BonusList first={1} />
+                <p className="mt-4 text-sm text-ink-700 leading-relaxed">
                   そのあとも、牛舎で起きていることや牛乳の値段の裏側など、SNSでは書きにくい話をメールで届けます。登録は無料で、いつでも解除できます。
                 </p>
                 <a
@@ -98,36 +126,23 @@ export default function NextSteps({
             ) : (
               <>
                 <h2 className="mt-1 font-serif text-xl font-bold text-ink-900 [text-wrap:balance]">
-                  {CONSUMER_BONUS_READY ? '『牛乳の「なぜ？」10の答え』を無料で受け取る' : 'まず、無料のメルマガを受け取る'}
+                  『牛乳の「なぜ？」10の答え』を
+                  <br />
+                  無料で受け取る
                 </h2>
-                {CONSUMER_BONUS_READY ? (
-                  <>
-                    <p className="mt-3 text-sm text-ink-700 leading-relaxed">
-                      原価はいくら？ なぜバターだけ高い？ 給食の牛乳はなぜ味が違う？ 牧場に届いた質問から10問を選び、配信で答えたことをPDFにまとめました。
-                      <span className="font-bold">無料メルマガに登録すると、すぐに届きます。</span>
-                    </p>
-                    <p className="mt-2 text-sm text-ink-700 leading-relaxed">
-                      そのあとも「牛乳の見方が変わる川上牧場メルマガ」で、牛舎で起きていることや牛乳の値段の裏側を届けます。
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="mt-3 text-sm text-ink-700 leading-relaxed">
-                      「牛乳の見方が変わる川上牧場メルマガ」。牛舎で起きていること、牛乳の値段の裏側、子牛が育つ現場、SNSでは書きにくい話をメールで届けます。
-                    </p>
-                    <p className="mt-2 text-sm text-ink-700 leading-relaxed">
-                      登録すると、<span className="font-bold">『ゼロから酪農を始める 読む順番』のPDF</span>もすぐに届きます。酪農そのものが気になったときに、そのまま読めます。
-                    </p>
-                  </>
-                )}
-                <p className="mt-2 text-sm text-ink-700 leading-relaxed">登録は無料で、いつでも解除できます。</p>
+                <p className="mt-3 text-sm text-ink-700 leading-relaxed">原価はいくら？ なぜバターだけ高い？ 給食の牛乳はなぜ味が違う？</p>
+                <p className="mt-1 text-sm text-ink-700 leading-relaxed">牧場に届いた質問から10問を選び、配信で答えたことをPDFにまとめました。</p>
+                <BonusList first={0} />
+                <p className="mt-4 text-sm text-ink-700 leading-relaxed">
+                  そのあとも「牛乳の見方が変わる川上牧場メルマガ」で、牛舎で起きていることや牛乳の値段の裏側を届けます。登録は無料で、いつでも解除できます。
+                </p>
                 <a
                   href={LINKS.newsletter}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-5 inline-flex items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900 transition-colors"
                 >
-                  <Mail size={18} /> {CONSUMER_BONUS_READY ? '登録してPDFを受け取る（無料）' : 'メルマガに登録する（無料）'}
+                  <Mail size={18} /> 登録してPDFを受け取る（無料）
                 </a>
               </>
             )}
