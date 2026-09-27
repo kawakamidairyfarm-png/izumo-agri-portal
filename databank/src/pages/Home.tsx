@@ -51,12 +51,20 @@ export default function Home() {
           写真は暗い膜の下に沈めず、文字の面（深緑）と写真の面を左右で分ける（2026-09-22） */}
       <section className="relative overflow-hidden bg-moss-900 text-white">
         {PHOTOS.hero && (
-          <div className="absolute inset-y-0 right-0 hidden w-[42%] md:block">
-            <img src={PHOTOS.hero} alt="川上牧場の牛舎。餌を食べる牛たち" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-            <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-moss-900 to-moss-900/0" />
-          </div>
+          <>
+            {/* スマホ: 写真を見出しの上に横長の帯で（2026-09-27「スマホで背景の牛が消えている」）。文字の上には重ねない */}
+            <div className="relative h-44 sm:h-56 md:hidden">
+              <img src={PHOTOS.hero} alt="川上牧場の牛舎。餌を食べる牛たち" decoding="async" className="h-full w-full object-cover object-[30%_55%]" />
+              <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-moss-900 to-moss-900/0" />
+            </div>
+            {/* PC・タブレット: 右に写真の面 */}
+            <div className="absolute inset-y-0 right-0 hidden w-[42%] md:block">
+              <img src={PHOTOS.hero} alt="" decoding="async" className="h-full w-full object-cover" />
+              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-moss-900 to-moss-900/0" />
+            </div>
+          </>
         )}
-        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-8 md:py-16 md:pr-[44%]">
+        <div className="relative mx-auto max-w-6xl px-4 pt-5 pb-8 md:py-16 md:pr-[44%]">
           {/* 牧場そのものを探して来た人のために、ホームページへ（2026-09-26）。字間を広げると2行に折れて「ジ」が落ちたので詰める */}
           <p className="text-sm font-bold text-hay-100">
             島根県出雲市・
@@ -76,11 +84,12 @@ export default function Home() {
             <br />
             もっとおいしくする。
           </h1>
+          {/* 文は「何をすればいいか → どうなるか」の順に、1文1つのことだけ（2026-09-27 使用者「文章に違和感」: 前の文は「次の誰かの一杯に、酪農を志す人の力に」とつながりがねじれていた） */}
           <p className="mt-4 md:mt-5 max-w-2xl leading-relaxed">
-            届いた質問に、出雲の酪農家が毎朝の配信で答えています。
+            牛乳や牛のことで「なぜ？」と思ったら、LINEで送ってください。出雲の酪農家が、毎朝の配信で答えています。
           </p>
           <p className="mt-2 max-w-2xl leading-relaxed">
-            その答えがここに積み重なって、同じことを知りたい次の誰かの一杯に、酪農を志す人の力になります。
+            答えはこのサイトに残り、同じ疑問を持つ次の人や、酪農を志す人の役に立っています。
           </p>
           <div className="mt-5 md:mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
             <a
@@ -95,9 +104,6 @@ export default function Home() {
               届いた質問と答えを読む <ArrowRight size={16} />
             </Link>
           </div>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">
-            朝の配信で答えることがあります。答えた回は、このサイトに加わります。
-          </p>
           {latestQ && (
             <Link
               to={`/e/${latestQ.episode.id}`}
