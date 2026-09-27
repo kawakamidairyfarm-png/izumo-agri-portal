@@ -1,4 +1,4 @@
-import { NavLink, Link, Outlet } from 'react-router-dom'
+import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import { ExternalLink, Menu, MessageCircle, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatDate, stats } from '../lib/data'
@@ -20,19 +20,23 @@ const NAV = [
 export default function Layout() {
   const [open, setOpen] = useState(false)
   const [fabHidden, setFabHidden] = useState(false)
+  const { pathname } = useLocation()
   useEffect(() => {
     let last = window.scrollY
     const onScroll = () => {
       const y = window.scrollY
       const nearBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 200
-      if (y < 200) setFabHidden(false)
+      // トップの最初の画面には大きな「質問を送る（LINE）」があるので、浮きボタンは重ねない（2026-09-27）
+      if (location.pathname.replace(/\/$/, '') === import.meta.env.BASE_URL.replace(/\/$/, '') && y < 700) setFabHidden(true)
+      else if (y < 200) setFabHidden(false)
       else if (nearBottom) setFabHidden(true)
       else if (Math.abs(y - last) > 8) setFabHidden(y > last)
       last = y
     }
+    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [pathname])
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-30 bg-white border-b border-cream-200">
