@@ -1,10 +1,11 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Headphones, MessageCircle, Milk } from 'lucide-react'
+import { ArrowRight, ChevronRight, ExternalLink, FileText, Headphones, MessageCircle } from 'lucide-react'
 import NextSteps from '../components/NextSteps'
 import SearchBox from '../components/SearchBox'
 import Section from '../components/Section'
 import { StairLadder } from './Stairs'
-import { ARTICLES, EPISODES, SERIES, formatDate, stats, GROUPS } from '../lib/data'
+import { ARTICLES, BY_TRANSCRIPT, EPISODES, SERIES, formatDate, stats, GROUPS, type Episode } from '../lib/data'
 import { seriesEpisodes } from '../lib/paths'
 import { LINKS } from '../lib/links'
 import { PHOTOS } from '../lib/photos'
@@ -24,11 +25,30 @@ export default function Home() {
   const trainee = SERIES.find((s) => s.key === 'trainee')!
   const lecture = SERIES.find((s) => s.key === 'lecture2021')!
   const profilePhoto = PHOTOS.about ?? PHOTOS.consumers
+  // 最近届いた質問（証拠を1件だけ）。質問の索引は必要になってから読む（最初の読み込みを重くしない）
+  const [latestQ, setLatestQ] = useState<{ q: string; episode: Episode } | null>(null)
+  useEffect(() => {
+    let alive = true
+    import('../../data/questions.json').then((m) => {
+      if (!alive) return
+      const rows = (m.default as { q: string; key: string }[])
+        .map((r) => ({ q: r.q, episode: BY_TRANSCRIPT.get(r.key) }))
+        .filter((r): r is { q: string; episode: Episode } => Boolean(r.episode))
+        .sort((x, y) => (x.episode.date < y.episode.date ? 1 : x.episode.date > y.episode.date ? -1 : 0))
+      // 最初の画面で読み切れる長さの質問を、新しい順に探す（直近10件に無ければ一番新しいもの）
+      setLatestQ(rows.slice(0, 10).find((r) => r.q.length <= 45) ?? rows[0] ?? null)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   return (
     <>
-      {/* 最初の画面: 誰に・何が・次の一歩。旗は「隠さず話す」、入口は飲む人を先に */}
-      {/* 写真は暗い膜の下に沈めず、文字の面（深緑）と写真の面を左右で分ける（金継ぎ 見立て問い2・2026-09-22）。共有画像も同じ組み方 */}
+      {/* 最初の画面（2026-09-27 使用者の発案「あなたの質問が牛乳をもっとおいしくする」・明鏡×軍配×金継ぎ）
+          旗を「隠さず話す（配信）」から「質問が回って誰かの役に立つ（参加）」へ。主役の釦は LINE の質問1つ。
+          その証拠として、最近届いた質問と答えた回を1件だけ見せる。「牛乳の疑問から読む」「酪農家になる道」はすぐ下の階段と重なるので外した。
+          写真は暗い膜の下に沈めず、文字の面（深緑）と写真の面を左右で分ける（2026-09-22） */}
       <section className="relative overflow-hidden bg-moss-900 text-white">
         {PHOTOS.hero && (
           <div className="absolute inset-y-0 right-0 hidden w-[42%] md:block">
@@ -36,54 +56,65 @@ export default function Home() {
             <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-moss-900 to-moss-900/0" />
           </div>
         )}
-        <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-8 md:py-16 md:pr-[44%]">
-          {/* 「川上牧場」で検索して来た人は牧場そのもの（見学・体験）を探している。最初の画面からホームページへ（2026-09-26 ログ: Yahoo検索の3人中2人がホームページを押した） */}
-          <a
-            href={LINKS.home}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 py-1 text-sm font-bold tracking-[0.2em] text-hay-100 underline decoration-hay-100/40 underline-offset-4 hover:decoration-hay-100"
-          >
-            島根県出雲市・川上牧場のホームページ <ExternalLink size={14} />
-          </a>
+        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-8 md:py-16 md:pr-[44%]">
+          {/* 牧場そのものを探して来た人のために、ホームページへ（2026-09-26）。字間を広げると2行に折れて「ジ」が落ちたので詰める */}
+          <p className="text-sm font-bold text-hay-100">
+            島根県出雲市・
+            <a
+              href={LINKS.home}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 py-1 underline decoration-hay-100/40 underline-offset-4 hover:decoration-hay-100"
+            >
+              川上牧場のホームページ <ExternalLink size={13} />
+            </a>
+          </p>
           <h1 className="mt-3 font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-tight [text-wrap:balance]">
-            牛乳のこと、牛のこと、酪農家になる道のこと。
+            あなたの質問が、
             <br />
-            出雲の酪農家が、隠さず話します。
+            誰かの牛乳を
+            <br />
+            もっとおいしくする。
           </h1>
           <p className="mt-4 md:mt-5 max-w-2xl leading-relaxed">
-            原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 牧場に届いた質問に毎朝の配信で答えてきた {stats.episodes} 回を、読める形にしました。
+            届いた質問に、出雲の酪農家が毎朝の配信で答えています。
           </p>
           <p className="mt-2 max-w-2xl leading-relaxed">
-            <span className="font-bold">牛乳を飲む人も、酪農を志す人も、どなたでも読めます。</span>登録もお金も要りません。
+            その答えがここに積み重なって、同じことを知りたい次の誰かの一杯に、酪農を志す人の力になります。
           </p>
-          <div className="mt-5 md:mt-7 flex flex-wrap gap-3">
-            <Link
-              to="/for-consumers"
-              className="inline-flex items-center gap-2 rounded-xl bg-hay-300 px-5 py-3 text-sm font-bold text-moss-900 hover:bg-hay-500 transition-colors"
-            >
-              <Milk size={18} /> 牛乳の疑問から読む
-            </Link>
-            <Link
-              to="/paths/start-dairy"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/50 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 transition-colors"
-            >
-              <BookOpen size={18} /> 酪農家になる道を読む
-            </Link>
+          <div className="mt-5 md:mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
             <a
               href={LINKS.line}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-2 py-3 text-sm font-bold text-white underline decoration-white/60 underline-offset-4 hover:decoration-white"
+              className="inline-flex items-center gap-2 rounded-xl bg-line px-5 py-3.5 text-base font-bold text-white shadow-lg hover:bg-line-dark transition-colors"
             >
-              <MessageCircle size={18} /> 質問はLINEで
+              <MessageCircle size={20} /> 質問を送る（LINE）
             </a>
+            <Link to="/questions" className="inline-flex items-center gap-1 py-2 text-sm font-bold text-white underline decoration-white/60 underline-offset-4 hover:decoration-white">
+              届いた質問と答えを読む <ArrowRight size={16} />
+            </Link>
           </div>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">
+            朝の配信で答えることがあります。答えた回は、このサイトに加わります。
+          </p>
+          {latestQ && (
+            <Link
+              to={`/e/${latestQ.episode.id}`}
+              className="group mt-5 block max-w-2xl rounded-2xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-colors"
+            >
+              <span className="block text-xs font-bold text-hay-100">最近届いた質問</span>
+              <span className="mt-1 font-bold leading-snug line-clamp-2">「{latestQ.q}」</span>
+              <span className="mt-2 inline-flex items-center gap-1 text-sm text-white/90 group-hover:text-white">
+                {formatDate(latestQ.episode.date)}の配信で答えました <ArrowRight size={14} />
+              </span>
+            </Link>
+          )}
           <div className="mt-6 md:mt-8 max-w-2xl">
             <SearchBox large placeholder="例：なぜバターだけ高いの？" suggestions={HOME_SUGGESTIONS} />
           </div>
-          <p className="mt-4 md:mt-6 hidden max-w-2xl text-sm leading-relaxed text-white md:block">
-            {stats.earliest.slice(0, 4)}年から毎朝の配信を続けています。全文を読める回は {stats.withText} 本、要約つきの回は {stats.withSummary} 本。
+          <p className="mt-4 md:mt-6 max-w-2xl text-sm leading-relaxed text-white/90">
+            これまでの配信 {stats.episodes} 回分を、登録なし・無料で読めます。牛乳を飲む人も、酪農を志す人も。
           </p>
         </div>
       </section>
@@ -177,7 +208,7 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section title="よく聞かれる質問" lead="配信に届いた質問と、そのとき答えた回です。" more={{ to: '/questions', label: '届いた質問をすべて見る' }}>
+      <Section title="よく聞かれる質問" lead="配信に届いた質問と、そのとき答えた回です。あなたの質問も、ここに加わります。" more={{ to: '/questions', label: '届いた質問をすべて見る' }}>
         <ul className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
           {questions.map((x, i) => (
             <li key={i}>
