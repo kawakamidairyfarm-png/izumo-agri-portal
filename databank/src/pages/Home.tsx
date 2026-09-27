@@ -8,6 +8,7 @@ import { StairLadder } from './Stairs'
 import { ARTICLES, BY_TRANSCRIPT, EPISODES, SERIES, formatDate, stats, GROUPS, type Episode } from '../lib/data'
 import { seriesEpisodes } from '../lib/paths'
 import { LINKS } from '../lib/links'
+import { qaId } from '../lib/qa'
 import { PHOTOS } from '../lib/photos'
 
 const HOME_SUGGESTIONS = ['牛乳の原価', 'バター', '給食', '乳糖不耐症', '雄の子牛', '資金', '研修']
@@ -106,7 +107,7 @@ export default function Home() {
           </div>
           {latestQ && (
             <Link
-              to={`/e/${latestQ.episode.id}`}
+              to={`/q/${qaId(latestQ.q)}`}
               className="group mt-5 block max-w-2xl rounded-2xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-colors"
             >
               <span className="block text-xs font-bold text-hay-100">最近届いた質問</span>
@@ -218,7 +219,7 @@ export default function Home() {
         <ul className="divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200 shadow-card">
           {questions.map((x, i) => (
             <li key={i}>
-              <Link to={`/e/${x.episode.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-cream-50">
+              <Link to={`/q/${qaId(x.q)}`} className="flex items-center gap-3 px-5 py-4 hover:bg-cream-50">
                 <span className="shrink-0 font-serif font-bold text-moss-700">Q</span>
                 <span className="flex-1 text-ink-900">{x.q}</span>
                 <ChevronRight size={18} className="shrink-0 text-ink-500" />

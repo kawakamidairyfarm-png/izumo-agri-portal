@@ -7,6 +7,7 @@ import { BY_TRANSCRIPT, episodesForTopic, groupByKey, topicByKey } from '../lib/
 import { flowsForTopic } from '../lib/flows'
 import { stairsForTopic } from '../lib/stairs'
 import { useIndexes } from '../lib/indexes'
+import { qaId } from '../lib/qa'
 
 const PAGE = 12
 
@@ -101,11 +102,12 @@ export default function TopicPage() {
                   const ep = BY_TRANSCRIPT.get(q.key)
                   return (
                     <li key={i} className="text-sm leading-relaxed">
-                      <p className="font-bold text-ink-900">{q.q}</p>
-                      {ep && (
-                        <Link to={`/e/${ep.id}`} className="text-xs text-moss-700 hover:text-moss-900 underline decoration-moss-300">
-                          答えた回を読む
+                      {ep ? (
+                        <Link to={`/q/${qaId(q.q)}`} className="font-bold text-ink-900 hover:text-moss-700">
+                          {q.q}
                         </Link>
+                      ) : (
+                        <p className="font-bold text-ink-900">{q.q}</p>
                       )}
                     </li>
                   )

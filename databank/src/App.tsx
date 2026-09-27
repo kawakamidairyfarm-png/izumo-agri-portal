@@ -16,6 +16,7 @@ import Expert from './pages/Expert'
 import Questions from './pages/Questions'
 import Terms from './pages/Terms'
 import Live from './pages/Live'
+import QAPage from './pages/QA'
 
 /** ページが変わったら先頭に戻し、計測にも知らせる */
 function OnRouteChange() {
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="browse" element={<Browse />} />
           <Route path="archive" element={<Archive />} />
           <Route path="questions" element={<Questions />} />
+          <Route path="q/:id" element={<QAPage />} />
           <Route path="terms" element={<Terms />} />
           <Route path="e/:id" element={<EpisodePage />} />
           <Route path="topics" element={<TopicsIndex />} />

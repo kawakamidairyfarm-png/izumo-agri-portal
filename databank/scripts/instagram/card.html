@@ -1,0 +1,51 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Noto+Serif+JP:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* Instagram 縦長 1080×1350。色はサイトと同じ3色（深緑・生成り・干し草の黄）。英語・絵文字・数字の飾りは入れない */
+:root{--moss:#172a19;--moss2:#2f5232;--cream:#fdfbf6;--cream2:#f8f3e8;--hay:#f2cf7a;--ink:#172a19;--ink2:#3c4435}
+html,body{margin:0;width:1080px;height:1350px;overflow:hidden;font-family:"Noto Sans JP",sans-serif}
+.card{position:relative;width:1080px;height:1350px;box-sizing:border-box;padding:110px 96px 0;display:flex;flex-direction:column}
+.dark{background:var(--moss);color:var(--cream)}
+.light{background:var(--cream);color:var(--ink)}
+.label{font-size:34px;font-weight:900;letter-spacing:.04em;display:flex;align-items:center;gap:14px}
+.dark .label{color:var(--hay)} .light .label{color:var(--moss2)}
+.q{margin-top:40px;font-family:"Noto Serif JP",serif;font-weight:900;line-height:1.42;word-break:auto-phrase}
+.a{margin-top:36px;font-size:42px;line-height:1.75;font-weight:500;color:var(--ink2);word-break:auto-phrase}
+.a p{margin:0 0 22px}
+.note{margin-top:auto;margin-bottom:210px;font-size:28px;line-height:1.5;color:#5f665a;word-break:auto-phrase}
+.foot{position:absolute;left:96px;right:96px;bottom:70px;display:flex;align-items:center;justify-content:space-between}
+.logo{height:92px;background:var(--cream);border-radius:14px;padding:6px 12px;box-sizing:border-box}
+.light .logo{box-shadow:0 0 0 2px #efe6d2}
+.site{font-size:28px;font-weight:700}
+.dark .site{color:var(--hay)} .light .site{color:var(--moss2)}
+.page{font-size:26px;font-weight:700;opacity:.7}
+.big{font-family:"Noto Serif JP",serif;font-weight:900;font-size:78px;line-height:1.3;margin-top:60px}
+.lead{margin-top:48px;font-size:40px;line-height:1.7;font-weight:500}
+.btn{margin-top:56px;display:inline-flex;align-self:flex-start;background:#06c755;color:#fff;font-weight:900;font-size:40px;padding:26px 44px;border-radius:24px}
+.link{margin-top:36px;font-size:36px;font-weight:700;color:var(--hay)}
+.bar{width:110px;height:10px;background:var(--hay);margin-top:44px}
+</style></head><body>
+<div id="root"></div>
+<script>
+const d = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const foot = (n) => `<div class="foot"><img class="logo" src="logo.png" alt=""><span class="site">川上牧場 酪農データバンク</span><span class="page">${n}/3</span></div>`;
+let html = '';
+if (d.slide === 1) {
+  const len = d.q.length;
+  const size = len <= 30 ? 84 : len <= 55 ? 74 : len <= 85 ? 64 : 56;
+  html = `<div class="card dark"><div class="label">牧場に届いた質問</div><div class="bar"></div>
+    <div class="q" style="font-size:${size}px">「${esc(d.q)}」</div>${foot(1)}</div>`;
+} else if (d.slide === 2) {
+  html = `<div class="card light"><div class="label">配信で答えたこと（要約）</div>
+    <div class="a">${d.a.map((p) => `<p>${esc(p)}</p>`).join('')}</div>
+    <div class="note">${esc(d.date)}の配信「${esc(d.title)}」より</div>${foot(2)}</div>`;
+} else {
+  html = `<div class="card dark"><div class="label">あなたの「なぜ？」も</div>
+    <div class="big">あなたの質問が、<br>誰かの牛乳を<br>もっとおいしくする。</div>
+    <div class="lead">答えの続きと配信の全文は、<br>プロフィールのリンクから<br>「川上牧場 データバンク」へ。</div>
+    <div class="btn">質問はLINEで</div>${foot(3)}</div>`;
+}
+document.getElementById('root').innerHTML = html;
+</script>
+</body></html>
