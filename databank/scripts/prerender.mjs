@@ -87,6 +87,22 @@ function extractSummary(text) {
 }
 
 /** 説明文にする。改行を詰めて、指定の長さで切る */
+/** 質問の続きを拾った「答え」は答えとして出さない。src/lib/qa.ts の answerText と同じ規則 */
+function answerText(a) {
+  const t = String(a ?? '').trim()
+  return /^(さらに)?追記/.test(t) ? '' : t
+}
+
+/** 質問の住所。src/lib/qa.ts の qaId と同じ計算（FNV-1a 32bit）。片方だけ変えないこと */
+function qaId(q) {
+  let h = 0x811c9dc5
+  for (let i = 0; i < q.length; i++) {
+    h ^= q.charCodeAt(i)
+    h = Math.imul(h, 0x01000193) >>> 0
+  }
+  return h.toString(16).padStart(8, '0')
+}
+
 function clip(text, max = 110) {
   const s = String(text ?? '').replace(/\s+/g, ' ').trim()
   return s.length <= max ? s : s.slice(0, max - 1) + '…'
@@ -352,7 +368,7 @@ async function main() {
   const questions = (() => {
     const edited = episodes.flatMap((e) => e.qa.map((p) => ({ q: p.q, a: p.a, ep: e })))
     const seen = new Set(edited.map((x) => x.q))
-    const rest = questionsRaw.map((r) => ({ q: r.q, a: r.a, ep: byFile.get(r.key) })).filter((x) => x.ep && !seen.has(x.q))
+    const rest = questionsRaw.map((r) => ({ q: r.q, a: answerText(r.a), ep: byFile.get(r.key) })).filter((x) => x.ep && !seen.has(x.q))
     return [...edited, ...rest].sort((a, b) => (a.ep.date < b.ep.date ? 1 : a.ep.date > b.ep.date ? -1 : 0))
   })()
   /** ことば帖（言葉ごとに束ね、説明は最初に出てきた回のもの） */
@@ -434,7 +450,7 @@ async function main() {
             ? `<dl>${questions
                 .map(
                   (x) =>
-                    `<dt>${esc(x.q)}</dt><dd>${esc(x.a)}<br><a href="${esc(SITE)}e/${esc(x.ep.id)}/">${esc(x.ep.date)} ${esc(x.ep.title)}</a></dd>`,
+                    `<dt><a href="${esc(SITE)}q/${qaId(x.q)}/">${esc(x.q)}</a></dt><dd>${esc(clip(x.a, 140))}<br><a href="${esc(SITE)}e/${esc(x.ep.id)}/">${esc(x.ep.date)} ${esc(x.ep.title)}</a></dd>`,
                 )
                 .join('')}</dl>`
             : f.url === '/terms'
@@ -507,6 +523,66 @@ async function main() {
                   : []),
             ],
     }))
+  }
+
+  // 届いた質問1問ずつ（2026-09-27）: 質問そのもので調べる人の入口。QAPage の構造化データつき
+  {
+    const ids = new Set()
+    for (const x of questions) {
+      const id = qaId(x.q)
+      if (ids.has(id)) throw new Error(`質問の住所が重なった: ${id} ${x.q}`)
+      ids.add(id)
+      const same = questions.filter((y) => y !== x && y.ep.id === x.ep.id).slice(0, 5)
+      await write(`/q/${id}`, render(template, {
+        url: `/q/${id}`,
+        title: `${clip(x.q, 60)}｜届いた質問｜${NAME}`,
+        description: clip(x.a || `${x.ep.title}の配信で答えています。`, 110),
+        type: 'article',
+        body:
+          `<article><p>牧場に届いた質問</p><h1>${esc(x.q)}</h1><h2>配信で答えたこと（要約）</h2><p>${esc(x.a || 'この回の配信で答えています。')}</p>` +
+          `<p>${esc(x.ep.date)}の配信「<a href="${esc(SITE)}e/${esc(x.ep.id)}/">${esc(x.ep.title)}</a>」の記事をもとにまとめたものです。答えは配信時点の経験と意見です。</p>` +
+          (same.length ? `<h2>同じ回に届いた質問</h2><ul>${same.map((y) => `<li><a href="${esc(SITE)}q/${qaId(y.q)}/">${esc(y.q)}</a></li>`).join('')}</ul>` : '') +
+          `<p><a href="${esc(SITE)}questions/">届いた質問をすべて見る</a></p></article>${menu}`,
+        jsonLd: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'QAPage',
+            url: `${SITE}q/${id}/`,
+            inLanguage: 'ja',
+            isPartOf: { '@type': 'WebSite', name: NAME, url: SITE },
+            mainEntity: {
+              '@type': 'Question',
+              name: clip(x.q, 110),
+              text: x.q,
+              answerCount: 1,
+              dateCreated: x.ep.date,
+              acceptedAnswer: { '@type': 'Answer', text: x.a || x.ep.title, author: AUTHOR, url: `${SITE}e/${x.ep.id}/`, dateCreated: x.ep.date, upvoteCount: 0 },
+            },
+          },
+          breadcrumb([
+            { name: NAME, url: SITE },
+            { name: '届いた質問', url: `${SITE}questions/` },
+            { name: clip(x.q, 40), url: `${SITE}q/${id}/` },
+          ]),
+        ],
+      }))
+    }
+    // Instagram の質問カード（scripts/instagram/make-cards.mjs）が読む一覧。画面からはリンクしない
+    const topicLabel = new Map(subs.map((t) => [t.key, t.label]))
+    await fs.writeFile(
+      path.join(DIST, 'qa.json'),
+      JSON.stringify(
+        questions.map((x) => ({
+          id: qaId(x.q),
+          q: x.q,
+          a: x.a,
+          episode: { id: x.ep.id, date: x.ep.date, title: x.ep.title },
+          topics: (topicMap[x.ep.id] ?? []).map((k) => topicLabel.get(k)).filter(Boolean),
+        })),
+      ),
+      'utf8',
+    )
+    if (qaId('牛乳の原価はいくら？') !== '7690b309') throw new Error('qaId の計算が変わった（src/lib/qa.ts と揃える）')
   }
 
   // テーマ（小分類）: その話をした回の一覧を静的にも置く
@@ -702,6 +778,7 @@ async function main() {
       `- [酪農を志す人へ](${SITE}for-students/): 就農の資金・資格・非農家からの入り方`,
       `- [牛乳を飲む人へ](${SITE}for-consumers/): 牛乳の原価、バターの値段、雄の子牛、給食の牛乳`,
       `- [届いた質問と、答えた回](${SITE}questions/): 牧場に届いた質問 ${questions.length} 件と、そのとき配信で答えたこと（FAQ）`,
+      `- 届いた質問は1問ずつのページもあります（${SITE}q/<8桁の記号>/）。質問・答えの要約・答えた回の3つ`,
       `- [酪農のことば帖](${SITE}terms/): 配信で出てきた言葉 ${terms.length} 語を、酪農家が自分の言葉で説明したまま（用語集）`,
       `- [あなたはいま、どこ？](${SITE}stairs/): 読む人のいまの状態から入る入口。牛乳を飲む人は3段、酪農を志す人は4段（/stair/<段>/）`,
       `- [テーマから探す](${SITE}topics/): ${taxonomy.groups.length} つの大きなテーマと小さなテーマの入口（/t/<テーマ>/ に回の一覧）`,

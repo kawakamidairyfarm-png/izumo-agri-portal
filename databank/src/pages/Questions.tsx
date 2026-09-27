@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { HelpCircle, MessageCircle, Search } from 'lucide-react'
-import { ARTICLES, BY_TRANSCRIPT, formatDate, leadOf, topicByKey, type Episode } from '../lib/data'
+import { formatDate, leadOf, topicByKey, type Episode } from '../lib/data'
+import { useAllQA } from '../lib/qa'
 import { LINKS } from '../lib/links'
 import GroupFilter, { MoreButton } from '../components/GroupFilter'
 import { splitParagraph } from '../lib/transcript'
 import { useNarrow } from '../lib/useNarrow'
 
-type QA = { q: string; a: string; episode: Episode }
 
 const PAGE = 30
 /** 回のテーマ（小分類）から、大分類のキーを集める */
@@ -22,31 +22,12 @@ const groupsOf = (e: Episode) => new Set(e.topics.map((k) => topicByKey(k)?.grou
  * 質問した人の名前はこの一覧には出さない（回のページには pody の記事どおり出る）。
  */
 export default function Questions() {
-  const [fromBodies, setFromBodies] = useState<QA[] | null>(null)
+  const loaded = useAllQA()
+  const all = useMemo(() => loaded ?? [], [loaded])
   const [q, setQ] = useState('')
   const [group, setGroup] = useState<string | null>(null)
   const [limit, setLimit] = useState(PAGE)
   const narrow = useNarrow()
-  useEffect(() => {
-    let alive = true
-    import('../../data/questions.json').then((m) => {
-      if (!alive) return
-      const rows = (m.default as { q: string; a: string; key: string }[])
-        .map((r) => ({ q: r.q, a: r.a, episode: BY_TRANSCRIPT.get(r.key)! }))
-        .filter((r) => r.episode)
-      setFromBodies(rows)
-    })
-    return () => {
-      alive = false
-    }
-  }, [])
-
-  const all = useMemo(() => {
-    const edited: QA[] = ARTICLES.flatMap((e) => e.article!.qa.map((p) => ({ q: p.q, a: p.a, episode: e })))
-    const seen = new Set(edited.map((x) => x.q))
-    const rows = [...edited, ...(fromBodies ?? []).filter((x) => !seen.has(x.q))]
-    return rows.sort((a, b) => (a.episode.date < b.episode.date ? 1 : a.episode.date > b.episode.date ? -1 : 0))
-  }, [fromBodies])
 
   const needle = q.trim()
   const counts = useMemo(() => {
@@ -102,9 +83,9 @@ export default function Questions() {
       {(needle || group) && <p className="mt-4 text-sm text-ink-700">{matched.length} 件</p>}
 
       <ul className="mt-4 space-y-3">
-        {shown.map((x, i) => (
-          <li key={`${x.episode.id}-${i}`}>
-            <Link to={`/e/${x.episode.id}`} className="block rounded-2xl bg-white border border-cream-200 p-5 shadow-card hover:border-moss-300 transition-colors">
+        {shown.map((x) => (
+          <li key={x.id}>
+            <Link to={`/q/${x.id}`} className="block rounded-2xl bg-white border border-cream-200 p-5 shadow-card hover:border-moss-300 transition-colors">
               <p className="flex items-start gap-2 font-bold text-ink-900">
                 <HelpCircle size={18} className="shrink-0 mt-0.5 text-moss-700" />
                 <span className="min-w-0 [overflow-wrap:anywhere]">{x.q}</span>
@@ -124,7 +105,7 @@ export default function Questions() {
         ))}
       </ul>
       <MoreButton rest={matched.length - shown.length} onClick={() => setLimit((n) => n + PAGE)} />
-      {fromBodies === null && <p className="mt-4 text-sm text-ink-500">配信に届いた質問を読み込んでいます…</p>}
+      {loaded === null && <p className="mt-4 text-sm text-ink-500">配信に届いた質問を読み込んでいます…</p>}
     </div>
   )
 }
