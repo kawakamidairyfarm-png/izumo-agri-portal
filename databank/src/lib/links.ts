@@ -5,7 +5,7 @@ import type { Episode } from './data'
  * メルマガ側で特典の配布を設定したら true にする。true にすると、飲む人向けの登録案内に特典の名前が出る。
  * 設定前に true にしない（届かない特典を約束しないため）。
  */
-export const CONSUMER_BONUS_READY = false
+export const CONSUMER_BONUS_READY = true
 
 export const LINKS = {
   pody: 'https://pody.jp/player/OT1nXl6WW61B8vjQ98ru',
