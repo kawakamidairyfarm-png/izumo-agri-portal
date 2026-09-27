@@ -205,6 +205,11 @@ export default function Layout() {
                   </Link>
                 </li>
                 <li>
+                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/for-schools">
+                    学校の先生・栄養士の方へ
+                  </Link>
+                </li>
+                <li>
                   <Link className="underline decoration-moss-300 hover:text-moss-700" to="/about#farmers">
                     酪農家・牧場の方へ（相談・伴走）
                   </Link>

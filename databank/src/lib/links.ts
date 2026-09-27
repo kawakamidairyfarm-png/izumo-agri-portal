@@ -1,5 +1,12 @@
 import type { Episode } from './data'
 
+/**
+ * 飲む人向けのメルマガ登録特典『牛乳の「なぜ？」10の答え』（scripts/tokuten/milk-why.mjs で作るPDF）。
+ * メルマガ側で特典の配布を設定したら true にする。true にすると、飲む人向けの登録案内に特典の名前が出る。
+ * 設定前に true にしない（届かない特典を約束しないため）。
+ */
+export const CONSUMER_BONUS_READY = false
+
 export const LINKS = {
   pody: 'https://pody.jp/player/OT1nXl6WW61B8vjQ98ru',
   note: 'https://note.com/kawakamifarm',

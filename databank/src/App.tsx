@@ -17,6 +17,7 @@ import Questions from './pages/Questions'
 import Terms from './pages/Terms'
 import Live from './pages/Live'
 import QAPage from './pages/QA'
+import ForSchools from './pages/ForSchools'
 
 /** ページが変わったら先頭に戻し、計測にも知らせる */
 function OnRouteChange() {
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="paths/:key" element={<PathDetail />} />
           <Route path="for-students" element={<ForStudents />} />
           <Route path="for-consumers" element={<ForConsumers />} />
+          <Route path="for-schools" element={<ForSchools />} />
           <Route path="about" element={<About />} />
           <Route path="expert" element={<Expert />} />
           <Route path="*" element={<Home />} />

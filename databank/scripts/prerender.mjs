@@ -193,6 +193,16 @@ async function loadStairs() {
   return out
 }
 
+/** src/pages/ForSchools.tsx から、学校向けに選んだ質問の組（題名・一文・[回, 何問目]）を取り出す */
+async function loadSchoolSets() {
+  const src = await fs.readFile(path.join(ROOT, 'src', 'pages', 'ForSchools.tsx'), 'utf8')
+  const out = []
+  for (const m of src.matchAll(/title: '([^']+)',\s*lead: '([^']+)',\s*topic: '[a-z0-9-]+',\s*picks: \[([\s\S]*?)\],\s*\}/g)) {
+    out.push({ title: m[1], lead: m[2], picks: [...m[3].matchAll(/\['([^']+)', (\d+)\]/g)].map((x) => [x[1], Number(x[2])]) })
+  }
+  return out
+}
+
 /** src/lib/paths.ts から、学びの道筋の key と題名だけを取り出す */
 async function loadPaths() {
   const src = await fs.readFile(path.join(ROOT, 'src', 'lib', 'paths.ts'), 'utf8')
@@ -349,6 +359,7 @@ async function main() {
   }
   const flows = await loadFlows()
   const stairs = await loadStairs()
+  const schoolSets = await loadSchoolSets()
   if (stairs.length !== 7) throw new Error(`stairs.ts の読み取りが ${stairs.length} 段（7段のはず）`)
   const AUD_LABEL = { consumer: '牛乳を飲む人', student: '酪農を志す人' }
   const urls = []
@@ -397,6 +408,7 @@ async function main() {
     { url: '/paths', title: `学びの道筋｜${NAME}`, description: '何から読めばいいかを順番にした道筋。ゼロから酪農を始める、牛を健康に飼う、ほか。', h1: '学びの道筋', lead: '読む順番をたどれます。', priority: '0.8' },
     { url: '/for-students', title: `酪農を志す人へ｜${NAME}`, description: '酪農をやってみたい人が最初に知りたいこと。資金、資格、非農家からの道、研修のこと。', h1: '酪農を志す人へ', lead: '', priority: '0.8' },
     { url: '/live', title: `LIVEを見てくれている人へ｜${NAME}`, description: '川上牧場のLIVEを見てくれている人へ。LIVEで話したことを、毎朝の配信の記録からあとで読めます。聞けなかった質問は公式LINEへ。', h1: 'LIVEで話したことを、あとから読めます。', lead: 'LIVEで出てきた言葉から、その話をした回を探せます。聞けなかった質問は公式LINEへ送れます。', priority: '0.7' },
+    { url: '/for-schools', title: `学校の先生・栄養士の方へ｜${NAME}`, description: '給食の牛乳の味、牛乳が白いわけ、雄の子牛のこと。牧場に届いた質問に出雲の酪農家が答えた記録を、給食だより・食育・調べ学習で使えるようにテーマごとに選びました。登録なし・無料。', h1: '子どもの「なぜ？」に、酪農家が答えた記録を授業と給食に。', lead: '給食だより、食育の時間、調べ学習で使えそうな質問を、テーマごとに選んでいます。紹介するときは、回の題名と配信日を出典として添えてください。', priority: '0.8' },
     { url: '/for-consumers', title: `牛乳を飲む人へ｜${NAME}`, description: '牛乳と酪農について、消費者からよく聞かれる質問に酪農家が答えます。', h1: '牛乳を飲む人へ', lead: '', priority: '0.8' },
     { url: '/expert', title: `企業・研究・メディアの方へ｜${NAME}`, description: '島根県出雲市の酪農家が、飼養管理・経営・人手・遺伝改良・資材の実態についてお答えします。専門家インタビュー、取材、新規事業の伴走のご相談を承ります。', h1: '酪農の現場に、直接たずねる', lead: '搾乳牛40頭・全体80頭を1人で管理する酪農家が、統計や資料では出てこない粒度で現場の実態をお話しします。', priority: '0.8' },
     { url: '/about', title: `牧場について｜${NAME}`, description: '島根県出雲市・川上牧場について。研修生の受け入れ、酪農家・牧場向けの相談、講演や取材のご依頼。', h1: '牧場について', lead: '', priority: '0.7' },
@@ -433,6 +445,19 @@ async function main() {
                     .map((st) => `<li><a href="${esc(SITE)}stair/${esc(st.key)}/">${esc(st.title)}</a> ${esc(st.lead)}</li>`)
                     .join('')}</ol>`,
               )
+              .join('')
+        : f.url === '/for-schools'
+          ? schoolSets
+              .map((set) => {
+                const rows = set.picks
+                  .map(([id, i]) => {
+                    const ep = episodes.find((e) => e.id === id)
+                    const x = ep?.qa?.[i]
+                    return ep && x ? `<dt><a href="${esc(SITE)}q/${qaId(x.q)}/">${esc(x.q)}</a></dt><dd>${esc(clip(x.a, 140))}<br><a href="${esc(SITE)}e/${esc(ep.id)}/">${esc(ep.date)} ${esc(ep.title)}</a></dd>` : ''
+                  })
+                  .join('')
+                return rows ? `<h2>${esc(set.title)}</h2><p>${esc(set.lead)}</p><dl>${rows}</dl>` : ''
+              })
               .join('')
         : f.url === '/topics'
           ? `<h2>流れで読む</h2><ul>${flows.map((fl) => `<li><a href="${esc(SITE)}flow/${esc(fl.key)}/">${esc(fl.title)}</a> ${esc(fl.lead)}</li>`).join('')}</ul>` +
@@ -777,6 +802,7 @@ async function main() {
       `- [全配信を探す](${SITE}browse/): ${episodes.length} 回すべての索引。言葉で全文検索できます`,
       `- [酪農を志す人へ](${SITE}for-students/): 就農の資金・資格・非農家からの入り方`,
       `- [牛乳を飲む人へ](${SITE}for-consumers/): 牛乳の原価、バターの値段、雄の子牛、給食の牛乳`,
+      `- [学校の先生・栄養士の方へ](${SITE}for-schools/): 給食だより・食育・調べ学習に使える質問と答えを、テーマごとに選んだページ（出典は回の題名と配信日）`,
       `- [届いた質問と、答えた回](${SITE}questions/): 牧場に届いた質問 ${questions.length} 件と、そのとき配信で答えたこと（FAQ）`,
       `- 届いた質問は1問ずつのページもあります（${SITE}q/<8桁の記号>/）。質問・答えの要約・答えた回の3つ`,
       `- [酪農のことば帖](${SITE}terms/): 配信で出てきた言葉 ${terms.length} 語を、酪農家が自分の言葉で説明したまま（用語集）`,
