@@ -33,12 +33,15 @@ export default function Expert() {
             <li>・<span className="font-bold text-ink-900">遺伝改良と繁殖</span>{'　'}牛群検定の読み方、交配設計、近交係数の管理、受精卵移植やF1。</li>
             <li>・<span className="font-bold text-ink-900">資材・機械の使われ方</span>{'　'}現場で何が選ばれ、何が定着せず、なぜ捨てられるか。</li>
             <li>・<span className="font-bold text-ink-900">消費者と酪農のあいだ</span>{'　'}牛乳をめぐる誤解、食育、取材や記事の監修。</li>
+            <li>・<span className="font-bold text-ink-900">執筆・講演・勉強会</span>{'　'}雑誌や会報への寄稿、セミナーや勉強会の講師。給食と牛乳、酪農の現場、牧場でのAIの使い方など。</li>
           </ul>
         </section>
 
         <section className="rounded-2xl bg-white border border-cream-200 shadow-card p-6">
           <h2 className="font-serif text-xl font-bold text-ink-900">実績と、話せることの裏づけ</h2>
           <ul className="mt-3 space-y-2">
+            <li>・農文協『現代農業』2026年12月号（11月1日発行予定）のリレーエッセイ「意見異見」に、給食と牛乳について寄稿。</li>
+            <li>・セミナー・勉強会の講師を務めています。</li>
             <li>・知見提供サービス「ビザスク」を通じた専門家インタビューを<span className="font-bold text-ink-900">10件</span>実施（2024年〜）。依頼元と内容は守秘のため公開していません。</li>
             <li>・毎朝の音声配信を2021年から継続。全{stats.episodes}回、うち{stats.withText}回は全文をこのサイトで公開しています。</li>
             <li>・Kindle『酪農未経験者のために ― 遺伝改良と飼料設計編』『川上牧場研修 牛群検定の見方編』</li>
@@ -94,12 +97,16 @@ export default function Expert() {
               </div>
             </div>
             <div className="rounded-2xl bg-cream-100 p-5">
+              <p className="font-bold text-ink-900">執筆・講演・勉強会の講師</p>
+              <p className="mt-1 text-sm">雑誌・会報への寄稿、セミナーや勉強会での講演（オンライン、または出張）。テーマ・日程・聞く方の顔ぶれをお知らせください。</p>
+            </div>
+            <div className="rounded-2xl bg-cream-100 p-5">
               <p className="font-bold text-ink-900">現地訪問・取材の受け入れ</p>
               <p className="mt-1 text-sm">川上牧場での撮影・取材・見学。出張でのご相談も承ります。日程と内容をご相談ください。</p>
             </div>
           </div>
           <p className="mt-4 text-sm text-ink-500">
-            FarmEcho以外（スポット相談・伴走・取材）の費用は、ご相談の内容と時間をうかがってから個別にお見積りします。金額の目安だけ先に知りたい場合も、その旨をお送りください。
+            FarmEcho以外（スポット相談・伴走・執筆・講演・取材）の費用は、ご相談の内容と時間をうかがってから個別にお見積りします。金額の目安だけ先に知りたい場合も、その旨をお送りください。
           </p>
           <p className="mt-2 text-sm text-ink-500">
             出雲で牧場を経営しているため、移住や常駐はいたしかねます。オンラインでの継続と、必要に応じた訪問という形になります。
