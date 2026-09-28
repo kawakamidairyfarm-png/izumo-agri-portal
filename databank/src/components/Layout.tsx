@@ -16,6 +16,11 @@ const NAV = [
   { to: '/browse', label: '全配信を探す' },
   { to: '/about', label: '牧場について' },
 ]
+/** 仕事の相談の入口。メニューでは読みものと分けて下に置く（2026-09-28 導線を短く） */
+const NAV_WORK = [
+  { to: '/expert', label: '企業・研究・メディアの方へ', short: '企業の方へ' },
+  { to: '/for-schools', label: '学校の先生・栄養士の方へ', short: '学校の方へ' },
+]
 
 export default function Layout() {
   const [open, setOpen] = useState(false)
@@ -61,6 +66,15 @@ export default function Layout() {
                 {n.label}
               </NavLink>
             ))}
+            {/* 1024〜1279px ではロゴが潰れるので出さない（その幅はフッターと牧場についてから） */}
+            <NavLink
+              to={NAV_WORK[0].to}
+              className={({ isActive }) =>
+                `hidden xl:inline-flex px-3 py-2 rounded-lg text-sm whitespace-nowrap font-medium transition-colors ${isActive ? 'bg-moss-50 text-moss-900' : 'text-moss-700 hover:bg-cream-100'}`
+              }
+            >
+              {NAV_WORK[0].short}
+            </NavLink>
             <a
               href={LINKS.line}
               target="_blank"
@@ -92,7 +106,18 @@ export default function Layout() {
                 {n.label}
               </NavLink>
             ))}
-            <a href={LINKS.line} target="_blank" rel="noreferrer" className="mt-1 mb-2 inline-flex items-center gap-1.5 rounded-lg bg-line px-3 py-3 text-sm font-bold text-white">
+            <p className="mt-2 border-t border-cream-200 px-3 pt-3 pb-1 text-xs font-bold text-ink-500">お仕事のご相談</p>
+            {NAV_WORK.map((n) => (
+              <NavLink
+                key={n.to}
+                to={n.to}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) => `px-3 py-3 rounded-lg text-sm font-medium ${isActive ? 'bg-moss-50 text-moss-900' : 'text-moss-700'}`}
+              >
+                {n.label}
+              </NavLink>
+            ))}
+            <a href={LINKS.line} target="_blank" rel="noreferrer" className="mt-2 mb-2 inline-flex items-center gap-1.5 rounded-lg bg-line px-3 py-3 text-sm font-bold text-white">
               <MessageCircle size={16} /> LINEで質問する
             </a>
           </nav>
