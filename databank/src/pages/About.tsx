@@ -120,7 +120,7 @@ export default function About() {
             </li>
             <li>
               <p><span className="font-bold text-ink-900">FarmEcho ライトプラン</span> 月額 30,000円・定員10牧場</p>
-              <p className="text-sm text-ink-500">乳成分・牛の状態・給餌設計を毎月分析してPDFレポートに。LINE相談とZoomの枠つき。 <a href={LINKS.notePlanFarmEcho} target="_blank" rel="noreferrer" className="text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">記事を読む</a></p>
+              <p className="text-sm text-ink-500">乳成分・牛の状態・給餌設計を月3件まで分析してPDFレポートに。LINE相談とZoomの枠つき。 <a href={LINKS.notePlanFarmEcho} target="_blank" rel="noreferrer" className="text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">記事を読む</a></p>
             </li>
             <li>
               <p><span className="font-bold text-ink-900">FarmEcho プロプラン</span> 月額 50,000円・定員5牧場</p>

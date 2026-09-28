@@ -9,8 +9,12 @@ export const LINKS = {
   noteSubscribe: 'https://note.com/kawakamifarm/membership/boards',
   /** 酪農DX・タイミー活用 伴走サポートの紹介記事 */
   notePlanBanso: 'https://note.com/kawakamifarm/n/ndf5ea5a0bd27',
-  /** FarmEcho（酪農×AI）の紹介記事 */
+  /** FarmEcho（酪農×AI）の紹介記事。企業向けの料金・申し込み先もここ（2026-09-28 書き直し） */
   notePlanFarmEcho: 'https://note.com/kawakamifarm/n/nbf0a8d7a7a3e',
+  /** 企業・法人向けマガジン「川上牧場🐮サブスク（企業・法人向け）」月1万円 */
+  noteCorpMagazine: 'https://note.com/kawakamifarm/m/ma89e7125abfd',
+  /** FarmEchoヒアリングシート（企業の申し込み・1件目の無料お試しの入口） */
+  farmEchoHearing: 'https://docs.google.com/forms/d/e/1FAIpQLSdvPJDREjKy8yNrAcua-jZRTMJNrfpc7ik00dRNPFZwckwOzQ/viewform?usp=header',
   youtube: 'https://www.youtube.com/channel/UC7biWU5T2H9H6mmzgaNV2Bw',
   spotify: 'https://open.spotify.com/show/5VP7uC8prZ3wjoYDLHSUmj',
   /** 川上牧場 公式LINE（質問受付） */
