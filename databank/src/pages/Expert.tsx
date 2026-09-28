@@ -61,13 +61,45 @@ export default function Expert() {
               <p className="font-bold text-ink-900">継続の伴走・顧問</p>
               <p className="mt-1 text-sm">月1回の面談と、その間の相談。新規事業の立ち上げや、牧場運営の設計に並走します。内容に応じてお見積りします。</p>
             </div>
+            <div className="rounded-2xl bg-white border border-moss-100 p-5">
+              <p className="font-bold text-ink-900">営業チーム向け FarmEcho（月額）</p>
+              <p className="mt-1 text-sm">
+                飼料・乳業・資材など、酪農家を訪ねる営業の方向けです。営業先で聞いた話を送ると、次の訪問で話せる判断材料（AIによる推定と、現役酪農家の経験にもとづく見立て）が返ってきます。
+              </p>
+              <ul className="mt-3 space-y-2.5 text-sm">
+                <li>
+                  <span className="font-bold text-ink-900">企業・法人向けマガジン</span> 月10,000円
+                  <br />
+                  <span className="text-ink-500">毎月1本、企業・法人向けの記事。まずはここから。</span>
+                </li>
+                <li>
+                  <span className="font-bold text-ink-900">FarmEcho ライト</span> 月30,000円
+                  <br />
+                  <span className="text-ink-500">月3件まで・PDFレポート・LINE相談（10社まで）</span>
+                </li>
+                <li>
+                  <span className="font-bold text-ink-900">FarmEcho プロ</span> 月50,000円
+                  <br />
+                  <span className="text-ink-500">月5件まで・LINE／メール随時・月1回30分のZoom（5社まで）</span>
+                </li>
+              </ul>
+              <p className="mt-3 text-sm">はじめての方は、1件目の分析を無料でお試しいただけます。</p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-bold">
+                <a href={LINKS.farmEchoHearing} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-xl bg-moss-700 px-4 py-2.5 text-white hover:bg-moss-900">
+                  ヒアリングシートを送る（無料お試し）
+                </a>
+                <a href={LINKS.notePlanFarmEcho} target="_blank" rel="noreferrer" className="text-moss-700 underline decoration-moss-300 underline-offset-4 hover:text-moss-900">
+                  FarmEchoの説明と分析の例を読む
+                </a>
+              </div>
+            </div>
             <div className="rounded-2xl bg-cream-100 p-5">
               <p className="font-bold text-ink-900">現地訪問・取材の受け入れ</p>
               <p className="mt-1 text-sm">川上牧場での撮影・取材・見学。出張でのご相談も承ります。日程と内容をご相談ください。</p>
             </div>
           </div>
           <p className="mt-4 text-sm text-ink-500">
-            費用は、ご相談の内容と時間をうかがってから個別にお見積りします。金額の目安だけ先に知りたい場合も、その旨をお送りください。
+            FarmEcho以外（スポット相談・伴走・取材）の費用は、ご相談の内容と時間をうかがってから個別にお見積りします。金額の目安だけ先に知りたい場合も、その旨をお送りください。
           </p>
           <p className="mt-2 text-sm text-ink-500">
             出雲で牧場を経営しているため、移住や常駐はいたしかねます。オンラインでの継続と、必要に応じた訪問という形になります。
