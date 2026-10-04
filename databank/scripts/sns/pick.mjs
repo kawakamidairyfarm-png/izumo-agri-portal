@@ -29,7 +29,8 @@ const daysAgo = (d) => (Date.parse(today) - Date.parse(d)) / 864e5
 
 const done = new Set(posted.posts.map((p) => p.id))
 // 質問カードと同じ条件: 答えの要約に川上さんの答えが入っていて、質問の形の文
-const ok = qa.filter((x) => x.a && /川上さん|酪農家/.test(x.a.slice(0, 160)) && /[？?]|ですか|ますか|でしょうか/.test(x.q))
+// SNSでは質問が一目で読めることが大事なので、60字までの質問だけ（長い感想・前置きつきの質問は外す）
+const ok = qa.filter((x) => x.a && x.q.length <= 60 && /川上さん|酪農家/.test(x.a.slice(0, 160)) && /[？?]|ですか|ますか|でしょうか/.test(x.q))
 const left = ok.filter((x) => !done.has(x.id))
 
 const season = calendar[month] ?? []
