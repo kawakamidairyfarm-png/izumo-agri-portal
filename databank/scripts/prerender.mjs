@@ -29,9 +29,21 @@ const BODY_LIMIT = 12000
 const FARM = {
   '@type': 'Organization',
   name: '川上牧場',
+  // 同じ名前の牧場（競走馬の生産牧場など）と取り違えられないよう、場所と業種と公式の場所を添える（2026-10-04）
+  alternateName: '川上牧場（島根県出雲市の酪農場）',
+  description: '島根県出雲市の酪農場。乳牛を飼い、生乳を生産している。',
   // 組織の正式な住所は牧場のホームページ。データバンクは その牧場が出している読み物
   url: 'https://kawakamibokuzyou.hp.peraichi.com/',
   address: { '@type': 'PostalAddress', addressRegion: '島根県', addressLocality: '出雲市', addressCountry: 'JP' },
+  sameAs: [
+    'https://note.com/kawakamifarm',
+    'https://www.youtube.com/@kawakamifarm',
+    'https://www.instagram.com/kawakamifarm/',
+    'https://twitter.com/kawakamifarm',
+    'https://www.tiktok.com/@kawakamifarm',
+    'https://www.facebook.com/izumo.kawakamifarm',
+    'https://lit.link/kawakamifarm',
+  ],
 }
 const AUTHOR = {
   '@type': 'Person',
@@ -39,6 +51,10 @@ const AUTHOR = {
   jobTitle: '酪農家',
   worksFor: FARM,
   description: '島根県出雲市で乳牛約80頭を飼う酪農家。2019年から毎朝の音声配信を続けている。',
+  // 本人確認済みの実績だけ（裁定_収益化_2026-09-28.md 追記6）
+  award: '第31回全農酪農経営体験発表会 優秀賞（2013年）',
+  knowsAbout: ['酪農', '乳牛の飼養管理', '牛群検定', '乳牛の繁殖と人工授精', '牛乳と乳製品'],
+  sameAs: ['https://note.com/kawakamifarm'],
 }
 /** パンくず（このページがサイトのどこにあるか） */
 const breadcrumb = (items) => ({
@@ -363,12 +379,16 @@ async function main() {
   if (stairs.length !== 7) throw new Error(`stairs.ts の読み取りが ${stairs.length} 段（7段のはず）`)
   const AUD_LABEL = { consumer: '牛乳を飲む人', student: '酪農を志す人' }
   const urls = []
+  /** サイトマップの更新日。中身の日付（配信日）を申告する。毎回「今日」にすると検索エンジンが日付を信用しなくなる（2026-10-04） */
+  const lastmods = new Map()
+  const newest = (eps) => eps.reduce((m, e) => (e?.date && e.date > m ? e.date : m), '')
 
-  const write = async (url, html) => {
+  const write = async (url, html, lastmod) => {
     const dir = url === '/' ? DIST : path.join(DIST, url.replace(/^\//, ''))
     await fs.mkdir(dir, { recursive: true })
     await fs.writeFile(path.join(dir, 'index.html'), html, 'utf8')
     urls.push(url)
+    if (lastmod) lastmods.set(url, lastmod)
   }
 
   // 本文から作った索引（scripts/build-transcripts-json.mjs が prebuild で作る）。質問した人の名前は入っていない
@@ -398,7 +418,7 @@ async function main() {
 
   // 固定のページ
   const fixed = [
-    { url: '/', title: NAME, ogTitle: '酪農データバンク｜牛乳の「なぜ？」に、出雲の酪農家が答える', ogDescription: '原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 毎朝の配信で答えてきたことを、登録なしで読めます。', description: `原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 出雲の酪農家が毎朝の配信で答えてきた${episodes.length}回を、読める形にまとめました。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, h1: NAME, lead: `あなたの質問が、誰かの牛乳をもっとおいしくする。届いた質問に、出雲の酪農家が毎朝の配信で答えています。その答え ${episodes.length} 回分を、言葉で検索できる形にまとめました。質問は公式LINEから送れます。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, priority: '1.0' },
+    { url: '/', title: '酪農データバンク｜牛乳の「なぜ？」に出雲の酪農家が答える｜川上牧場', ogTitle: '酪農データバンク｜牛乳の「なぜ？」に、出雲の酪農家が答える', ogDescription: '原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 毎朝の配信で答えてきたことを、登録なしで読めます。', description: `原価はいくら？ なぜバターだけ高い？ 雄の子牛はどうなる？ 出雲の酪農家が毎朝の配信で答えてきた${episodes.length}回を、読める形にまとめました。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, h1: NAME, lead: `あなたの質問が、誰かの牛乳をもっとおいしくする。届いた質問に、出雲の酪農家が毎朝の配信で答えています。その答え ${episodes.length} 回分を、言葉で検索できる形にまとめました。質問は公式LINEから送れます。牛乳を飲む人も、酪農を志す人も、登録なしで読めます。`, priority: '1.0' },
     { url: '/browse', title: `全配信を探す｜${NAME}`, description: `川上牧場の配信 ${episodes.length} 回を、言葉・分類・年月から探せます。乳房炎、資金、飼料、繁殖、就農など。`, h1: '全配信を探す', lead: '言葉で全文を検索できます。', priority: '0.9' },
     { url: '/archive', title: `全配信の一覧｜${NAME}`, description: `2019年から続く川上牧場の音声配信 ${episodes.length} 回を、日付順にすべて並べた一覧です。`, h1: '全配信の一覧', lead: `2019年からの ${episodes.length} 回を、新しい順に並べています。`, priority: '0.9' },
     { url: '/questions', title: `届いた質問と、答えた回｜${NAME}`, description: `牛乳や酪農について牧場に届いた質問 ${questions.length} 件と、出雲の酪農家がそのとき配信で答えたこと。原価、バター、給食の牛乳、雄の子牛、就農の資金など。`, h1: '届いた質問と、答えた回', lead: `配信に届いた質問と、そのとき酪農家が答えたことを ${questions.length} 件並べています。答えは配信時点の経験と意見です。`, priority: '0.9' },
@@ -489,6 +509,8 @@ async function main() {
                   )
                   .join('')}</dl>`
               : ''
+    // 配信の一覧が載るページは、いちばん新しい配信日。牧場の案内だけのページは日付を申告しない
+    if (!['/about', '/expert', '/for-schools'].includes(f.url)) lastmods.set(f.url, byDate[0]?.date)
     await write(f.url, render(template, {
       url: f.url,
       ogTitle: f.ogTitle,
@@ -558,6 +580,7 @@ async function main() {
       if (ids.has(id)) throw new Error(`質問の住所が重なった: ${id} ${x.q}`)
       ids.add(id)
       const same = questions.filter((y) => y !== x && y.ep.id === x.ep.id).slice(0, 5)
+      lastmods.set(`/q/${id}`, x.ep.date)
       await write(`/q/${id}`, render(template, {
         url: `/q/${id}`,
         title: `${clip(x.q, 60)}｜届いた質問｜${NAME}`,
@@ -614,6 +637,7 @@ async function main() {
   for (const t of subs) {
     const list = episodesForTopic(t.key)
     const sib = t.group.subs.filter((x) => x.key !== t.key)
+    lastmods.set(`/t/${t.key}`, newest(list))
     await write(`/t/${t.key}`, render(template, {
       url: `/t/${t.key}`,
       title: `${t.label}｜${t.group.label}｜${NAME}`,
@@ -638,6 +662,7 @@ async function main() {
     const n = list.indexOf(st) + 1
     const parts = st.topics.map((k) => subs.find((x) => x.key === k)).filter(Boolean)
     const ids = new Set(parts.flatMap((t) => episodesForTopic(t.key).map((e) => e.id)))
+    lastmods.set(`/stair/${st.key}`, newest(episodes.filter((e) => ids.has(e.id))))
     await write(`/stair/${st.key}`, render(template, {
       url: `/stair/${st.key}`,
       title: `${st.title}｜${AUD_LABEL[st.audience]}の${n}段目｜${NAME}`,
@@ -660,6 +685,7 @@ async function main() {
   // 流れで読む
   for (const fl of flows) {
     const steps = fl.steps.map((st) => ({ ...st, sub: subs.find((x) => x.key === st.topic) })).filter((st) => st.sub)
+    lastmods.set(`/flow/${fl.key}`, newest(steps.flatMap((st) => episodesForTopic(st.sub.key))))
     await write(`/flow/${fl.key}`, render(template, {
       url: `/flow/${fl.key}`,
       title: `${fl.title}｜流れで読む｜${NAME}`,
@@ -711,6 +737,7 @@ async function main() {
     }
     const summary = extractSummary(transcript)
     const description = clip(ep.summary || summary.abstract || stripMarkers(transcript) || `${ep.date} の配信。${ep.title}`, 110)
+    lastmods.set(`/e/${ep.id}`, ep.date)
     await write(`/e/${ep.id}`, render(template, {
       url: `/e/${ep.id}`,
       type: 'article',
@@ -756,18 +783,33 @@ async function main() {
   }
 
   // sitemap.xml
-  const today = new Date().toISOString().slice(0, 10)
   const sitemap = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls.map((u) => {
       const pri = u === '/' ? '1.0' : u.startsWith('/e/') ? '0.6' : '0.8'
       const loc = u === '/' ? SITE : SITE + u.replace(/^\//, '') + '/'
-      return `  <url><loc>${esc(loc)}</loc><lastmod>${today}</lastmod><priority>${pri}</priority></url>`
+      const lm = lastmods.get(u)
+      return `  <url><loc>${esc(loc)}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ''}<priority>${pri}</priority></url>`
     }),
     '</urlset>',
   ].join('\n')
   await fs.writeFile(path.join(DIST, 'sitemap.xml'), sitemap + '\n', 'utf8')
+
+  // IndexNow（Bing・Yandex など）に「新しく増えた・変わったページ」を知らせるための一覧。公開のあと pages.yml が送る（2026-10-04）
+  {
+    const INDEXNOW_KEY = '227c68db5fbe5589b209db7b7915699a'
+    const since = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10)
+    const recentUrls = urls
+      .filter((u) => u === '/' || (lastmods.get(u) ?? '') >= since)
+      .map((u) => (u === '/' ? SITE : SITE + u.replace(/^\//, '') + '/'))
+      .slice(0, 1000)
+    await fs.writeFile(
+      path.join(DIST, 'indexnow.json'),
+      JSON.stringify({ host: new URL(SITE).host, key: INDEXNOW_KEY, keyLocation: `${SITE}${INDEXNOW_KEY}.txt`, urlList: recentUrls }) + '\n',
+      'utf8',
+    )
+  }
 
   // robots.txt
   await fs.writeFile(
@@ -811,6 +853,15 @@ async function main() {
       `- [学びの道筋](${SITE}paths/): テーマごとに読む順番を決めた案内`,
       `- [牧場について](${SITE}about/): 川上牧場と、このサイトの成り立ち`,
       `- [企業・研究・メディアの方へ](${SITE}expert/): 現場への取材・相談の窓口`,
+      '',
+      '## よく聞かれる質問と答え（1問1ページ）',
+      '',
+      '牛乳を飲む人・酪農を志す人から届いた質問に、配信で答えた要約です。各ページに、答えた回（音声と全文）へのリンクがあります。',
+      '',
+      ...questions
+        .filter((x) => x.ep.qa?.some((p) => p.q === x.q) && (x.a || '').length >= 20)
+        .slice(0, 60)
+        .map((x) => `- [${x.q}](${SITE}q/${qaId(x.q)}/): ${clip(x.a, 90)}（${x.ep.date} の配信）`),
       '',
       '## 最近の配信',
       '',

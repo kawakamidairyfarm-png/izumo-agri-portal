@@ -58,3 +58,13 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      # 新しく増えた・変わったページを IndexNow（Bing など）に知らせる。一覧は prerender が作る indexnow.json。
+      # 失敗しても公開には影響しない
+      - name: IndexNow に知らせる
+        continue-on-error: true
+        run: |
+          sleep 30
+          curl -sSf "${{ steps.deployment.outputs.page_url }}indexnow.json" -o indexnow.json
+          echo "送るページ: $(jq '.urlList | length' indexnow.json) 件"
+          curl -sS -o /dev/null -w "IndexNow: %{http_code}\n" -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" --data @indexnow.json
