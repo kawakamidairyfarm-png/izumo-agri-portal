@@ -34,3 +34,7 @@
 
 ## 毎日のSNSルーティンとの重なり
 Instagram を自動にしたら、日次セット（kawakami-sns-daily）の「Instagram 質問カード」は外す（同じ質問カードを二度出さないため）。
+
+## 記録
+- 2026-10-04: Meta のアプリ「川上牧場 SNS自動投稿」（開発モード）で Facebook ページ「川上牧場」のページの鍵（期限なし・6つの権限）を作り、Secrets（META_PAGE_TOKEN・IG_USER_ID・FB_PAGE_ID）と Variables（SNS_INSTAGRAM・SNS_FACEBOOK＝on）に入れた。点検: Instagram「kawakamifarm」・Facebook「川上牧場」とも読めた。SNS_LIVE は未設定（本番前）。
+- Meta の「データアクセスの期限」が約3か月（2027年1月初め）。12月中旬に鍵を作り直して META_PAGE_TOKEN を入れ替える。
