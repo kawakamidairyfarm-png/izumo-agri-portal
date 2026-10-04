@@ -21,6 +21,22 @@ const env = process.env
 const LIVE = env.SNS_LIVE === 'on'
 const GRAPH = 'https://graph.facebook.com/v21.0'
 
+/**
+ * Threads の鍵（60日で切れる）を延ばす。鍵が作られて24時間たてば延ばせる。
+ * 延ばした結果の鍵が元と同じなら、毎日延ばすだけで切れない。違う文字列が返ったら、入れ替えが要ることを知らせる（値は出さない）。
+ */
+async function refreshThreads() {
+  if (!env.THREADS_TOKEN) return
+  try {
+    const r = await (await fetch(`https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)).json()
+    if (r.error) return console.log(`Threadsの鍵の延長: できません（${r.error.message}）`)
+    const days = Math.round((r.expires_in ?? 0) / 86400)
+    console.log(`Threadsの鍵の延長: ${r.access_token === env.THREADS_TOKEN ? `OK（同じ鍵のまま、あと約${days}日）` : `延びたが別の鍵になった。あと約${days}日で今の鍵が切れるので、入れ替えが必要`}`)
+  } catch (e) {
+    console.log(`Threadsの鍵の延長: 確かめられません ${e.message}`)
+  }
+}
+
 // 点検（SNS_CHECK=on）: 投稿せず、鍵で自分のアカウント名が読めるかだけを確かめる
 if (env.SNS_CHECK === 'on') {
   const show = async (label, url) => {
@@ -41,7 +57,10 @@ if (env.SNS_CHECK === 'on') {
     const exp = d.data?.expires_at
     console.log(`Metaの鍵の期限: ${exp === 0 ? '期限なし' : exp ? new Date(exp * 1000).toISOString().slice(0, 10) : '不明'}／権限: ${(d.data?.scopes || []).join(', ') || '不明'}`)
   }
-  if (env.THREADS_TOKEN && env.THREADS_USER_ID) await show('Threads', `https://graph.threads.net/v1.0/${env.THREADS_USER_ID}?fields=username&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)
+  if (env.THREADS_TOKEN && env.THREADS_USER_ID) {
+    await show('Threads', `https://graph.threads.net/v1.0/${env.THREADS_USER_ID}?fields=username&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)
+    await refreshThreads()
+  } else console.log('Threads: 鍵が未設定')
   console.log('点検だけで、投稿はしていません')
   process.exit(0)
 }
@@ -104,6 +123,7 @@ const jobs = {
   },
   // Threads: 1枚目の画像と文
   async threads() {
+    await refreshThreads()
     const base = `https://graph.threads.net/v1.0/${env.THREADS_USER_ID}`
     const box = await form(`${base}/threads`, { media_type: 'IMAGE', image_url: today.images[0], text: today.text.threads, access_token: env.THREADS_TOKEN })
     await sleep(15000) // Threads は取り込みに少し時間がかかる
