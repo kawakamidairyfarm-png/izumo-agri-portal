@@ -111,7 +111,8 @@ for (const x of picks) {
 }
 await browser.close()
 
-if (siteDir) {
+// --no-index: 1問だけ足すとき（毎日のSNS自動投稿の分）。一覧（cards.json・index.html）は上書きしない
+if (siteDir && !args.includes('--no-index')) {
   const base = `${SITE}instagram/`
   const cards = made.map((m) => ({
     ...m,

@@ -1,0 +1,68 @@
+# 毎日のSNS自動投稿（酪農データバンクの「届いた質問と答え」を1日1問）
+# 中身は scripts/sns/pick.mjs が公開のたびに作る sns/today.json。投稿は scripts/sns/post.mjs。
+# 本番にするには: Settings → Secrets and variables → Actions
+#   Variables: SNS_LIVE=on と、投稿したいSNSの SNS_INSTAGRAM / SNS_FACEBOOK / SNS_THREADS / SNS_X を on
+#   Secrets  : post.mjs の先頭に書いた鍵
+# 止めるとき: Variables の SNS_LIVE を off にする（すぐ止まる）
+name: SNS自動投稿（データバンクの1日1問）
+
+on:
+  schedule:
+    - cron: '7 10 * * *' # 毎日 19:07（日本時間）。データバンクとLIVEの来訪が多い時間
+  workflow_dispatch:
+    inputs:
+      live:
+        description: on にすると本番（オンにしたSNSへ投稿）。空なら Variables の SNS_LIVE に従う
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  actions: write # 記録のあと公開（pages.yml）を呼ぶため
+
+concurrency:
+  group: sns-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: databank
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 投稿する
+        env:
+          SNS_LIVE: ${{ inputs.live || vars.SNS_LIVE }}
+          SNS_INSTAGRAM: ${{ vars.SNS_INSTAGRAM }}
+          SNS_FACEBOOK: ${{ vars.SNS_FACEBOOK }}
+          SNS_THREADS: ${{ vars.SNS_THREADS }}
+          SNS_X: ${{ vars.SNS_X }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: node scripts/sns/post.mjs
+      # 投稿した記録を残す（同じ質問を二度出さないため）。そのあと公開を呼んで、明日の1問を選び直す
+      - name: 記録を残す
+        if: always()
+        run: |
+          if git diff --quiet data/sns-posted.json; then echo "記録の変更なし"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/sns-posted.json
+          git commit -m "SNS自動投稿の記録"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          curl -sS -o /dev/null -w "公開の呼び出し: %{http_code}\n" -X POST \
+            -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/pages.yml/dispatches" -d '{"ref":"main"}'
