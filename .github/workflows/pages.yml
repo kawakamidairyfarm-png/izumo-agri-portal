@@ -45,6 +45,15 @@ jobs:
           npm install --no-save playwright@1.62.1
           npx playwright install --with-deps chromium
           node scripts/instagram/make-cards.mjs --latest 7 --site dist/instagram
+      # 毎日のSNS自動投稿の「今日の1問」を選び、その質問のカード画像を作る（sns-post.yml が 19時に読む）
+      - name: SNS自動投稿の今日の1問
+        id: sns
+        continue-on-error: true
+        run: node scripts/sns/pick.mjs
+      - name: 今日の1問のカード
+        if: steps.sns.outputs.id != ''
+        continue-on-error: true
+        run: node scripts/instagram/make-cards.mjs --id ${{ steps.sns.outputs.id }} --site dist/instagram --no-index
       - uses: actions/upload-pages-artifact@v3
         with:
           path: databank/dist
