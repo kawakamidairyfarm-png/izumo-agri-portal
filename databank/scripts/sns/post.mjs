@@ -21,6 +21,31 @@ const env = process.env
 const LIVE = env.SNS_LIVE === 'on'
 const GRAPH = 'https://graph.facebook.com/v21.0'
 
+// 点検（SNS_CHECK=on）: 投稿せず、鍵で自分のアカウント名が読めるかだけを確かめる
+if (env.SNS_CHECK === 'on') {
+  const show = async (label, url) => {
+    try {
+      const r = await (await fetch(url)).json()
+      console.log(`${label}: ${r.error ? '使えません ' + r.error.message : 'OK ' + (r.username || r.name || r.id)}`)
+    } catch (e) {
+      console.log(`${label}: 確かめられません ${e.message}`)
+    }
+  }
+  const t = encodeURIComponent(env.META_PAGE_TOKEN || '')
+  if (env.META_PAGE_TOKEN && env.IG_USER_ID) await show('Instagram', `${GRAPH}/${env.IG_USER_ID}?fields=username&access_token=${t}`)
+  else console.log('Instagram: 鍵が未設定')
+  if (env.META_PAGE_TOKEN && env.FB_PAGE_ID) await show('Facebookページ', `${GRAPH}/${env.FB_PAGE_ID}?fields=name&access_token=${t}`)
+  else console.log('Facebookページ: 鍵が未設定')
+  if (env.META_PAGE_TOKEN) {
+    const d = await (await fetch(`${GRAPH}/debug_token?input_token=${t}&access_token=${t}`)).json().catch(() => ({}))
+    const exp = d.data?.expires_at
+    console.log(`Metaの鍵の期限: ${exp === 0 ? '期限なし' : exp ? new Date(exp * 1000).toISOString().slice(0, 10) : '不明'}／権限: ${(d.data?.scopes || []).join(', ') || '不明'}`)
+  }
+  if (env.THREADS_TOKEN && env.THREADS_USER_ID) await show('Threads', `https://graph.threads.net/v1.0/${env.THREADS_USER_ID}?fields=username&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)
+  console.log('点検だけで、投稿はしていません')
+  process.exit(0)
+}
+
 const today = JSON.parse(
   env.SNS_TODAY_FILE ? fs.readFileSync(env.SNS_TODAY_FILE, 'utf8') : await (await fetch(`${SITE}sns/today.json?t=${Date.now()}`)).text(),
 )

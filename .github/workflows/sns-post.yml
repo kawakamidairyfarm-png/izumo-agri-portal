@@ -15,6 +15,10 @@ on:
         description: on にすると本番（オンにしたSNSへ投稿）。空なら Variables の SNS_LIVE に従う
         required: false
         default: ''
+      check:
+        description: on にすると点検だけ（投稿せず、鍵が使えるかを確かめる）
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -38,6 +42,7 @@ jobs:
       - name: 投稿する
         env:
           SNS_LIVE: ${{ inputs.live || vars.SNS_LIVE }}
+          SNS_CHECK: ${{ inputs.check }}
           SNS_INSTAGRAM: ${{ vars.SNS_INSTAGRAM }}
           SNS_FACEBOOK: ${{ vars.SNS_FACEBOOK }}
           SNS_THREADS: ${{ vars.SNS_THREADS }}
