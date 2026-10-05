@@ -65,10 +65,19 @@ if (!today.pick) {
 }
 const postedFile = path.join(root, 'data', 'sns-posted.json')
 const posted = JSON.parse(fs.readFileSync(postedFile, 'utf8'))
-// 日本時間の日付。同じSNSに同じ日に2回は出さない（予備の時刻の実行や、投稿後に「今日の1問」が選び直された後の実行で二重にならないため）
-const jstDay = (t) => new Date(Date.parse(t) + 9 * 3600e3).toISOString().slice(0, 10)
-const todayJst = jstDay(new Date().toISOString())
-const already = (sns) => posted.posts.some((p) => p.sns === sns && (p.id === today.pick.id || jstDay(p.at) === todayJst))
+// 投稿してよい時間帯（日本時間）。GitHub の時刻指定は大きく遅れることがあり、10/5 19:07 の予約が翌朝 4:14 に動いて投稿した。
+// 時間帯の外で動いたら投稿しない（手で動かしたときも同じ。どうしても出すときは SNS_WINDOW=0-24 で動かす）
+const [WIN_FROM, WIN_TO] = (env.SNS_WINDOW || '18-23').split('-').map(Number)
+const jst = (t) => new Date(Date.parse(t) + 9 * 3600e3)
+const nowJst = jst(new Date().toISOString())
+if (LIVE && !(nowJst.getUTCHours() >= WIN_FROM && nowJst.getUTCHours() < WIN_TO)) {
+  console.log(`いまは日本時間 ${nowJst.toISOString().slice(11, 16)}。投稿の時間帯（${WIN_FROM}時〜${WIN_TO}時）の外なので投稿しません`)
+  process.exit(0)
+}
+// 同じSNSには、同じ日の夜の時間帯に2回出さない（予備の時刻の実行や、投稿後に「今日の1問」が選び直された後の実行で二重にならないため）
+const day = (d) => d.toISOString().slice(0, 10)
+const inTonight = (t) => day(jst(t)) === day(nowJst) && jst(t).getUTCHours() >= WIN_FROM
+const already = (sns) => posted.posts.some((p) => p.sns === sns && (p.id === today.pick.id || inTonight(p.at)))
 console.log(`今日の1問: ${today.pick.id}「${today.pick.q}」（${today.reason}）${LIVE ? '' : ' ※試運転'}`)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
