@@ -6,7 +6,7 @@
 // SNSごとのオン／オフ（GitHub の Variables）: SNS_INSTAGRAM, SNS_FACEBOOK, SNS_THREADS, SNS_X
 // 鍵（GitHub の Secrets。値はここに書かない）:
 //   Instagram・Facebook: META_PAGE_TOKEN（Facebookページのアクセストークン）, IG_USER_ID, FB_PAGE_ID
-//   Threads: THREADS_TOKEN, THREADS_USER_ID
+//   Threads: THREADS_TOKEN（60日で切れる。切れる前に作り直して入れ替える。THREADS_USER_ID は点検で照合するだけ）
 //   X: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET
 // 投稿したら data/sns-posted.json に記録する（同じ質問を二度出さない）。1つのSNSが失敗しても、ほかは続ける。
 import fs from 'node:fs'
@@ -20,22 +20,7 @@ const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
 const env = process.env
 const LIVE = env.SNS_LIVE === 'on'
 const GRAPH = 'https://graph.facebook.com/v21.0'
-
-/**
- * Threads の鍵（60日で切れる）を延ばす。鍵が作られて24時間たてば延ばせる。
- * 延ばした結果の鍵が元と同じなら、毎日延ばすだけで切れない。違う文字列が返ったら、入れ替えが要ることを知らせる（値は出さない）。
- */
-async function refreshThreads() {
-  if (!env.THREADS_TOKEN) return
-  try {
-    const r = await (await fetch(`https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)).json()
-    if (r.error) return console.log(`Threadsの鍵の延長: できません（${r.error.message}）`)
-    const days = Math.round((r.expires_in ?? 0) / 86400)
-    console.log(`Threadsの鍵の延長: ${r.access_token === env.THREADS_TOKEN ? `OK（同じ鍵のまま、あと約${days}日）` : `延びたが別の鍵になった。あと約${days}日で今の鍵が切れるので、入れ替えが必要`}`)
-  } catch (e) {
-    console.log(`Threadsの鍵の延長: 確かめられません ${e.message}`)
-  }
-}
+const THREADS = 'https://graph.threads.net/v1.0'
 
 // 点検（SNS_CHECK=on）: 投稿せず、鍵で自分のアカウント名が読めるかだけを確かめる
 if (env.SNS_CHECK === 'on') {
@@ -57,9 +42,15 @@ if (env.SNS_CHECK === 'on') {
     const exp = d.data?.expires_at
     console.log(`Metaの鍵の期限: ${exp === 0 ? '期限なし' : exp ? new Date(exp * 1000).toISOString().slice(0, 10) : '不明'}／権限: ${(d.data?.scopes || []).join(', ') || '不明'}`)
   }
-  if (env.THREADS_TOKEN && env.THREADS_USER_ID) {
-    await show('Threads', `https://graph.threads.net/v1.0/${env.THREADS_USER_ID}?fields=username&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)
-    await refreshThreads()
+  if (env.THREADS_TOKEN) {
+    // ユーザーIDの数字は使わず、鍵の持ち主（me）を読む。IDの写し間違いで止まらないため
+    try {
+      const r = await (await fetch(`${THREADS}/me?fields=id,username&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)).json()
+      if (r.error) console.log(`Threads: 使えません ${r.error.message}`)
+      else console.log(`Threads: OK ${r.username}${env.THREADS_USER_ID ? `（Secrets の THREADS_USER_ID と${r.id === env.THREADS_USER_ID.trim() ? '一致' : '不一致・投稿には使わないので支障なし'}）` : ''}`)
+    } catch (e) {
+      console.log(`Threads: 確かめられません ${e.message}`)
+    }
   } else console.log('Threads: 鍵が未設定')
   console.log('点検だけで、投稿はしていません')
   process.exit(0)
@@ -121,10 +112,9 @@ const jobs = {
   async facebook() {
     return (await form(`${GRAPH}/${env.FB_PAGE_ID}/feed`, { message: today.text.facebook, link: `${today.pick.page}?utm_source=facebook`, access_token: env.META_PAGE_TOKEN })).id
   },
-  // Threads: 1枚目の画像と文
+  // Threads: 1枚目の画像と文（投稿先は鍵の持ち主 me）
   async threads() {
-    await refreshThreads()
-    const base = `https://graph.threads.net/v1.0/${env.THREADS_USER_ID}`
+    const base = `${THREADS}/me`
     const box = await form(`${base}/threads`, { media_type: 'IMAGE', image_url: today.images[0], text: today.text.threads, access_token: env.THREADS_TOKEN })
     await sleep(15000) // Threads は取り込みに少し時間がかかる
     return (await form(`${base}/threads_publish`, { creation_id: box.id, access_token: env.THREADS_TOKEN })).id
@@ -163,7 +153,7 @@ async function tweet(body) {
 const need = {
   instagram: ['META_PAGE_TOKEN', 'IG_USER_ID'],
   facebook: ['META_PAGE_TOKEN', 'FB_PAGE_ID'],
-  threads: ['THREADS_TOKEN', 'THREADS_USER_ID'],
+  threads: ['THREADS_TOKEN'],
   x: ['X_API_KEY', 'X_API_SECRET', 'X_ACCESS_TOKEN', 'X_ACCESS_SECRET'],
 }
 const results = []

@@ -24,7 +24,7 @@
   - `SNS_INSTAGRAM` / `SNS_FACEBOOK` / `SNS_THREADS` / `SNS_X` … 投稿したいSNSだけ `on`。
 - **Secrets**（値はリポジトリに書かない）
   - Instagram・Facebook: `META_PAGE_TOKEN`（Facebookページのアクセストークン・期限なしのもの）、`IG_USER_ID`、`FB_PAGE_ID`
-  - Threads: `THREADS_TOKEN`、`THREADS_USER_ID`（トークンは60日で切れる。切れたら作り直す）
+  - Threads: `THREADS_TOKEN`（60日で切れる。切れる前に作り直して入れ替える）。`THREADS_USER_ID` は点検で照合するだけ（投稿先は鍵の持ち主＝me）
   - X: `X_API_KEY`、`X_API_SECRET`、`X_ACCESS_TOKEN`、`X_ACCESS_SECRET`（投稿できる権限 Read and Write のもの）
 
 ## 自動にしないもの
@@ -39,4 +39,6 @@ Instagram を自動にしたら、日次セット（kawakami-sns-daily）の「I
 - 2026-10-04: Meta のアプリ「川上牧場 SNS自動投稿」（開発モード）で Facebook ページ「川上牧場」のページの鍵（期限なし・6つの権限）を作り、Secrets（META_PAGE_TOKEN・IG_USER_ID・FB_PAGE_ID）と Variables（SNS_INSTAGRAM・SNS_FACEBOOK＝on）に入れた。点検: Instagram「kawakamifarm」・Facebook「川上牧場」とも読めた。SNS_LIVE は未設定（本番前）。
 - Meta の「データアクセスの期限」が約3か月（2027年1月初め）。12月中旬に鍵を作り直して META_PAGE_TOKEN を入れ替える。
 - 2026-10-04 22:19: 本人が Variables に SNS_LIVE=on を追加（拡張機能で入力・文字コードで確認）。点検の記録で SNS_LIVE=on・SNS_INSTAGRAM=on・SNS_FACEBOOK=on を確認。**本番は 10/5 19:07 から**（Instagram と Facebook）。
-- Threads の鍵は60日で切れる。投稿のたびと点検のときに延長を試み、「同じ鍵のまま延びたか」を記録に出す（同じなら毎日延びて切れない。違えば入れ替えが要る）。
+- 2026-10-05 昼: Meta の同じアプリに「Threads API にアクセス」を追加（threads_basic・threads_content_publish）。@kawakamifarm をテスターに入れて本人が承認、長期の鍵を作って Secrets（THREADS_TOKEN・THREADS_USER_ID）に本人が入れた。
+- 同日13:29の点検: 鍵は使えたが、ユーザーIDの数字で読むと「Object does not exist」で止まった。→ 投稿・点検とも、数字を使わず鍵の持ち主（me）を読む形に直した。
+- Threads の鍵の延長（refresh）は、延ばすたびに別の文字列の鍵が返る＝延ばしても Secrets の鍵は延びない。そのため自動の延長はやめた。**鍵は 2026-10-05 作成・約60日＝12月4日ごろに切れる。11月末に作り直して THREADS_TOKEN を入れ替える**（12月中旬の META_PAGE_TOKEN の作り直しと近いので、11月末に両方まとめてもよい）。
