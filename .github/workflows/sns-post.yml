@@ -9,9 +9,12 @@ name: SNS自動投稿（データバンクの1日1問）
 on:
   schedule:
     - cron: '7 10 * * *' # 毎日 19:07（日本時間）。データバンクとLIVEの来訪が多い時間
-    # GitHub の時刻指定は混雑で遅れたり飛ばされたりする（2026-10-05 初日に19:07が動かなかった）。予備の時刻。今日もう投稿したSNSは飛ばす
+    # GitHub の時刻指定は混雑で遅れたり飛ばされたりする（10/5 は 19:07 の予約が翌朝 4:14 に動いた）。
+    # 予備の時刻を夜の間に置く。今夜もう投稿したSNSは飛ばし、18時〜23時の外で動いたら何もしない（post.mjs）
     - cron: '37 10 * * *' # 19:37
     - cron: '17 11 * * *' # 20:17
+    - cron: '47 11 * * *' # 20:47
+    - cron: '27 12 * * *' # 21:27
   workflow_dispatch:
     inputs:
       live:
@@ -45,6 +48,7 @@ jobs:
       - name: 投稿する
         env:
           SNS_LIVE: ${{ inputs.live || vars.SNS_LIVE }}
+          SNS_WINDOW: ${{ vars.SNS_WINDOW }}
           SNS_CHECK: ${{ inputs.check }}
           SNS_INSTAGRAM: ${{ vars.SNS_INSTAGRAM }}
           SNS_FACEBOOK: ${{ vars.SNS_FACEBOOK }}
