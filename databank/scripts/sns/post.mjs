@@ -65,7 +65,10 @@ if (!today.pick) {
 }
 const postedFile = path.join(root, 'data', 'sns-posted.json')
 const posted = JSON.parse(fs.readFileSync(postedFile, 'utf8'))
-const already = (sns) => posted.posts.some((p) => p.id === today.pick.id && p.sns === sns)
+// 日本時間の日付。同じSNSに同じ日に2回は出さない（予備の時刻の実行や、投稿後に「今日の1問」が選び直された後の実行で二重にならないため）
+const jstDay = (t) => new Date(Date.parse(t) + 9 * 3600e3).toISOString().slice(0, 10)
+const todayJst = jstDay(new Date().toISOString())
+const already = (sns) => posted.posts.some((p) => p.sns === sns && (p.id === today.pick.id || jstDay(p.at) === todayJst))
 console.log(`今日の1問: ${today.pick.id}「${today.pick.q}」（${today.reason}）${LIVE ? '' : ' ※試運転'}`)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -165,7 +168,7 @@ for (const sns of Object.keys(jobs)) {
     continue
   }
   if (already(sns)) {
-    console.log(`${sns}: 今日の質問はもう投稿済み`)
+    console.log(`${sns}: 今日はもう投稿済み`)
     continue
   }
   const missing = need[sns].filter((k) => !env[k])
