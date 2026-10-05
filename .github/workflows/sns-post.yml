@@ -2,7 +2,7 @@
 # 中身は scripts/sns/pick.mjs が公開のたびに作る sns/today.json。投稿は scripts/sns/post.mjs。
 # 本番にするには: Settings → Secrets and variables → Actions
 #   Variables: SNS_LIVE=on と、投稿したいSNSの SNS_INSTAGRAM / SNS_FACEBOOK / SNS_THREADS / SNS_X を on
-#   Secrets  : post.mjs の先頭に書いた鍵
+#   Secrets  : post.mjs の先頭に書いた鍵（Threads の鍵は60日で切れる。11月末に作り直す）
 # 止めるとき: Variables の SNS_LIVE を off にする（すぐ止まる）
 name: SNS自動投稿（データバンクの1日1問）
 
