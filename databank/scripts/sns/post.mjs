@@ -67,7 +67,7 @@ const postedFile = path.join(root, 'data', 'sns-posted.json')
 const posted = JSON.parse(fs.readFileSync(postedFile, 'utf8'))
 // 投稿してよい時間帯（日本時間）。GitHub の時刻指定は大きく遅れることがあり、10/5 19:07 の予約が翌朝 4:14 に動いて投稿した。
 // 時間帯の外で動いたら投稿しない（手で動かしたときも同じ。どうしても出すときは SNS_WINDOW=0-24 で動かす）
-const [WIN_FROM, WIN_TO] = (env.SNS_WINDOW || '18-23').split('-').map(Number)
+const [WIN_FROM, WIN_TO] = (env.SNS_WINDOW || '19-21').split('-').map(Number)
 const jst = (t) => new Date(Date.parse(t) + 9 * 3600e3)
 const nowJst = jst(new Date().toISOString())
 if (LIVE && !(nowJst.getUTCHours() >= WIN_FROM && nowJst.getUTCHours() < WIN_TO)) {
