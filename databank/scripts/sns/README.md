@@ -42,3 +42,4 @@ Instagram を自動にしたら、日次セット（kawakami-sns-daily）の「I
 - 2026-10-05 昼: Meta の同じアプリに「Threads API にアクセス」を追加（threads_basic・threads_content_publish）。@kawakamifarm をテスターに入れて本人が承認、長期の鍵を作って Secrets（THREADS_TOKEN・THREADS_USER_ID）に本人が入れた。
 - 同日13:29の点検: 鍵は使えたが、ユーザーIDの数字で読むと「Object does not exist」で止まった。→ 投稿・点検とも、数字を使わず鍵の持ち主（me）を読む形に直した。
 - Threads の鍵の延長（refresh）は、延ばすたびに別の文字列の鍵が返る＝延ばしても Secrets の鍵は延びない。そのため自動の延長はやめた。**鍵は 2026-10-05 作成・約60日＝12月4日ごろに切れる。11月末に作り直して THREADS_TOKEN を入れ替える**（12月中旬の META_PAGE_TOKEN の作り直しと近いので、11月末に両方まとめてもよい）。
+- 2026-10-05 13:35: 本人が Variables に SNS_THREADS=on を追加。点検の記録で SNS_LIVE・SNS_INSTAGRAM・SNS_FACEBOOK・SNS_THREADS＝on、Threads「kawakamifarm」OK を確認。**Threads の本番は 10/5 19:07 から**（X は未設定）。
