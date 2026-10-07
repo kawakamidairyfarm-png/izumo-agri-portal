@@ -9,15 +9,17 @@ name: SNS自動投稿（データバンクの1日1問）
 on:
   schedule:
     # 投稿は日本時間 19:00〜21:00 のあいだに1回（2026-10-06 本人「だいたい19:00〜21:00までに投稿できれば良い」）。
-    # GitHub の時刻指定は遅れ・抜けがある（10/5 は 19:07 の予約が翌朝 4:14 に動いた）ので、20分おきに何度も呼ぶ。
-    # 今夜もう投稿したSNSは飛ばし、19時〜21時の外で動いたら何もしない（post.mjs の SNS_WINDOW）
-    - cron: '47 9 * * *'  # 18:47（遅れて19時台に動いたとき用。時刻どおりなら何もしない）
-    - cron: '7 10 * * *'  # 19:07
-    - cron: '27 10 * * *' # 19:27
-    - cron: '47 10 * * *' # 19:47
+    # この repo の GitHub の時刻指定は 6〜9時間遅れることがある（10/5 は 19:07 の予約が翌朝 4:14、10/6 は7回とも 1:16〜2:24 に動いた）。
+    # そこで「昼〜夕方に起きて、19:03 まで待ってから投稿する」回を置く（下の wait）。遅れて夜に起きた回はそのまま投稿、時間帯の外なら何もしない
+    - cron: '7 5 * * *'   # 14:07 起き → 19:03 まで待つ
+    - cron: '7 6 * * *'   # 15:07
+    - cron: '7 7 * * *'   # 16:07
+    - cron: '7 8 * * *'   # 17:07
+    - cron: '7 9 * * *'   # 18:07
+    - cron: '7 10 * * *'  # 19:07（時刻どおりならすぐ投稿）
+    - cron: '37 10 * * *' # 19:37
     - cron: '7 11 * * *'  # 20:07
-    - cron: '27 11 * * *' # 20:27
-    - cron: '47 11 * * *' # 20:47
+    - cron: '37 11 * * *' # 20:37
   workflow_dispatch:
     inputs:
       live:
@@ -33,13 +35,38 @@ permissions:
   contents: write
   actions: write # 記録のあと公開（pages.yml）を呼ぶため
 
-concurrency:
-  group: sns-post
-  cancel-in-progress: false
-
 jobs:
-  post:
+  # 予約で早く起きた回は、19:03（日本時間）まで待つ。待つのは最長5時間45分（GitHub の1回の上限は6時間）
+  # 待っている回は1つだけにする（後から起きた回は前の回が終わるのを待ち、そのあと「投稿済み」で止まる）。手で動かしたときは待たない
+  wait:
     runs-on: ubuntu-latest
+    timeout-minutes: 355
+    concurrency:
+      group: sns-wait-${{ github.event_name }}
+      cancel-in-progress: false
+    steps:
+      - name: 19時まで待つ
+        if: github.event_name == 'schedule'
+        run: |
+          now=$(date +%s)
+          target=$(TZ=Asia/Tokyo date -d 'today 19:03' +%s)
+          left=$((target - now))
+          echo "いまは日本時間 $(TZ=Asia/Tokyo date +%H:%M)"
+          if [ "$left" -gt 0 ] && [ "$left" -le 20700 ]; then
+            echo "19:03 まで $((left / 60)) 分待ちます"
+            sleep "$left"
+          elif [ "$left" -gt 20700 ]; then
+            echo "19:03 まで6時間近くあるので待ちません（このあと時間帯の外として止まる）"
+          else
+            echo "もう19時を過ぎているので、すぐ投稿に進みます"
+          fi
+
+  post:
+    needs: wait
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sns-post
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: databank
