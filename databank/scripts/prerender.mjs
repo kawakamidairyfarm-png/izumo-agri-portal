@@ -494,7 +494,12 @@ async function main() {
               )
               .join('')
         : f.url === '/'
-          ? `<h2>最近の配信</h2><ul>${byDate.slice(0, 30).map(epLink).join('')}</ul>`
+          ? `<h2>最近の配信</h2><ul>${byDate.slice(0, 30).map(epLink).join('')}</ul>` +
+            // 届いた質問のページへの入口（2026-10-10: Google が質問ページを見つけられていなかったため、トップからもつなぐ）
+            `<h2>届いた質問（新しい順）</h2><ul>${questions
+              .slice(0, 20)
+              .map((x) => `<li><a href="${esc(SITE)}q/${qaId(x.q)}/">${esc(x.q)}</a></li>`)
+              .join('')}</ul><p><a href="${esc(SITE)}questions/">届いた質問をすべて見る（${questions.length}件）</a></p>`
           : f.url === '/questions'
             ? `<dl>${questions
                 .map(
@@ -735,6 +740,11 @@ async function main() {
   for (const e of episodes) titleCount.set(e.title, (titleCount.get(e.title) ?? 0) + 1)
   const jpDate = (d) => `${Number(d.slice(0, 4))}年${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`
   let thin = 0
+  const qByEp = new Map()
+  for (const x of questions) {
+    if (!qByEp.has(x.ep.id)) qByEp.set(x.ep.id, [])
+    qByEp.get(x.ep.id).push(x)
+  }
   for (const [i, ep] of ordered.entries()) {
     const newer = i > 0 ? ordered[i - 1] : null
     const older = i < ordered.length - 1 ? ordered[i + 1] : null
@@ -759,7 +769,15 @@ async function main() {
       noindex: isThin,
       title: `${ep.title}${titleCount.get(ep.title) > 1 ? `（${jpDate(ep.date)}）` : ''}｜${NAME}`,
       description,
-      body: episodeBody(ep, transcript, episodeNav(ep, older, newer, sameMonth), summary),
+      body:
+        episodeBody(ep, transcript, episodeNav(ep, older, newer, sameMonth), summary) +
+        // この回に届いた質問の1問ずつのページへ（2026-10-10: 質問ページへのリンクを回のページからも張る）
+        ((qByEp.get(ep.id) ?? []).length
+          ? `<section><h2>この回に届いた質問</h2><ul>${qByEp
+              .get(ep.id)
+              .map((x) => `<li><a href="${esc(SITE)}q/${qaId(x.q)}/">${esc(x.q)}</a></li>`)
+              .join('')}</ul></section>`
+          : ''),
       jsonLd: [
         {
           '@context': 'https://schema.org',
