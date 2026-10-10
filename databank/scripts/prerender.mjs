@@ -230,13 +230,15 @@ async function loadPaths() {
 }
 
 /** 型紙の <head> と #root を、このページ用の中身で差し替える */
-function render(template, { url, title, description, body, jsonLd, type = 'website', ogTitle, ogDescription }) {
+function render(template, { url, title, description, body, jsonLd, type = 'website', ogTitle, ogDescription, noindex = false }) {
   // GitHub Pages はフォルダの住所に「/」を付けて返すので、正式な住所も「/」付きにそろえる
   const abs = url === '/' ? SITE : SITE + url.replace(/^\//, '') + '/'
   const head = [
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,
     `<link rel="canonical" href="${esc(abs)}" />`,
+    // 中身の薄いページ（題名だけの回）は検索に出さず、リンクはたどってもらう（2026-10-10）
+    noindex ? '<meta name="robots" content="noindex,follow" />' : '',
     `<meta property="og:type" content="${type}" />`,
     // 共有カード（LINE・X・Discord）の題名と説明は、検索向けの <title>・description と分けてよい
     `<meta property="og:title" content="${esc(ogTitle ?? title)}" />`,
@@ -381,6 +383,8 @@ async function main() {
   const urls = []
   /** サイトマップの更新日。中身の日付（配信日）を申告する。毎回「今日」にすると検索エンジンが日付を信用しなくなる（2026-10-04） */
   const lastmods = new Map()
+  /** 検索に出さないページ（サイトマップにも載せない） */
+  const noindexUrls = new Set()
   const newest = (eps) => eps.reduce((m, e) => (e?.date && e.date > m ? e.date : m), '')
 
   const write = async (url, html, lastmod) => {
@@ -726,6 +730,11 @@ async function main() {
     byMonth.get(k).push(e)
   }
   let withBody = 0
+  // 同じ題名の回（再配信・別の場所からの取り込み）は、検索結果で見分けられるよう題名に日付を足す（2026-10-10）
+  const titleCount = new Map()
+  for (const e of episodes) titleCount.set(e.title, (titleCount.get(e.title) ?? 0) + 1)
+  const jpDate = (d) => `${Number(d.slice(0, 4))}年${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`
+  let thin = 0
   for (const [i, ep] of ordered.entries()) {
     const newer = i > 0 ? ordered[i - 1] : null
     const older = i < ordered.length - 1 ? ordered[i + 1] : null
@@ -738,10 +747,17 @@ async function main() {
     const summary = extractSummary(transcript)
     const description = clip(ep.summary || summary.abstract || stripMarkers(transcript) || `${ep.date} の配信。${ep.title}`, 110)
     lastmods.set(`/e/${ep.id}`, ep.date)
+    // 全文も要約も問答も無い回は、題名と日付だけの薄いページ。検索には出さない（人は前後の回やテーマからたどれる）
+    const isThin = !transcript && !ep.summary && !summary.abstract && !ep.qa.length
+    if (isThin) {
+      thin++
+      noindexUrls.add(`/e/${ep.id}`)
+    }
     await write(`/e/${ep.id}`, render(template, {
       url: `/e/${ep.id}`,
       type: 'article',
-      title: `${ep.title}｜${NAME}`,
+      noindex: isThin,
+      title: `${ep.title}${titleCount.get(ep.title) > 1 ? `（${jpDate(ep.date)}）` : ''}｜${NAME}`,
       description,
       body: episodeBody(ep, transcript, episodeNav(ep, older, newer, sameMonth), summary),
       jsonLd: [
@@ -782,26 +798,44 @@ async function main() {
     }))
   }
 
-  // sitemap.xml
-  const sitemap = [
+  // sitemap.xml は索引にして、種類ごとの3つに分ける（2026-10-10）。
+  // Search Console でサイトマップごとの「登録済み」の数が見えるので、どの種類が検索に入っていないかが分かる
+  const sitemapParts = [
+    ['sitemap-pages.xml', (u) => !u.startsWith('/e/') && !u.startsWith('/q/')],
+    ['sitemap-questions.xml', (u) => u.startsWith('/q/')],
+    ['sitemap-episodes.xml', (u) => u.startsWith('/e/')],
+  ]
+  for (const [file, pick] of sitemapParts) {
+    const part = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ...urls.filter((u) => pick(u) && !noindexUrls.has(u)).map((u) => {
+        const pri = u === '/' ? '1.0' : u.startsWith('/e/') ? '0.6' : '0.8'
+        const loc = u === '/' ? SITE : SITE + u.replace(/^\//, '') + '/'
+        const lm = lastmods.get(u)
+        return `  <url><loc>${esc(loc)}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ''}<priority>${pri}</priority></url>`
+      }),
+      '</urlset>',
+    ].join('\n')
+    await fs.writeFile(path.join(DIST, file), part + '\n', 'utf8')
+  }
+  const sitemapIndex = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...urls.map((u) => {
-      const pri = u === '/' ? '1.0' : u.startsWith('/e/') ? '0.6' : '0.8'
-      const loc = u === '/' ? SITE : SITE + u.replace(/^\//, '') + '/'
-      const lm = lastmods.get(u)
-      return `  <url><loc>${esc(loc)}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ''}<priority>${pri}</priority></url>`
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...sitemapParts.map(([file, pick]) => {
+      const lm = urls.filter(pick).map((u) => lastmods.get(u) ?? '').sort().pop()
+      return `  <sitemap><loc>${SITE}${file}</loc>${lm ? `<lastmod>${lm}</lastmod>` : ''}</sitemap>`
     }),
-    '</urlset>',
+    '</sitemapindex>',
   ].join('\n')
-  await fs.writeFile(path.join(DIST, 'sitemap.xml'), sitemap + '\n', 'utf8')
+  await fs.writeFile(path.join(DIST, 'sitemap.xml'), sitemapIndex + '\n', 'utf8')
 
   // IndexNow（Bing・Yandex など）に「新しく増えた・変わったページ」を知らせるための一覧。公開のあと pages.yml が送る（2026-10-04）
   {
     const INDEXNOW_KEY = '227c68db5fbe5589b209db7b7915699a'
     const since = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10)
     const recentUrls = urls
-      .filter((u) => u === '/' || (lastmods.get(u) ?? '') >= since)
+      .filter((u) => !noindexUrls.has(u) && (u === '/' || (lastmods.get(u) ?? '') >= since))
       .map((u) => (u === '/' ? SITE : SITE + u.replace(/^\//, '') + '/'))
       .slice(0, 1000)
     await fs.writeFile(
@@ -869,7 +903,7 @@ async function main() {
       '',
       '## そのほか',
       '',
-      `- [サイトマップ](${SITE}sitemap.xml): 全 ${urls.length} ページの一覧`,
+      `- [サイトマップ](${SITE}sitemap.xml): 検索に出すページの一覧（ページ・質問・配信の3つに分けた索引）`,
       '- [作った経緯（note）](https://note.com/kawakamifarm/n/n1b47869416ee): 本人が書いた、このサイトを作った理由',
       '',
     ].join('\n'),
@@ -881,7 +915,7 @@ async function main() {
   // GitHub Pages 側で余計な加工をさせない
   await fs.writeFile(path.join(DIST, '.nojekyll'), '', 'utf8')
 
-  console.log(`書き出し: ${urls.length} ページ（うち個別の回 ${episodes.length}、全文つき ${withBody}）`)
+  console.log(`書き出し: ${urls.length} ページ（うち個別の回 ${episodes.length}、全文つき ${withBody}、中身が薄く検索に出さない回 ${thin}）`)
   console.log(`sitemap.xml / robots.txt / 404.html も作成。公開先: ${SITE}`)
 }
 
