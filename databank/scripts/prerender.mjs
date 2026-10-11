@@ -582,6 +582,8 @@ async function main() {
   }
 
   // 届いた質問1問ずつ（2026-09-27）: 質問そのもので調べる人の入口。QAPage の構造化データつき
+  /** 配信日を、タイムゾーンつきの日時に（配信は朝。日付が YYYY-MM-DD でなければ空） */
+  const qaDate = (d) => (/^\d{4}-\d{2}-\d{2}$/.test(d ?? '') ? `${d}T06:00:00+09:00` : '')
   {
     const ids = new Set()
     for (const x of questions) {
@@ -612,8 +614,17 @@ async function main() {
               name: clip(x.q, 110),
               text: x.q,
               answerCount: 1,
-              dateCreated: x.ep.date,
-              acceptedAnswer: { '@type': 'Answer', text: x.a || x.ep.title, author: AUTHOR, url: `${SITE}e/${x.ep.id}/`, dateCreated: x.ep.date, upvoteCount: 0 },
+              // Search Console の指摘（2026-10-11）: 質問の author・日時のタイムゾーン・答えの author.url を足す。日付が正しい形でない回は日時を出さない
+              author: { '@type': 'Person', name: '配信を聴いている方（匿名）' },
+              ...(qaDate(x.ep.date) ? { dateCreated: qaDate(x.ep.date) } : {}),
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: x.a || x.ep.title,
+                author: { ...AUTHOR, url: `${SITE}about/` },
+                url: `${SITE}e/${x.ep.id}/`,
+                ...(qaDate(x.ep.date) ? { dateCreated: qaDate(x.ep.date) } : {}),
+                upvoteCount: 0,
+              },
             },
           },
           breadcrumb([
