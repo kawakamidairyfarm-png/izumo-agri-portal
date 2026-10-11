@@ -66,6 +66,25 @@ if (env.SNS_CHECK === 'on') {
   process.exit(0)
 }
 
+// リールだけを手で出す（reel_only=on・2026-10-11 本人「試しにさっきの動画を投稿して」）。
+// 時間帯・「今夜は投稿済み」の決まりは使わず、Instagram にリールを1本だけ出す。質問カードには戻さない。
+// 記録は「今日の1問」の記号ではなく reel-<日付> で残す（翌日の質問カードの判定に混ざらないため）
+if (env.REEL_ONLY === 'on') {
+  if (!env.REEL_DRIVE_ID) throw new Error('reel_only には reel_id が要ります')
+  if (!LIVE || env.SNS_INSTAGRAM !== 'on') {
+    console.log('リールだけの投稿: 本番（SNS_LIVE・SNS_INSTAGRAM が on）ではないので出しません')
+    process.exit(0)
+  }
+  const id = await postReel(env.META_PAGE_TOKEN, env.IG_USER_ID, { caption: env.REEL_CAPTION || '川上牧場の切り抜き動画' })
+  const file = path.join(root, 'data', 'sns-posted.json')
+  const log = JSON.parse(fs.readFileSync(file, 'utf8'))
+  const jstDate = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10)
+  log.posts.push({ id: `reel-${jstDate}`, sns: 'instagram', at: new Date().toISOString(), postId: String(id), kind: 'reel' })
+  fs.writeFileSync(file, JSON.stringify(log, null, 1) + '\n', 'utf8')
+  console.log(`instagram: リールを投稿しました（${id}）`)
+  process.exit(0)
+}
+
 const today = JSON.parse(
   env.SNS_TODAY_FILE ? fs.readFileSync(env.SNS_TODAY_FILE, 'utf8') : await (await fetch(`${SITE}sns/today.json?t=${Date.now()}`)).text(),
 )
