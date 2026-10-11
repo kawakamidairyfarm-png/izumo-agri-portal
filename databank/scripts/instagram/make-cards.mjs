@@ -106,7 +106,10 @@ const made = []
 for (const x of picks) {
   const dir = siteDir ? path.join(siteDir, x.id) : path.join(root, 'instagram', 'out', `${x.episode.date}_${x.id}`)
   fs.mkdirSync(dir, { recursive: true })
-  const data = { q: x.q, a: shorten(x.a), date: fmt(x.episode.date), title: x.episode.title, photo: photoFor(x) }
+  // 表紙の絵: その質問のために作った絵（scripts/sns/make-art.mjs）があればそれを、無ければ牧場の写真
+  const artFile = path.join(root, 'data', 'sns-art', `${x.id}.jpg`)
+  const art = fs.existsSync(artFile) ? pathToFileURL(artFile).href : ''
+  const data = { q: x.q, a: shorten(x.a), date: fmt(x.episode.date), title: x.episode.title, photo: photoFor(x), art }
   for (const slide of [1, 2, 3]) {
     // 型紙は読み込み時に1回だけ描くので、1枚ごとに問い合わせ文字列を変えて読み込み直す（#だけ変えると描き直されない）
     await page.goto(`${tpl}?n=${x.id}-${slide}#${encodeURIComponent(JSON.stringify({ ...data, slide }))}`)

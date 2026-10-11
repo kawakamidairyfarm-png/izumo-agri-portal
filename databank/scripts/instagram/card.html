@@ -2,7 +2,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
 /* Instagram 縦長 1080×1350（4:5）。2026-10-11 作り直し:
-   - 1枚目は牧場の写真＋太いゴシックの質問（フィードで止まってもらう面。文字だけの面は告知に見えて流される）
+   - 1枚目は質問に合わせて作った絵（data/sns-art/。無ければ牧場の写真）＋太いゴシックの質問（フィードで止まってもらう面。文字だけの面は告知に見えて流される）
    - プロフィールの一覧は中央 3:4（左右が約34pxずつ欠ける）ので、文字は左右 72px 以上内側に置く
    - 1枚に言うことは1つ。2枚目は答えの要点、3枚目は「保存・続き・質問」の3つの次の一歩
    - 色はサイトと同じ（深緑・生成り・干し草の黄）。英語・絵文字は入れない */
@@ -17,6 +17,7 @@ html,body{margin:0;width:1080px;height:1350px;overflow:hidden;font-family:"Noto 
 /* 1枚目 */
 .s1 .photo{position:absolute;inset:0 0 auto 0;height:620px;background-size:cover;background-position:center}
 .s1 .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(23,42,25,.15),rgba(23,42,25,0) 40%)}
+.s1 .ai{position:absolute;right:84px;top:520px;font-size:22px;font-weight:700;color:#fff;background:rgba(23,42,25,.55);padding:6px 14px;border-radius:10px}
 .s1 .tag{position:absolute;left:84px;top:72px;background:var(--hay);color:var(--moss)}
 .s1 .panel{position:absolute;left:0;right:0;top:560px;bottom:0;background:var(--cream);border-radius:56px 56px 0 0;padding:56px 84px 0;display:flex;flex-direction:column;align-items:flex-start}
 .s1 .qmark{display:inline-flex;align-items:center;justify-content:center;width:84px;height:84px;border-radius:50%;background:var(--moss);color:var(--hay);font-weight:900;font-size:46px}
@@ -60,8 +61,8 @@ if (d.slide === 1) {
   const len = d.q.length;
   const size = len <= 16 ? 94 : len <= 24 ? 84 : len <= 34 ? 74 : len <= 46 ? 64 : 56;
   html = `<div class="card s1">
-    <div class="photo" style="background-image:url('photos/${esc(d.photo)}.jpg');background-position:${{ calf: 'center 6%', jersey: 'center 40%' }[d.photo] ?? 'center'}"></div>
-    <div class="pill tag">牧場に届いた質問</div>
+    <div class="photo" style="background-image:url('${esc(d.art || `photos/${d.photo}.jpg`)}');background-position:${d.art ? 'center' : ({ calf: 'center 6%', jersey: 'center 40%' }[d.photo] ?? 'center')}"></div>
+    <div class="pill tag">牧場に届いた質問</div>${d.art ? '<div class="ai">絵は生成AIで作成</div>' : ''}
     <div class="panel"><div class="qmark">問</div><div class="q" style="font-size:${size}px">${esc(d.q)}</div><div class="pill next">酪農家の答えは次へ</div></div>
     ${foot(1)}</div>`;
 } else if (d.slide === 2) {

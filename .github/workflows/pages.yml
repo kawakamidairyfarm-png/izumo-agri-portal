@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write # 今日の1問の絵（data/sns-art/）を残すため
   pages: write
   id-token: write
 
@@ -50,6 +50,22 @@ jobs:
         id: sns
         continue-on-error: true
         run: node scripts/sns/pick.mjs
+      # 今日の1問に合わせた表紙の絵を作る（1問1回だけ。作ったら data/sns-art/ に残して main へ）。鍵が無ければ写真のまま
+      - name: 今日の1問の絵
+        if: steps.sns.outputs.id != ''
+        continue-on-error: true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_IMAGE_MODEL: ${{ vars.GEMINI_IMAGE_MODEL }}
+        run: |
+          node scripts/sns/make-art.mjs --id ${{ steps.sns.outputs.id }}
+          if [ -n "$(git status --porcelain data/sns-art)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/sns-art
+            git commit -m "今日の1問の絵"
+            git pull --rebase origin main && git push origin HEAD:main
+          fi
       - name: 今日の1問のカード
         if: steps.sns.outputs.id != ''
         continue-on-error: true
