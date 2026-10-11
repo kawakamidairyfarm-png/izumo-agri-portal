@@ -8,6 +8,7 @@
 //   Instagram・Facebook: META_PAGE_TOKEN（Facebookページのアクセストークン）, IG_USER_ID, FB_PAGE_ID
 //   Threads: THREADS_TOKEN（60日で切れる。切れる前に作り直して入れ替える。THREADS_USER_ID は点検で照合するだけ）
 //   X: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET
+// その日のショート動画（任意・手で呼ぶときの入力）: REEL_DRIVE_ID（Google ドライブの動画の記号）、REEL_CAPTION（リールの投稿文）
 // 投稿したら data/sns-posted.json に記録する（同じ質問を二度出さない）。1つのSNSが失敗しても、ほかは続ける。
 import fs from 'node:fs'
 import path from 'node:path'
@@ -106,6 +107,14 @@ const jobs = {
   async instagram() {
     const token = env.META_PAGE_TOKEN
     const ig = env.IG_USER_ID
+    // その日のショート動画（毎日SNS投稿準備タスクが Google ドライブに置いたもの）があればリールで出す。失敗したら質問カードに戻す
+    if (env.REEL_DRIVE_ID) {
+      try {
+        return await postReel(token, ig)
+      } catch (e) {
+        console.log(`instagram: リールを出せなかったので質問カードにします（${e.message}）`)
+      }
+    }
     if (!(await imagesReady())) throw new Error('カードの画像がまだ公開されていません')
     const children = []
     for (const image_url of today.images) {
@@ -138,6 +147,40 @@ const jobs = {
     return first
   },
 }
+
+/**
+ * Instagram リール（2026-10-11）: Google ドライブの動画（リンクを知っている人は見られる設定）を取ってきて、
+ * Instagram の「再開可能アップロード」で動画そのものを送る（公開URLを Instagram に読みに行かせない）
+ */
+async function postReel(token, ig) {
+  const res = await fetch(`https://drive.usercontent.google.com/download?id=${encodeURIComponent(env.REEL_DRIVE_ID)}&export=download&confirm=t`)
+  const type = res.headers.get('content-type') || ''
+  if (!res.ok || !/video|octet-stream/.test(type)) throw new Error(`ドライブの動画を取れません（${res.status} ${type}）。共有が「リンクを知っている全員」になっているか`)
+  const video = Buffer.from(await res.arrayBuffer())
+  console.log(`リールの動画: ${(video.length / 1048576).toFixed(1)}MB`)
+  const caption = (env.REEL_CAPTION || today.text.instagram).slice(0, 2200)
+  const box = await form(`${GRAPH}/${ig}/media`, { media_type: 'REELS', upload_type: 'resumable', share_to_feed: 'true', caption, access_token: token })
+  const up = await fetch(box.uri || `https://rupload.facebook.com/ig-api-upload/v21.0/${box.id}`, {
+    method: 'POST',
+    headers: { Authorization: `OAuth ${token}`, offset: '0', file_size: String(video.length) },
+    body: video,
+  })
+  const upBody = await up.json().catch(() => ({}))
+  if (!up.ok || upBody.success === false) throw new Error(`動画の送信に失敗（${up.status} ${JSON.stringify(upBody).slice(0, 200)}）`)
+  // 動画の取り込みは数十秒〜数分かかる
+  for (let i = 0; i < 60; i++) {
+    const st = await get(`${GRAPH}/${box.id}?fields=status_code,status&access_token=${encodeURIComponent(token)}`)
+    if (st.status_code === 'FINISHED') break
+    if (st.status_code === 'ERROR' || st.status_code === 'EXPIRED') throw new Error(`動画の取り込みに失敗（${st.status ?? st.status_code}）`)
+    if (i === 59) throw new Error('動画の取り込みが5分で終わりませんでした')
+    await sleep(5000)
+  }
+  const id = (await form(`${GRAPH}/${ig}/media_publish`, { creation_id: box.id, access_token: token })).id
+  console.log('instagram: リールで投稿しました')
+  reelPosted = true
+  return id
+}
+let reelPosted = false
 
 /** X API v2 への投稿（OAuth 1.0a・本人のアカウント） */
 async function tweet(body) {
@@ -188,7 +231,7 @@ for (const sns of Object.keys(jobs)) {
   try {
     const id = await jobs[sns]()
     console.log(`${sns}: 投稿しました（${id}）`)
-    results.push({ id: today.pick.id, sns, at: new Date().toISOString(), postId: String(id) })
+    results.push({ id: today.pick.id, sns, at: new Date().toISOString(), postId: String(id), ...(sns === 'instagram' && reelPosted ? { kind: 'reel', drive: env.REEL_DRIVE_ID } : {}) })
   } catch (e) {
     console.log(`${sns}: 失敗 ${e.message}`)
     process.exitCode = 1

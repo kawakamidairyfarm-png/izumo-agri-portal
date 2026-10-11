@@ -30,6 +30,14 @@ on:
         description: on にすると点検だけ（投稿せず、鍵が使えるかを確かめる）
         required: false
         default: ''
+      reel_id:
+        description: その日のショート動画（Google ドライブのファイルの記号）。あれば Instagram はリールで出す
+        required: false
+        default: ''
+      reel_caption:
+        description: リールの投稿文（空なら質問カードと同じ文）
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -80,6 +88,8 @@ jobs:
           SNS_LIVE: ${{ inputs.live || vars.SNS_LIVE }}
           SNS_WINDOW: ${{ vars.SNS_WINDOW }}
           SNS_CHECK: ${{ inputs.check }}
+          REEL_DRIVE_ID: ${{ inputs.reel_id }}
+          REEL_CAPTION: ${{ inputs.reel_caption }}
           SNS_INSTAGRAM: ${{ vars.SNS_INSTAGRAM }}
           SNS_FACEBOOK: ${{ vars.SNS_FACEBOOK }}
           SNS_THREADS: ${{ vars.SNS_THREADS }}
