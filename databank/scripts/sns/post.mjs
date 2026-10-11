@@ -233,7 +233,7 @@ for (const sns of Object.keys(jobs)) {
   try {
     const id = await jobs[sns]()
     console.log(`${sns}: 投稿しました（${id}）`)
-    results.push({ id: today.pick.id, sns, at: new Date().toISOString(), postId: String(id), ...(sns === 'instagram' && reelPosted ? { kind: 'reel', drive: env.REEL_DRIVE_ID } : {}) })
+    results.push({ id: today.pick.id, sns, at: new Date().toISOString(), postId: String(id), ...(sns === 'instagram' && reelPosted ? { kind: 'reel' } : {}) })
   } catch (e) {
     console.log(`${sns}: 失敗 ${e.message}`)
     process.exitCode = 1
