@@ -155,8 +155,10 @@ const jobs = {
 async function postReel(token, ig) {
   const res = await fetch(`https://drive.usercontent.google.com/download?id=${encodeURIComponent(env.REEL_DRIVE_ID)}&export=download&confirm=t`)
   const type = res.headers.get('content-type') || ''
-  if (!res.ok || !/video|octet-stream/.test(type)) throw new Error(`ドライブの動画を取れません（${res.status} ${type}）。共有が「リンクを知っている全員」になっているか`)
+  if (!res.ok || /text\/html/.test(type)) throw new Error(`ドライブの動画を取れません（${res.status} ${type}）。共有が「リンクを知っている全員」になっているか`)
   const video = Buffer.from(await res.arrayBuffer())
+  // MP4 の先頭（4〜8バイト目が "ftyp"）で、本当に動画かを確かめる
+  if (video.subarray(4, 8).toString('latin1') !== 'ftyp') throw new Error(`ドライブから取れたものが MP4 ではありません（${type}・${video.length}バイト）`)
   console.log(`リールの動画: ${(video.length / 1048576).toFixed(1)}MB`)
   const caption = (env.REEL_CAPTION || today.text.instagram).slice(0, 2200)
   const box = await form(`${GRAPH}/${ig}/media`, { media_type: 'REELS', upload_type: 'resumable', share_to_feed: 'true', caption, access_token: token })
