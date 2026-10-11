@@ -16,12 +16,13 @@ html,body{margin:0;width:1080px;height:1350px;overflow:hidden;font-family:"Noto 
 
 /* 1枚目 */
 .s1 .photo{position:absolute;inset:0 0 auto 0;height:620px;background-size:cover;background-position:center}
+.s1 .photo svg{display:block;width:1080px;height:620px}
 .s1 .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(23,42,25,.15),rgba(23,42,25,0) 40%)}
 .s1 .ai{position:absolute;right:84px;top:520px;font-size:22px;font-weight:700;color:#fff;background:rgba(23,42,25,.55);padding:6px 14px;border-radius:10px}
 .s1 .tag{position:absolute;left:84px;top:72px;background:var(--hay);color:var(--moss)}
 .s1 .panel{position:absolute;left:0;right:0;top:560px;bottom:0;background:var(--cream);border-radius:56px 56px 0 0;padding:56px 84px 0;display:flex;flex-direction:column;align-items:flex-start}
 .s1 .qmark{display:inline-flex;align-items:center;justify-content:center;width:84px;height:84px;border-radius:50%;background:var(--moss);color:var(--hay);font-weight:900;font-size:46px}
-.s1 .q{margin-top:18px;font-weight:900;color:var(--ink);line-height:1.38;letter-spacing:.01em;word-break:auto-phrase}
+.s1 .q{margin-top:18px;max-width:912px;font-weight:900;color:var(--ink);line-height:1.38;letter-spacing:.01em;word-break:keep-all;overflow-wrap:anywhere}
 .s1 .next{margin-top:36px;align-self:flex-end;background:var(--moss);color:var(--cream);font-size:32px}
 .s1 .foot{color:var(--moss2)}
 
@@ -31,7 +32,7 @@ html,body{margin:0;width:1080px;height:1350px;overflow:hidden;font-family:"Noto 
 .s2 .amark{width:104px;height:104px;border-radius:50%;background:var(--moss);color:var(--hay);font-weight:900;font-size:54px;display:flex;align-items:center;justify-content:center}
 .s2 .who{font-size:38px;font-weight:900;color:var(--moss)}
 .s2 .who small{display:block;font-size:26px;font-weight:700;color:var(--ink2);margin-top:4px}
-.s2 .qline{margin-top:44px;font-size:32px;font-weight:700;color:var(--ink2);line-height:1.5;border-left:8px solid var(--hay);padding-left:22px;word-break:auto-phrase}
+.s2 .qline{margin-top:44px;font-size:32px;font-weight:700;color:var(--ink2);line-height:1.5;border-left:8px solid var(--hay);padding-left:22px;word-break:keep-all;overflow-wrap:anywhere}
 .s2 ul{list-style:none;margin:40px 0 0;padding:0;display:flex;flex-direction:column;gap:26px}
 .s2 li{background:#fff;border-radius:28px;padding:30px 34px;font-size:40px;line-height:1.62;font-weight:500;color:var(--ink);box-shadow:0 2px 0 var(--cream2);word-break:auto-phrase}
 .s2 .src{position:absolute;left:84px;right:84px;bottom:150px;font-size:26px;line-height:1.5;color:#5f665a;word-break:auto-phrase}
@@ -52,23 +53,35 @@ html,body{margin:0;width:1080px;height:1350px;overflow:hidden;font-family:"Noto 
 .s3 .foot{color:var(--hay)}
 </style></head><body>
 <div id="root"></div>
+<script src="art.js"></script>
 <script>
 const d = JSON.parse(decodeURIComponent(location.hash.slice(1)));
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 日本語の改行を言葉の切れ目だけにする（「な／ぜ」のような泣き別れを防ぐ）。助詞・記号は前の言葉につなげる
+const phrase = (t) => {
+  const seg = [...new Intl.Segmenter('ja', { granularity: 'word' }).segment(String(t))].map((x) => x.segment);
+  const out = [];
+  for (const w of seg) {
+    const glue = /^[、。！？」』）・…ー]+$/.test(w) || /^(か|は|が|を|に|の|へ|と|で|も|や|ね|よ|な|て|た|だ|ば|です|ます|でしょう|ません|ました|でした|ない|たい|から|まで|より|けど|って|ほど|だけ|など|れる|られる|せる|させる|れ|られ)$/.test(w);
+    if (out.length && (glue || /[「『（]$/.test(out[out.length - 1]))) out[out.length - 1] += w;
+    else out.push(w);
+  }
+  return out.map(esc).join('<wbr>');
+};
 const foot = (n) => `<div class="foot"><img src="logo.png" alt=""><span>川上牧場 酪農データバンク</span><span class="n">${n}/3</span></div>`;
 let html = '';
 if (d.slide === 1) {
   const len = d.q.length;
-  const size = len <= 16 ? 94 : len <= 24 ? 84 : len <= 34 ? 74 : len <= 46 ? 64 : 56;
+  const size = len <= 16 ? 94 : len <= 24 ? 84 : len <= 30 ? 74 : len <= 40 ? 66 : len <= 50 ? 60 : 54;
   html = `<div class="card s1">
-    <div class="photo" style="background-image:url('${esc(d.art || `photos/${d.photo}.jpg`)}');background-position:${d.art ? 'center' : ({ calf: 'center 6%', jersey: 'center 40%' }[d.photo] ?? 'center')}"></div>
+    ${d.illust && !d.art ? `<div class="photo">${window.drawArt(d.illust)}</div>` : `<div class="photo" style="background-image:url('${esc(d.art || `photos/${d.photo}.jpg`)}');background-position:${d.art ? 'center' : ({ calf: 'center 6%', jersey: 'center 40%' }[d.photo] ?? 'center')}"></div>`}
     <div class="pill tag">牧場に届いた質問</div>${d.art ? '<div class="ai">絵は生成AIで作成</div>' : ''}
-    <div class="panel"><div class="qmark">問</div><div class="q" style="font-size:${size}px">${esc(d.q)}</div><div class="pill next">酪農家の答えは次へ</div></div>
+    <div class="panel"><div class="qmark">問</div><div class="q" style="font-size:${size}px">${phrase(d.q)}</div><div class="pill next">酪農家の答えは次へ</div></div>
     ${foot(1)}</div>`;
 } else if (d.slide === 2) {
   html = `<div class="card s2">
     <div class="head"><div class="amark">答</div><div class="who">出雲の酪農家の答え<small>毎朝の配信で答えたことの要約</small></div></div>
-    <div class="qline">${esc(d.q)}</div>
+    <div class="qline">${phrase(d.q)}</div>
     <ul>${d.a.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
     <div class="src">${esc(d.date)}の配信「${esc(d.title)}」より</div>${foot(2)}</div>`;
 } else {

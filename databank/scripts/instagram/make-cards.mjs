@@ -70,6 +70,25 @@ function photoFor(x) {
   const h = [...x.id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
   return PHOTOS[h % PHOTOS.length]
 }
+/** 表紙のイラスト（art.js の場面）を質問の中身で選ぶ。上から順に当てる */
+const ILLUST = [
+  ['health', /乳房炎|病気|健康|獣医|薬|抗生|治療|体調|ワクチン/],
+  ['breeds', /ジャージー|ブラウンスイス|ガーンジー|品種|ホルスタイン以外|和牛|肉牛/],
+  ['calf', /子牛|出産|分娩|生まれ|雄|オス|赤ちゃん/],
+  ['butter', /バター|チーズ|ヨーグルト|生クリーム|乳製品|アイス/],
+  ['milk', /乳脂肪|成分|白い|味が|濃い|薄い/],
+  ['shop', /スーパー|値段|価格|原価|売り場|コンビニ|見分け|選ぶ|買う|安い|高級/],
+  ['feed', /餌|エサ|草|配合|飼料|サイレージ|食べ/],
+  ['milk', /牛乳|乳脂肪|味|成分|白い|給食|飲/],
+  ['work', /酪農家|仕事|研修|就農|作業|休み|ヘルパー|搾乳|応援/],
+]
+function illustFor(x) {
+  // 質問の文を先に見て、当たらなければテーマ（topics）で選ぶ
+  const hit = (t) => ILLUST.find(([, re]) => re.test(t))?.[0]
+  return hit(x.q) ?? hit((x.topics ?? []).join(' ')) ?? 'pasture'
+}
+// 表紙: photo（牧場の写真）か illust（図形で描くイラスト）。--cover か CARD_COVER で選ぶ（試し中・2026-10-11）
+const COVER = (args.includes('--cover') ? args[args.indexOf('--cover') + 1] : process.env.CARD_COVER) || 'photo'
 const fmt = (d) => {
   const [y, m, dd] = d.split('-').map(Number)
   return `${y}年${m}月${dd}日`
@@ -109,7 +128,7 @@ for (const x of picks) {
   // 表紙の絵: その質問のために作った絵（scripts/sns/make-art.mjs）があればそれを、無ければ牧場の写真
   const artFile = path.join(root, 'data', 'sns-art', `${x.id}.jpg`)
   const art = fs.existsSync(artFile) ? pathToFileURL(artFile).href : ''
-  const data = { q: x.q, a: shorten(x.a), date: fmt(x.episode.date), title: x.episode.title, photo: photoFor(x), art }
+  const data = { q: x.q, a: shorten(x.a), date: fmt(x.episode.date), title: x.episode.title, photo: photoFor(x), illust: COVER === 'illust' ? illustFor(x) : '', art }
   for (const slide of [1, 2, 3]) {
     // 型紙は読み込み時に1回だけ描くので、1枚ごとに問い合わせ文字列を変えて読み込み直す（#だけ変えると描き直されない）
     await page.goto(`${tpl}?n=${x.id}-${slide}#${encodeURIComponent(JSON.stringify({ ...data, slide }))}`)
