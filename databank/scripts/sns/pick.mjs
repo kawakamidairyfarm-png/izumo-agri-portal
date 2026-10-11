@@ -73,6 +73,7 @@ const text = {
     shorten(pick.a, 140),
     '',
     `答えの続きと、${fmt(pick.episode.date)}の配信「${pick.episode.title}」は、プロフィールのリンク（酪農データバンク）から。`,
+    'あとで見返せるように、保存しておくと便利です。',
     '牛乳や牛の「なぜ？」は、公式LINEで受け付けています。',
     '',
     tags.join(' '),

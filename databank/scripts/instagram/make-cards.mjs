@@ -1,4 +1,4 @@
-// Instagram の「今日の質問と答え」カードを作る（2026-09-27）。
+// Instagram の「今日の質問と答え」カードを作る（2026-09-27。10-11 に写真つきの表紙・要点の答え・次の一歩の3枚へ作り直し）。
 //
 //   node scripts/instagram/make-cards.mjs --latest 5      新しい質問から5問
 //   node scripts/instagram/make-cards.mjs --id 7c4dd6b9   住所（/q/<id>）を指定
@@ -60,6 +60,16 @@ function shorten(a) {
   for (let i = 0; i < out.length; i += 2) paras.push(out.slice(i, i + 2).join(''))
   return paras.length ? paras : ['この回の配信で答えています。']
 }
+/** 1枚目の写真を質問の中身で選ぶ（無ければ記号で順に回す。一覧で同じ写真が並ばないように） */
+const PHOTOS = ['cows', 'jersey', 'calves', 'barn', 'calf']
+function photoFor(x) {
+  const t = x.q + ' ' + (x.topics ?? []).join(' ')
+  if (/ジャージー|ブラウンスイス|ガーンジー/.test(t)) return 'jersey'
+  if (/子牛|雄|オス|出産|分娩|生まれ/.test(t)) return /雄|オス/.test(t) ? 'calves' : 'calf'
+  if (/餌|エサ|草|配合|飼料|サイレージ/.test(t)) return 'cows'
+  const h = [...x.id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
+  return PHOTOS[h % PHOTOS.length]
+}
 const fmt = (d) => {
   const [y, m, dd] = d.split('-').map(Number)
   return `${y}年${m}月${dd}日`
@@ -96,11 +106,20 @@ const made = []
 for (const x of picks) {
   const dir = siteDir ? path.join(siteDir, x.id) : path.join(root, 'instagram', 'out', `${x.episode.date}_${x.id}`)
   fs.mkdirSync(dir, { recursive: true })
-  const data = { q: x.q, a: shorten(x.a), date: fmt(x.episode.date), title: x.episode.title }
+  const data = { q: x.q, a: shorten(x.a), date: fmt(x.episode.date), title: x.episode.title, photo: photoFor(x) }
   for (const slide of [1, 2, 3]) {
     // 型紙は読み込み時に1回だけ描くので、1枚ごとに問い合わせ文字列を変えて読み込み直す（#だけ変えると描き直されない）
     await page.goto(`${tpl}?n=${x.id}-${slide}#${encodeURIComponent(JSON.stringify({ ...data, slide }))}`)
-    await page.evaluate(() => document.fonts.ready)
+    // 字体と写真（背景の写真も）を読み終えてから撮る
+    await page.evaluate(async () => {
+      await document.fonts.ready
+      const urls = [...document.images].map((i) => i.src)
+      for (const e of document.querySelectorAll('[style*="background-image"]')) {
+        const m = e.style.backgroundImage.match(/url\("?(.*?)"?\)/)
+        if (m) urls.push(new URL(m[1], location.href).href)
+      }
+      await Promise.all(urls.map((u) => new Promise((r) => { const i = new Image(); i.onload = i.onerror = r; i.src = u })))
+    })
     await page.waitForTimeout(250)
     await page.screenshot({ path: path.join(dir, `${slide}.png`) })
   }
