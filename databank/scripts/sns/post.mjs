@@ -20,6 +20,7 @@ const root = path.resolve(here, '..', '..')
 const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
 const env = process.env
 const LIVE = env.SNS_LIVE === 'on'
+let reelPosted = false
 const GRAPH = 'https://graph.facebook.com/v21.0'
 const THREADS = 'https://graph.threads.net/v1.0'
 
@@ -53,6 +54,14 @@ if (env.SNS_CHECK === 'on') {
       console.log(`Threads: 確かめられません ${e.message}`)
     }
   } else console.log('Threads: 鍵が未設定')
+  // リールの点検（reel_id を渡したとき）: ドライブから動画を取り、Instagram に送って取り込みまで確かめる。公開はしない
+  if (env.REEL_DRIVE_ID && env.META_PAGE_TOKEN && env.IG_USER_ID) {
+    try {
+      await postReel(env.META_PAGE_TOKEN, env.IG_USER_ID, { publish: false, caption: env.REEL_CAPTION || '点検' })
+    } catch (e) {
+      console.log(`リール: 使えません ${e.message}`)
+    }
+  }
   console.log('点検だけで、投稿はしていません')
   process.exit(0)
 }
@@ -81,7 +90,9 @@ const inTonight = (t) => day(jst(t)) === day(nowJst) && jst(t).getUTCHours() >= 
 const already = (sns) => posted.posts.some((p) => p.sns === sns && (p.id === today.pick.id || inTonight(p.at)))
 console.log(`今日の1問: ${today.pick.id}「${today.pick.q}」（${today.reason}）${LIVE ? '' : ' ※試運転'}`)
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms))
+}
 async function form(url, params) {
   const res = await fetch(url, { method: 'POST', body: new URLSearchParams(params) })
   const body = await res.json().catch(() => ({}))
@@ -152,7 +163,7 @@ const jobs = {
  * Instagram リール（2026-10-11）: Google ドライブの動画（リンクを知っている人は見られる設定）を取ってきて、
  * Instagram の「再開可能アップロード」で動画そのものを送る（公開URLを Instagram に読みに行かせない）
  */
-async function postReel(token, ig) {
+async function postReel(token, ig, { publish = true, caption: cap } = {}) {
   const res = await fetch(`https://drive.usercontent.google.com/download?id=${encodeURIComponent(env.REEL_DRIVE_ID)}&export=download&confirm=t`)
   const type = res.headers.get('content-type') || ''
   if (!res.ok || /text\/html/.test(type)) throw new Error(`ドライブの動画を取れません（${res.status} ${type}）。共有が「リンクを知っている全員」になっているか`)
@@ -160,7 +171,7 @@ async function postReel(token, ig) {
   // MP4 の先頭（4〜8バイト目が "ftyp"）で、本当に動画かを確かめる
   if (video.subarray(4, 8).toString('latin1') !== 'ftyp') throw new Error(`ドライブから取れたものが MP4 ではありません（${type}・${video.length}バイト）`)
   console.log(`リールの動画: ${(video.length / 1048576).toFixed(1)}MB`)
-  const caption = (env.REEL_CAPTION || today.text.instagram).slice(0, 2200)
+  const caption = (cap || env.REEL_CAPTION || today.text.instagram).slice(0, 2200)
   const box = await form(`${GRAPH}/${ig}/media`, { media_type: 'REELS', upload_type: 'resumable', share_to_feed: 'true', caption, access_token: token })
   const up = await fetch(box.uri || `https://rupload.facebook.com/ig-api-upload/v21.0/${box.id}`, {
     method: 'POST',
@@ -177,12 +188,15 @@ async function postReel(token, ig) {
     if (i === 59) throw new Error('動画の取り込みが5分で終わりませんでした')
     await sleep(5000)
   }
+  if (!publish) {
+    console.log(`リール: Instagram が動画を受け取り、取り込みまで済みました（公開はしていません。下書きは24時間で消えます）`)
+    return box.id
+  }
   const id = (await form(`${GRAPH}/${ig}/media_publish`, { creation_id: box.id, access_token: token })).id
   console.log('instagram: リールで投稿しました')
   reelPosted = true
   return id
 }
-let reelPosted = false
 
 /** X API v2 への投稿（OAuth 1.0a・本人のアカウント） */
 async function tweet(body) {
