@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpen, Headphones, HelpCircle, MessageCircle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, FileText, Headphones, HelpCircle, MessageCircle } from 'lucide-react'
 import { formatDate, topicByKey } from '../lib/data'
 import { LINKS } from '../lib/links'
 import { useAllQA } from '../lib/qa'
@@ -91,7 +91,25 @@ export default function QAPage() {
         </div>
       </section>
 
-      <section className="mt-8 rounded-2xl bg-moss-900 p-6 text-white">
+      {/* 質問で検索して来た人への受け皿（2026-10-14）。答えを読み終えたところに、同じ「なぜ？」の答えを10問まとめた冊子を置く。
+          5ページ目の小窓（メンバーシップ）は12回出て押されたのは0回だったのでやめ、こちらに替えた */}
+      <section className="mt-8 rounded-2xl border border-moss-100 bg-moss-50 p-6">
+        <p className="text-sm font-bold text-moss-700">ほかの「なぜ？」もまとめて読む</p>
+        <h2 className="mt-1 font-serif text-xl font-bold text-ink-900 [text-wrap:balance]">『牛乳の「なぜ？」10の答え』を無料で受け取る</h2>
+        <p className="mt-2 text-sm leading-relaxed text-ink-700">
+          牧場によく届く質問10問の答えを、1冊のPDFにまとめました。メルマガに登録すると、すぐに届きます（『ゼロから酪農を始める 読む順番』『和牛交配チェック 活用ガイド』も一緒に届きます）。
+        </p>
+        <a
+          href={LINKS.newsletter}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900"
+        >
+          <FileText size={18} /> 登録してPDFを受け取る（無料）
+        </a>
+      </section>
+
+      <section className="mt-6 rounded-2xl bg-moss-900 p-6 text-white">
         <p className="text-sm font-bold text-hay-100">あなたの「なぜ？」も</p>
         <h2 className="mt-1 font-serif text-xl font-bold [text-wrap:balance]">あなたの質問が、誰かの牛乳をもっとおいしくする。</h2>
         <p className="mt-2 text-sm leading-relaxed text-white/90">牛乳や牛のことで気になったことを、LINEで送ってください。毎朝の配信で答えています。</p>
