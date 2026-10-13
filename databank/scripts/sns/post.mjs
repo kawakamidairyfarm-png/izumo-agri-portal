@@ -21,6 +21,8 @@ const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
 const env = process.env
 const LIVE = env.SNS_LIVE === 'on'
 let reelPosted = false
+const videoPosted = new Set()
+let videoCache = null
 const GRAPH = 'https://graph.facebook.com/v21.0'
 const THREADS = 'https://graph.threads.net/v1.0'
 
@@ -60,6 +62,25 @@ if (env.SNS_CHECK === 'on') {
       await postReel(env.META_PAGE_TOKEN, env.IG_USER_ID, { publish: false, caption: env.REEL_CAPTION || '点検' })
     } catch (e) {
       console.log(`リール: 使えません ${e.message}`)
+    }
+    // Facebook: 公開しない動画として送り、受け取れたら消す
+    if (env.FB_PAGE_ID) {
+      try {
+        const id = await postFbVideo({ published: false, text: env.REEL_CAPTION || '点検' })
+        console.log('Facebook の動画: 受け取りまで済みました（公開していません）')
+        await fetch(`${GRAPH}/${id}?access_token=${encodeURIComponent(env.META_PAGE_TOKEN)}`, { method: 'DELETE' }).catch(() => {})
+      } catch (e) {
+        console.log(`Facebook の動画: 使えません ${e.message}`)
+      }
+    }
+    // Threads: 取り込みまで確かめて公開しない
+    if (env.THREADS_TOKEN) {
+      try {
+        await postThreadsVideo({ publish: false, text: env.REEL_CAPTION || '点検' })
+        console.log('Threads の動画: 取り込みまで済みました（公開していません）')
+      } catch (e) {
+        console.log(`Threads の動画: 使えません ${e.message}`)
+      }
     }
   }
   console.log('点検だけで、投稿はしていません')
@@ -161,10 +182,30 @@ const jobs = {
   },
   // Facebookページ: 文と質問のページへのリンク
   async facebook() {
+    if (env.REEL_DRIVE_ID) {
+      try {
+        const id = await postFbVideo({ text: videoText(today.text.facebook) })
+        console.log('facebook: 動画で投稿しました')
+        videoPosted.add('facebook')
+        return id
+      } catch (e) {
+        console.log(`facebook: 動画を出せなかったので質問カードにします（${e.message}）`)
+      }
+    }
     return (await form(`${GRAPH}/${env.FB_PAGE_ID}/feed`, { message: today.text.facebook, link: `${today.pick.page}?utm_source=facebook`, access_token: env.META_PAGE_TOKEN })).id
   },
   // Threads: 1枚目の画像と文（投稿先は鍵の持ち主 me）
   async threads() {
+    if (env.REEL_DRIVE_ID) {
+      try {
+        const id = await postThreadsVideo({ text: videoText(today.text.threads) })
+        console.log('threads: 動画で投稿しました')
+        videoPosted.add('threads')
+        return id
+      } catch (e) {
+        console.log(`threads: 動画を出せなかったので質問カードにします（${e.message}）`)
+      }
+    }
     const base = `${THREADS}/me`
     const box = await form(`${base}/threads`, { media_type: 'IMAGE', image_url: today.images[0], text: today.text.threads, access_token: env.THREADS_TOKEN })
     await sleep(15000) // Threads は取り込みに少し時間がかかる
@@ -182,14 +223,70 @@ const jobs = {
  * Instagram リール（2026-10-11）: Google ドライブの動画（リンクを知っている人は見られる設定）を取ってきて、
  * Instagram の「再開可能アップロード」で動画そのものを送る（公開URLを Instagram に読みに行かせない）
  */
-async function postReel(token, ig, { publish = true, caption: cap } = {}) {
-  const res = await fetch(`https://drive.usercontent.google.com/download?id=${encodeURIComponent(env.REEL_DRIVE_ID)}&export=download&confirm=t`)
+/** ドライブの動画の公開リンク（Threads はこの住所を読みに来る） */
+function driveUrl() {
+  return `https://drive.usercontent.google.com/download?id=${encodeURIComponent(env.REEL_DRIVE_ID)}&export=download&confirm=t`
+}
+/** ドライブの動画を1回だけ取ってきて、Instagram と Facebook で使い回す */
+async function getVideo() {
+  if (videoCache) return videoCache
+  const res = await fetch(driveUrl())
   const type = res.headers.get('content-type') || ''
   if (!res.ok || /text\/html/.test(type)) throw new Error(`ドライブの動画を取れません（${res.status} ${type}）。共有が「リンクを知っている全員」になっているか`)
   const video = Buffer.from(await res.arrayBuffer())
   // MP4 の先頭（4〜8バイト目が "ftyp"）で、本当に動画かを確かめる
   if (video.subarray(4, 8).toString('latin1') !== 'ftyp') throw new Error(`ドライブから取れたものが MP4 ではありません（${type}・${video.length}バイト）`)
-  console.log(`リールの動画: ${(video.length / 1048576).toFixed(1)}MB`)
+  console.log(`その日の動画: ${(video.length / 1048576).toFixed(1)}MB`)
+  return (videoCache = video)
+}
+/** 動画の投稿文（Instagram と同じ）。無ければ質問カードの文 */
+const videoText = (fallback) => env.REEL_CAPTION || fallback
+
+/**
+ * Facebook ページに動画を出す（2026-10-13 本人「Facebook・Threads も Instagram と同じ投稿で」）。
+ * published:false で出すと公開されない（点検用）
+ */
+async function postFbVideo({ published = true, text } = {}) {
+  const video = await getVideo()
+  const fd = new FormData()
+  fd.append('source', new Blob([video], { type: 'video/mp4' }), 'video.mp4')
+  fd.append('description', text)
+  fd.append('published', published ? 'true' : 'false')
+  fd.append('access_token', env.META_PAGE_TOKEN)
+  const res = await fetch(`https://graph-video.facebook.com/v21.0/${env.FB_PAGE_ID}/videos`, { method: 'POST', body: fd })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok || body.error) throw new Error(`Facebook の動画に失敗（${res.status} ${JSON.stringify(body.error ?? body).slice(0, 300)}）`)
+  return body.id
+}
+
+/**
+ * Threads に動画を出す。Threads は動画の住所を読みに来る（ドライブの公開リンク）。文は500字まで。
+ * publish:false なら取り込みまで確かめて公開しない（点検用）
+ */
+async function postThreadsVideo({ publish = true, text } = {}) {
+  const base = `${THREADS}/me`
+  const box = await form(`${base}/threads`, { media_type: 'VIDEO', video_url: driveUrl(), text: clip500(text), access_token: env.THREADS_TOKEN })
+  for (let i = 0; i < 60; i++) {
+    await sleep(5000)
+    const st = await get(`${THREADS}/${box.id}?fields=status,error_message&access_token=${encodeURIComponent(env.THREADS_TOKEN)}`)
+    if (st.status === 'FINISHED') break
+    if (st.status === 'ERROR' || st.status === 'EXPIRED') throw new Error(`Threads の動画の取り込みに失敗（${st.error_message ?? st.status}）`)
+    if (i === 59) throw new Error('Threads の動画の取り込みが5分で終わりませんでした')
+  }
+  if (!publish) return box.id
+  return (await form(`${base}/threads_publish`, { creation_id: box.id, access_token: env.THREADS_TOKEN })).id
+}
+/** Threads の500字に収める（段落・文の切れ目で切る） */
+function clip500(t) {
+  t = String(t || '')
+  if (t.length <= 500) return t
+  const cut = t.slice(0, 498)
+  const at = Math.max(cut.lastIndexOf('\n\n'), cut.lastIndexOf('。'))
+  return (at > 200 ? cut.slice(0, at + 1) : cut).trim()
+}
+
+async function postReel(token, ig, { publish = true, caption: cap } = {}) {
+  const video = await getVideo()
   const caption = (cap || env.REEL_CAPTION || today.text.instagram).slice(0, 2200)
   const box = await form(`${GRAPH}/${ig}/media`, { media_type: 'REELS', upload_type: 'resumable', share_to_feed: 'true', caption, access_token: token })
   const up = await fetch(box.uri || `https://rupload.facebook.com/ig-api-upload/v21.0/${box.id}`, {
@@ -266,7 +363,7 @@ for (const sns of Object.keys(jobs)) {
   try {
     const id = await jobs[sns]()
     console.log(`${sns}: 投稿しました（${id}）`)
-    results.push({ id: today.pick.id, sns, at: new Date().toISOString(), postId: String(id), ...(sns === 'instagram' && reelPosted ? { kind: 'reel' } : {}) })
+    results.push({ id: today.pick.id, sns, at: new Date().toISOString(), postId: String(id), ...((sns === 'instagram' && reelPosted) || videoPosted.has(sns) ? { kind: sns === 'instagram' ? 'reel' : 'video' } : {}) })
   } catch (e) {
     console.log(`${sns}: 失敗 ${e.message}`)
     process.exitCode = 1
