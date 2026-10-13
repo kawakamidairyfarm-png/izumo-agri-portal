@@ -288,14 +288,21 @@ function clip500(t) {
 async function postReel(token, ig, { publish = true, caption: cap } = {}) {
   const video = await getVideo()
   const caption = (cap || env.REEL_CAPTION || today.text.instagram).slice(0, 2200)
-  const box = await form(`${GRAPH}/${ig}/media`, { media_type: 'REELS', upload_type: 'resumable', share_to_feed: 'true', caption, access_token: token })
-  const up = await fetch(box.uri || `https://rupload.facebook.com/ig-api-upload/v21.0/${box.id}`, {
-    method: 'POST',
-    headers: { Authorization: `OAuth ${token}`, offset: '0', file_size: String(video.length) },
-    body: video,
-  })
-  const upBody = await up.json().catch(() => ({}))
-  if (!up.ok || upBody.success === false) throw new Error(`動画の送信に失敗（${up.status} ${JSON.stringify(upBody).slice(0, 200)}）`)
+  // 動画の送信は Instagram 側で一時的に断られることがある（10/13 の点検で1回 ProcessingFailedError）。1回だけ箱を作り直して送り直す
+  let box
+  for (let attempt = 1; ; attempt++) {
+    box = await form(`${GRAPH}/${ig}/media`, { media_type: 'REELS', upload_type: 'resumable', share_to_feed: 'true', caption, access_token: token })
+    const up = await fetch(box.uri || `https://rupload.facebook.com/ig-api-upload/v21.0/${box.id}`, {
+      method: 'POST',
+      headers: { Authorization: `OAuth ${token}`, offset: '0', file_size: String(video.length) },
+      body: video,
+    })
+    const upBody = await up.json().catch(() => ({}))
+    if (up.ok && upBody.success !== false) break
+    if (attempt >= 2) throw new Error(`動画の送信に失敗（${up.status} ${JSON.stringify(upBody).slice(0, 200)}）`)
+    console.log(`リール: 動画の送信を送り直します（${up.status}）`)
+    await sleep(10000)
+  }
   // 動画の取り込みは数十秒〜数分かかる
   for (let i = 0; i < 60; i++) {
     const st = await get(`${GRAPH}/${box.id}?fields=status_code,status&access_token=${encodeURIComponent(token)}`)
