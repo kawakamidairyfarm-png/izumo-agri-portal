@@ -317,7 +317,12 @@ async function postReel(token, ig, { publish = true, caption: cap } = {}) {
     })
     const upBody = await up.json().catch(() => ({}))
     if (up.ok && upBody.success !== false) break
-    if (attempt >= 2) throw new Error(`動画の送信に失敗（${up.status} ${JSON.stringify(upBody).slice(0, 200)}）`)
+    if (attempt >= 2) {
+      // 直接送るのを2回断られたら、Instagram にドライブの公開リンクを読みに来てもらう（Threads と同じ形・10/14 に 6.7MB の動画で2回断られたため）
+      console.log(`リール: 直接の送信を断られたので（${up.status} ${JSON.stringify(upBody).slice(0, 120)}）、ドライブのリンクから読んでもらいます`)
+      box = await form(`${GRAPH}/${ig}/media`, { media_type: 'REELS', video_url: driveUrl(), share_to_feed: 'true', caption, access_token: token })
+      break
+    }
     console.log(`リール: 動画の送信を送り直します（${up.status}）`)
     await sleep(10000)
   }
