@@ -48,6 +48,7 @@ const FARM = {
 const AUTHOR = {
   '@type': 'Person',
   name: '川上哲也',
+  url: `${SITE}about/`,
   jobTitle: '酪農家',
   worksFor: FARM,
   description: '島根県出雲市で乳牛約80頭を飼う酪農家。2019年から毎朝の音声配信を続けている。',
@@ -615,12 +616,13 @@ async function main() {
               text: x.q,
               answerCount: 1,
               // Search Console の指摘（2026-10-11）: 質問の author・日時のタイムゾーン・答えの author.url を足す。日付が正しい形でない回は日時を出さない
-              author: { '@type': 'Person', name: '配信を聴いている方（匿名）' },
+              // 同（2026-10-14）: 質問の author にも url が要る。匿名なので個人のページは無い → 質問の届き方を説明している「届いた質問」の一覧を指す
+              author: { '@type': 'Person', name: '配信を聴いている方（匿名）', url: `${SITE}questions/` },
               ...(qaDate(x.ep.date) ? { dateCreated: qaDate(x.ep.date) } : {}),
               acceptedAnswer: {
                 '@type': 'Answer',
                 text: x.a || x.ep.title,
-                author: { ...AUTHOR, url: `${SITE}about/` },
+                author: AUTHOR,
                 url: `${SITE}e/${x.ep.id}/`,
                 ...(qaDate(x.ep.date) ? { dateCreated: qaDate(x.ep.date) } : {}),
                 upvoteCount: 0,
