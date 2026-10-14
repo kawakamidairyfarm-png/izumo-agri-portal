@@ -20,6 +20,21 @@ const root = path.resolve(here, '..', '..')
 const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
 const env = process.env
 const LIVE = env.SNS_LIVE === 'on'
+// 投稿文はドライブの .md の記号（caption_id）でも渡せる（2026-10-14）。「## Instagram」の見出しの下を使う
+if (!env.REEL_CAPTION && env.REEL_CAPTION_ID) {
+  try {
+    const r = await fetch(`https://drive.usercontent.google.com/download?id=${encodeURIComponent(env.REEL_CAPTION_ID)}&export=download&confirm=t`)
+    const md = await r.text()
+    const m = md.match(/^## Instagram[^\n]*\n([\s\S]*?)(?=^---|^## |(?![\s\S]))/m)
+    const cap = (m ? m[1] : md).replace(/^#{1,6}\s+/gm, '').trim().slice(0, 2200)
+    if (r.ok && cap && !/^<!doctype|<html/i.test(cap)) {
+      env.REEL_CAPTION = cap
+      console.log(`投稿文: ドライブの .md から${m ? '「## Instagram」の部分を' : '全体を'}使います（${cap.length}字）`)
+    } else console.log('投稿文: ドライブの .md を読めませんでした（質問カードの文を使います）')
+  } catch (e) {
+    console.log(`投稿文: ドライブの .md を読めませんでした（${e.message}）`)
+  }
+}
 let reelPosted = false
 const videoPosted = new Set()
 let videoCache = null

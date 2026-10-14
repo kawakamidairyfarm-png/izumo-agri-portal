@@ -38,6 +38,10 @@ on:
         description: リールの投稿文（空なら質問カードと同じ文）
         required: false
         default: ''
+      reel_caption_id:
+        description: 投稿文の .md（Google ドライブのファイルの記号）。reel_caption が空のとき「## Instagram」の部分を使う
+        required: false
+        default: ''
       reel_only:
         description: on にすると Instagram にリールを1本だけ出す（時間帯・投稿済みの決まりを使わない。手で試すとき用）
         required: false
@@ -94,6 +98,7 @@ jobs:
           SNS_CHECK: ${{ inputs.check }}
           REEL_DRIVE_ID: ${{ inputs.reel_id }}
           REEL_CAPTION: ${{ inputs.reel_caption }}
+          REEL_CAPTION_ID: ${{ inputs.reel_caption_id }}
           REEL_ONLY: ${{ inputs.reel_only }}
           SNS_INSTAGRAM: ${{ vars.SNS_INSTAGRAM }}
           SNS_FACEBOOK: ${{ vars.SNS_FACEBOOK }}
