@@ -178,6 +178,7 @@ const jobs = {
       try {
         return await postReel(token, ig)
       } catch (e) {
+        if (env.SNS_FORCE === 'on') throw e
         console.log(`instagram: リールを出せなかったので質問カードにします（${e.message}）`)
       }
     }
@@ -204,6 +205,7 @@ const jobs = {
         videoPosted.add('facebook')
         return id
       } catch (e) {
+        if (env.SNS_FORCE === 'on') throw e
         console.log(`facebook: 動画を出せなかったので質問カードにします（${e.message}）`)
       }
     }
@@ -218,6 +220,7 @@ const jobs = {
         videoPosted.add('threads')
         return id
       } catch (e) {
+        if (env.SNS_FORCE === 'on') throw e
         console.log(`threads: 動画を出せなかったので質問カードにします（${e.message}）`)
       }
     }
@@ -373,7 +376,7 @@ for (const sns of Object.keys(jobs)) {
     console.log(`\n── ${sns}（${!on ? 'オフ' : '試運転'}）──\n${preview}`)
     continue
   }
-  if (already(sns)) {
+  if (already(sns) && env.SNS_FORCE !== 'on') {
     console.log(`${sns}: 今日はもう投稿済み`)
     continue
   }

@@ -8,17 +8,9 @@ name: SNS自動投稿（データバンクの1日1問）
 
 on:
   schedule:
-    # 投稿は日本時間 19:00〜21:00 のあいだに1回（2026-10-06 本人「だいたい19:00〜21:00までに投稿できれば良い」）。
-    # この repo の GitHub の時刻指定は 6〜9時間遅れることがある（10/5 は 19:07 の予約が翌朝 4:14、10/6 は7回とも 1:16〜2:24 に動いた）。
-    # そこで「昼〜夕方に起きて、19:03 まで待ってから投稿する」回を置く（下の wait）。遅れて夜に起きた回はそのまま投稿、時間帯の外なら何もしない
-    - cron: '7 5 * * *'   # 14:07 起き → 19:03 まで待つ
-    - cron: '7 6 * * *'   # 15:07
-    - cron: '7 7 * * *'   # 16:07
-    - cron: '7 8 * * *'   # 17:07
-    - cron: '7 9 * * *'   # 18:07
-    - cron: '7 10 * * *'  # 19:07（時刻どおりならすぐ投稿）
-    - cron: '37 10 * * *' # 19:37
-    - cron: '7 11 * * *'  # 20:07
+    # 2026-10-14: 投稿は毎晩 19:07 の Claude の定期実行（その日の動画を探してから呼ぶ）が受け持つ。
+    # GitHub の予約は、それが動かなかった夜のための予備を 20:37 に1回だけ置く（今夜もう出ていれば何もしない）。
+    # 早い時刻の予約は外した（10/14 に 19:03 の予約が先に質問カードを出し、19:07 の動画の投稿が「投稿済み」で止まったため）
     - cron: '37 11 * * *' # 20:37
   workflow_dispatch:
     inputs:
@@ -40,6 +32,10 @@ on:
         default: ''
       reel_caption_id:
         description: 投稿文の .md（Google ドライブのファイルの記号）。reel_caption が空のとき「## Instagram」の部分を使う
+        required: false
+        default: ''
+      force:
+        description: on にすると「今夜はもう投稿済み」の決まりを使わずに出す（動画のつもりが先に質問カードが出てしまった夜のやり直し用）。動画が失敗しても質問カードには戻さない
         required: false
         default: ''
       reel_only:
@@ -100,6 +96,7 @@ jobs:
           REEL_CAPTION: ${{ inputs.reel_caption }}
           REEL_CAPTION_ID: ${{ inputs.reel_caption_id }}
           REEL_ONLY: ${{ inputs.reel_only }}
+          SNS_FORCE: ${{ inputs.force }}
           SNS_INSTAGRAM: ${{ vars.SNS_INSTAGRAM }}
           SNS_FACEBOOK: ${{ vars.SNS_FACEBOOK }}
           SNS_THREADS: ${{ vars.SNS_THREADS }}
