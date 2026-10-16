@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-10-16",
+    "title": "最低賃金の改定、酪農はどう吸収する？",
+    "driveId": "xc9f6ded04f78ccb",
+    "bytes": 17923,
+    "source": "pody",
+    "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/LwZ6hlivD6PfHaKli3e9",
+    "bodySource": "pody"
+  },
+  {
     "date": "2026-10-15",
     "title": "なぜ“黒”がブランドになる？黒豚・黒毛和牛の正体",
     "driveId": "xaa4301bb18cac09",
@@ -7,6 +16,15 @@
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/JVc6uGWJKK6dE28SP674",
     "bodySource": "pody"
+  },
+  {
+    "date": "2026-10-15",
+    "title": "40歳の酪農家は、28日間で40万歩歩いていた。一般男性の1.66倍、それでも「健康な仕事」とは言い切れない理由",
+    "driveId": "n3fca58750fc7",
+    "bytes": 19054,
+    "source": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/n3fca58750fc7",
+    "bodySource": "note"
   },
   {
     "date": "2026-10-14",
@@ -565,10 +583,11 @@
     "date": "2026-08-28",
     "title": "酪農家はどんな事故に気をつけている？牛・機械・暑さ――統計から見る農作業の危険",
     "driveId": "xb06cea5c14dc654",
-    "bytes": 12676,
+    "bytes": 16967,
     "source": "pody",
     "podyUrl": "https://pody.jp/player/OT1nXl6WW61B8vjQ98ru/MttCEodx4eKyz2w2t7rE",
-    "bodySource": "pody"
+    "bodySource": "note",
+    "noteUrl": "https://note.com/kawakamifarm/n/n16856ea4fc26"
   },
   {
     "date": "2026-08-27",
