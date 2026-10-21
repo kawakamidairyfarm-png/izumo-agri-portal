@@ -26,6 +26,18 @@ export default function Home() {
   const trainee = SERIES.find((s) => s.key === 'trainee')!
   const lecture = SERIES.find((s) => s.key === 'lecture2021')!
   const profilePhoto = PHOTOS.about ?? PHOTOS.consumers
+  // SNS（Instagram・Threads・Facebook）の動画から来た人へ（2026-10-21）。10/14〜10/21 の来訪は Instagram が最多（14）なのに、
+  // トップに着いて最初の画面で帰る人が多かった（12訪問のうち5）。動画は毎朝の配信の切り抜きなので、最近の回をいちばん上に出す
+  const [fromSns, setFromSns] = useState(false)
+  useEffect(() => {
+    try {
+      const src = new URLSearchParams(location.search).get('utm_source') ?? sessionStorage.getItem('db-ref') ?? ''
+      setFromSns(/^(ig|instagram|threads)$|instagram\.com$|threads\.(net|com)$|facebook\.com$/.test(src))
+    } catch {
+      /* 何もしない */
+    }
+  }, [])
+  const recentForSns = EPISODES.filter((e) => !/メンバーシップ限定|牛群検定・バルク乳成績/.test(e.title)).slice(0, 3)
   // 最近届いた質問（証拠を1件だけ）。質問の索引は必要になってから読む（最初の読み込みを重くしない）
   const [latestQ, setLatestQ] = useState<{ q: string; episode: Episode } | null>(null)
   useEffect(() => {
@@ -66,6 +78,25 @@ export default function Home() {
           </>
         )}
         <div className="relative mx-auto max-w-6xl px-4 pt-5 pb-8 md:py-16 md:pr-[44%]">
+          {fromSns && recentForSns.length > 0 && (
+            <div className="mb-6 max-w-2xl rounded-2xl bg-cream-50 p-4 text-ink-900 shadow-lg">
+              <p className="text-sm font-bold text-moss-700">動画の続きは、配信の全文で</p>
+              <p className="mt-1 text-sm leading-relaxed text-ink-700">動画は毎朝の配信の一部です。最近の回はこちら。</p>
+              <ul className="mt-2 divide-y divide-cream-200">
+                {recentForSns.map((e) => (
+                  <li key={e.id}>
+                    <Link to={`/e/${e.id}`} className="flex items-start gap-3 py-2.5 hover:text-moss-700">
+                      <time dateTime={e.date} className="shrink-0 pt-0.5 text-xs font-bold text-ink-500">
+                        {formatDate(e.date).replace(/^\d+年/, '')}
+                      </time>
+                      <span className="min-w-0 flex-1 font-bold leading-snug [overflow-wrap:anywhere]">{e.title}</span>
+                      <ChevronRight size={16} className="mt-0.5 shrink-0 text-moss-700" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {/* 牧場そのものを探して来た人のために、ホームページへ（2026-09-26）。字間を広げると2行に折れて「ジ」が落ちたので詰める */}
           <p className="text-sm font-bold text-hay-100">
             島根県出雲市・

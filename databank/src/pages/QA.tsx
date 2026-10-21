@@ -27,9 +27,17 @@ export default function QAPage() {
   }
   const e = item.episode
   const topic = e.topics.map((k) => topicByKey(k)).find(Boolean)
+  // 質問の形をした短いもの（感想や長いコメントは外す）を、テーマの重なりが多い順・答えの要約がある順・新しい回から
+  const overlap = (x: (typeof all)[number]) => x.episode.topics.filter((t) => e.topics.includes(t)).length
   const same = all
-    .filter((x) => x.id !== item.id && x.episode.topics.some((t) => e.topics.includes(t)))
-    .slice(0, 5)
+    .filter((x) => x.id !== item.id && overlap(x) > 0 && x.q.length >= 10 && x.q.length <= 60 && /[？?]/.test(x.q))
+    .sort(
+      (x, y) =>
+        overlap(y) - overlap(x) ||
+        Number(Boolean(y.a)) - Number(Boolean(x.a)) ||
+        (x.episode.date < y.episode.date ? 1 : x.episode.date > y.episode.date ? -1 : 0),
+    )
+    .slice(0, 4)
   const paras = item.a ? item.a.split(/\n+/).flatMap((t) => splitParagraph(t, 90, 30)) : []
 
   return (
@@ -91,6 +99,22 @@ export default function QAPage() {
         </div>
       </section>
 
+      {same.length > 0 && (
+        // 検索で質問ページに来た人は、10/14〜10/21 の6訪問とも1ページで帰っていた。次に読む質問を、答えのすぐ下（案内より前）に置く（2026-10-21）
+        <section className="mt-8">
+          <h2 className="font-serif text-xl font-bold text-ink-900">続けて読む：同じテーマの質問</h2>
+          <ul className="mt-3 divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200">
+            {same.map((x) => (
+              <li key={x.id}>
+                <Link to={`/q/${x.id}`} className="flex items-start gap-3 px-5 py-4 hover:bg-cream-50">
+                  <span className="shrink-0 font-serif font-bold text-moss-700">Q</span>
+                  <span className="min-w-0 flex-1 text-ink-900 [overflow-wrap:anywhere]">{x.q}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {/* 質問で検索して来た人への受け皿（2026-10-14）。答えを読み終えたところに、同じ「なぜ？」の答えを10問まとめた冊子を置く。
           5ページ目の小窓（メンバーシップ）は12回出て押されたのは0回だったのでやめ、こちらに替えた */}
       <section className="mt-8 rounded-2xl border border-moss-100 bg-moss-50 p-6">
@@ -118,21 +142,6 @@ export default function QAPage() {
         </a>
       </section>
 
-      {same.length > 0 && (
-        <section className="mt-10">
-          <h2 className="font-serif text-xl font-bold text-ink-900">同じテーマの質問</h2>
-          <ul className="mt-3 divide-y divide-cream-200 rounded-2xl bg-white border border-cream-200">
-            {same.map((x) => (
-              <li key={x.id}>
-                <Link to={`/q/${x.id}`} className="flex items-start gap-3 px-5 py-4 hover:bg-cream-50">
-                  <span className="shrink-0 font-serif font-bold text-moss-700">Q</span>
-                  <span className="min-w-0 flex-1 text-ink-900 [overflow-wrap:anywhere]">{x.q}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
       <Link to="/questions" className="mt-6 inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
         届いた質問をすべて見る <ArrowRight size={16} />
       </Link>
