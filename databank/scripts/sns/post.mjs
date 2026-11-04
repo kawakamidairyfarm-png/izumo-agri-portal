@@ -54,6 +54,19 @@ if (env.SNS_CHECK === 'on') {
   const t = encodeURIComponent(env.META_PAGE_TOKEN || '')
   if (env.META_PAGE_TOKEN && env.IG_USER_ID) await show('Instagram', `${GRAPH}/${env.IG_USER_ID}?fields=username&access_token=${t}`)
   else console.log('Instagram: 鍵が未設定')
+  // プロフィールのリンク先と、この7日のプロフィール・リンクの動き（2026-11-05: 10/31 以降 Instagram からの来訪が0になったため）
+  if (env.META_PAGE_TOKEN && env.IG_USER_ID) {
+    try {
+      const a = await (await fetch(`${GRAPH}/${env.IG_USER_ID}?fields=website,followers_count,media_count&access_token=${t}`)).json()
+      console.log(a.error ? `Instagram プロフィール: 読めません ${a.error.message}` : `Instagram プロフィール: リンク ${a.website || '（なし）'}／フォロワー ${a.followers_count}／投稿 ${a.media_count}`)
+      const since = Math.floor(Date.now() / 1000) - 7 * 86400
+      const m = await (await fetch(`${GRAPH}/${env.IG_USER_ID}/insights?metric=profile_views,profile_links_taps,reach&metric_type=total_value&period=day&since=${since}&access_token=${t}`)).json()
+      if (m.error) console.log(`Instagram の数字（7日）: 読めません ${m.error.message}`)
+      else console.log(`Instagram の数字（7日）: ${(m.data || []).map((x) => `${x.name} ${x.total_value?.value ?? '?'}`).join('／')}`)
+    } catch (e) {
+      console.log(`Instagram プロフィール: 確かめられません ${e.message}`)
+    }
+  }
   if (env.META_PAGE_TOKEN && env.FB_PAGE_ID) await show('Facebookページ', `${GRAPH}/${env.FB_PAGE_ID}?fields=name&access_token=${t}`)
   else console.log('Facebookページ: 鍵が未設定')
   if (env.META_PAGE_TOKEN) {
