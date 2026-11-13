@@ -37,6 +37,8 @@ const ok = qa.filter(
     x.q.length >= 10 &&
     x.q.length <= 60 &&
     !/^(でも|じゃあ|では|それ|その|あと|なら|だったら|ということは)/.test(x.q) &&
+    // 配信そのものへの感想・苦情（「誰に向けて発信してんの？」など）は、牛乳や牛の質問ではないので外す（2026-11-13）
+    !/発信|配信|放送|ライブ|LIVE|素人/i.test(x.q) &&
     /川上さん|酪農家/.test(x.a.slice(0, 160)) &&
     /[？?]|ですか|ますか|でしょうか/.test(x.q),
 )
@@ -47,7 +49,17 @@ const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)
 const pick =
   left.find((x) => daysAgo(x.episode.date) <= 3) ??
   left.filter((x) => x.topics.some((t) => season.some((w) => t.includes(w))))[0] ??
-  [...left].sort((a, b) => hash(today + a.id) - hash(today + b.id))[0]
+  [...left].sort((a, b) => hash(today + a.id) - hash(today + b.id))[0] ??
+  again()
+
+// まだ出していない質問が尽きたら、出してから60日以上たった質問を、いちばん前に出したものから出し直す（2026-11-13: 候補が尽きた）
+function again() {
+  const last = new Map()
+  for (const p of posted.posts) if (!last.has(p.id) || p.at > last.get(p.id)) last.set(p.id, p.at)
+  return ok
+    .filter((x) => last.has(x.id) && daysAgo(last.get(x.id).slice(0, 10)) >= 60)
+    .sort((a, b) => (last.get(a.id) < last.get(b.id) ? -1 : 1))[0]
+}
 
 const outDir = path.join(root, 'dist', 'sns')
 fs.mkdirSync(outDir, { recursive: true })

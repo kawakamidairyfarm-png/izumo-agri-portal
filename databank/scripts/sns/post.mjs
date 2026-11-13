@@ -137,7 +137,13 @@ if (env.REEL_ONLY === 'on') {
 const today = JSON.parse(
   env.SNS_TODAY_FILE ? fs.readFileSync(env.SNS_TODAY_FILE, 'utf8') : await (await fetch(`${SITE}sns/today.json?t=${Date.now()}`)).text(),
 )
-if (!today.pick) {
+// 質問カードの候補が尽きても、動画の日は動画だけ出す（2026-11-13: 候補が無く、動画まで出ずに終わった）
+const videoOnly = !today.pick && Boolean(env.REEL_DRIVE_ID)
+if (videoOnly) {
+  const d = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10)
+  const cap = env.REEL_CAPTION || '川上牧場の切り抜き動画'
+  Object.assign(today, { pick: { id: `video-${d}`, q: '（動画だけ）' }, reason: '質問カードの候補が無いので動画だけ', text: { instagram: cap, facebook: cap, threads: cap }, images: [] })
+} else if (!today.pick) {
   console.log('今日は投稿する質問がありません')
   process.exit(0)
 }
@@ -191,7 +197,7 @@ const jobs = {
       try {
         return await postReel(token, ig)
       } catch (e) {
-        if (env.SNS_FORCE === 'on') throw e
+        if (env.SNS_FORCE === 'on' || videoOnly) throw e
         console.log(`instagram: リールを出せなかったので質問カードにします（${e.message}）`)
       }
     }
@@ -218,7 +224,7 @@ const jobs = {
         videoPosted.add('facebook')
         return id
       } catch (e) {
-        if (env.SNS_FORCE === 'on') throw e
+        if (env.SNS_FORCE === 'on' || videoOnly) throw e
         console.log(`facebook: 動画を出せなかったので質問カードにします（${e.message}）`)
       }
     }
@@ -233,7 +239,7 @@ const jobs = {
         videoPosted.add('threads')
         return id
       } catch (e) {
-        if (env.SNS_FORCE === 'on') throw e
+        if (env.SNS_FORCE === 'on' || videoOnly) throw e
         console.log(`threads: 動画を出せなかったので質問カードにします（${e.message}）`)
       }
     }
