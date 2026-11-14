@@ -18,10 +18,10 @@ jobs:
         with:
           node-version: 22
       - run: |
-          mkdir t && cd t && npm init -y >/dev/null && npm i playwright@1.56.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+          mkdir t && cd t && npm init -y >/dev/null && npm i playwright >/dev/null && (which google-chrome || true)
           cat > c.mjs <<'JS'
           import { chromium } from 'playwright'
-          const b = await chromium.launch()
+          const b = await chromium.launch({ channel: 'chrome' }).catch(() => chromium.launch())
           const ctx = await b.newContext({ userAgent: 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Mobile Safari/537.36', viewport: { width: 390, height: 844 } })
           const p = await ctx.newPage()
           p.on('request', (r) => { if (/cloudflareinsights|script\.google|goatcounter/.test(r.url())) console.log('REQ', r.method(), r.url().slice(0, 120)) })
