@@ -25,6 +25,18 @@ export default function QAPage() {
       </div>
     )
   }
+  // この閲覧の間に開いた質問ページの数（同じ質問は1回と数える）。11/5〜11/15、検索で来た人が質問ページを7〜15ページ続けて読んでいたが、
+  // 冊子の案内は「続けて読む」の下にあり一度も押されなかった。3問目からは案内を「続けて読む」の上に出す（2026-11-15）
+  const qSeen = (() => {
+    try {
+      const seen = new Set<string>(JSON.parse(sessionStorage.getItem('db-q-seen') || '[]'))
+      seen.add(item.id)
+      sessionStorage.setItem('db-q-seen', JSON.stringify([...seen]))
+      return seen.size
+    } catch {
+      return 1
+    }
+  })()
   const e = item.episode
   const topic = e.topics.map((k) => topicByKey(k)).find(Boolean)
   // 質問の形をした短いもの（感想や長いコメントは外す）を、テーマの重なりが多い順・答えの要約がある順・新しい回から
@@ -39,6 +51,26 @@ export default function QAPage() {
     )
     .slice(0, 4)
   const paras = item.a ? item.a.split(/\n+/).flatMap((t) => splitParagraph(t, 90, 30)) : []
+
+  /* 質問で検索して来た人への受け皿（2026-10-14）。答えを読み終えたところに、同じ「なぜ？」の答えを10問まとめた冊子を置く。
+     5ページ目の小窓（メンバーシップ）は12回出て押されたのは0回だったのでやめ、こちらに替えた */
+  const offer = (
+    <section className="mt-8 rounded-2xl border border-moss-100 bg-moss-50 p-6">
+      <p className="text-sm font-bold text-moss-700">{qSeen >= 3 ? `質問を${qSeen}問読んだ方へ` : 'ほかの「なぜ？」もまとめて読む'}</p>
+      <h2 className="mt-1 font-serif text-xl font-bold text-ink-900 [text-wrap:balance]">『牛乳の「なぜ？」10の答え』を無料で受け取る</h2>
+      <p className="mt-2 text-sm leading-relaxed text-ink-700">
+        牧場によく届く質問10問の答えを、1冊のPDFにまとめました。メルマガに登録すると、すぐに届きます（『ゼロから酪農を始める 読む順番』『和牛交配チェック 活用ガイド』も一緒に届きます）。
+      </p>
+      <a
+        href={LINKS.newsletter}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900"
+      >
+        <FileText size={18} /> 登録してPDFを受け取る（無料）
+      </a>
+    </section>
+  )
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8">
@@ -99,6 +131,7 @@ export default function QAPage() {
         </div>
       </section>
 
+      {qSeen >= 3 && offer}
       {same.length > 0 && (
         // 検索で質問ページに来た人は、10/14〜10/21 の6訪問とも1ページで帰っていた。次に読む質問を、答えのすぐ下（案内より前）に置く（2026-10-21）
         <section className="mt-8">
@@ -115,23 +148,7 @@ export default function QAPage() {
           </ul>
         </section>
       )}
-      {/* 質問で検索して来た人への受け皿（2026-10-14）。答えを読み終えたところに、同じ「なぜ？」の答えを10問まとめた冊子を置く。
-          5ページ目の小窓（メンバーシップ）は12回出て押されたのは0回だったのでやめ、こちらに替えた */}
-      <section className="mt-8 rounded-2xl border border-moss-100 bg-moss-50 p-6">
-        <p className="text-sm font-bold text-moss-700">ほかの「なぜ？」もまとめて読む</p>
-        <h2 className="mt-1 font-serif text-xl font-bold text-ink-900 [text-wrap:balance]">『牛乳の「なぜ？」10の答え』を無料で受け取る</h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-700">
-          牧場によく届く質問10問の答えを、1冊のPDFにまとめました。メルマガに登録すると、すぐに届きます（『ゼロから酪農を始める 読む順番』『和牛交配チェック 活用ガイド』も一緒に届きます）。
-        </p>
-        <a
-          href={LINKS.newsletter}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900"
-        >
-          <FileText size={18} /> 登録してPDFを受け取る（無料）
-        </a>
-      </section>
+      {qSeen < 3 && offer}
 
       <section className="mt-6 rounded-2xl bg-moss-900 p-6 text-white">
         <p className="text-sm font-bold text-hay-100">あなたの「なぜ？」も</p>
