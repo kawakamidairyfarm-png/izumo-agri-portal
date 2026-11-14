@@ -23,6 +23,8 @@ jobs:
           import { chromium } from 'playwright'
           const b = await chromium.launch({ channel: 'chrome' }).catch(() => chromium.launch())
           const ctx = await b.newContext({ userAgent: 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Mobile Safari/537.36', viewport: { width: 390, height: 844 } })
+          // サイトは自動ブラウザ（navigator.webdriver）を数えないので、この点検の間だけ人のブラウザと同じに見せる（自前の記録に1訪問ぶん残る）
+          await ctx.addInitScript(() => Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false }))
           const p = await ctx.newPage()
           p.on('request', (r) => { if (/cloudflareinsights|script\.google|goatcounter/.test(r.url())) console.log('REQ', r.method(), r.url().slice(0, 120)) })
           p.on('response', (r) => { if (/cloudflareinsights/.test(r.url())) console.log('RES', r.status(), r.url().slice(0, 120)) })
