@@ -42,6 +42,10 @@ on:
         description: on にすると Instagram にリールを1本だけ出す（時間帯・投稿済みの決まりを使わない。手で試すとき用）
         required: false
         default: ''
+      window:
+        description: 投稿してよい時間帯（日本時間）をこの回だけ変える（例 19-23）。19:07 の呼び出しが遅れて21時を過ぎた夜のやり直し用
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -90,7 +94,7 @@ jobs:
       - name: 投稿する
         env:
           SNS_LIVE: ${{ inputs.live || vars.SNS_LIVE }}
-          SNS_WINDOW: ${{ vars.SNS_WINDOW }}
+          SNS_WINDOW: ${{ inputs.window || vars.SNS_WINDOW }}
           SNS_CHECK: ${{ inputs.check }}
           REEL_DRIVE_ID: ${{ inputs.reel_id }}
           REEL_CAPTION: ${{ inputs.reel_caption }}
