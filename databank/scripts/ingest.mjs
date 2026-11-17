@@ -604,6 +604,17 @@ export function podyArticleToText(html) {
     /<div class="question-from"[^>]*>([\s\S]*?)<\/div>\s*<p class="question-text"[^>]*>([\s\S]*?)<\/p>/gi,
     (_m, from, q) => `\n\n?? ${inlineText(from)}｜${inlineText(q)}\n\n`,
   )
+  /* 届いた質問・コメント（2026-10-27ごろからの新しい形）:
+     <div class="qa-solo"><span class="qa-compact-badge">…</span><div class="qa-compact-body"><p class="qa-solo-text">本文</p><p class="qa-compact-who">名前 さんから</p></div></div>
+     名前の段は無いこともある。2026-11-17 まで拾えず、10/27 以降の質問が「届いた質問」に入っていなかった */
+  s = s.replace(
+    /<div class="qa-(?:solo|compact)"[^>]*>\s*(?:<span class="qa-compact-badge"[^>]*>[\s\S]*?<\/span>)?\s*<div class="qa-compact-body"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi,
+    (_m, body) => {
+      const q = inlineText(/<p class="qa-solo-text"[^>]*>([\s\S]*?)<\/p>/i.exec(body)?.[1] ?? '')
+      const from = inlineText(/<p class="qa-compact-who"[^>]*>([\s\S]*?)<\/p>/i.exec(body)?.[1] ?? '').replace(/\s*さんから$/, '')
+      return q ? `\n\n?? ${from}｜${q}\n\n` : ''
+    },
+  )
   /* だいじなひとこと: <p class="insight-text">…</p> と、その下の <div class="insight-attr">── 名前</div> */
   s = s.replace(
     /<p class="insight-text"[^>]*>([\s\S]*?)<\/p>\s*(?:<div class="insight-attr"[^>]*>([\s\S]*?)<\/div>)?/gi,
