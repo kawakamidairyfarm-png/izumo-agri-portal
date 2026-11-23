@@ -46,6 +46,10 @@ on:
         description: 投稿してよい時間帯（日本時間）をこの回だけ変える（例 19-23）。19:07 の呼び出しが遅れて21時を過ぎた夜のやり直し用
         required: false
         default: ''
+      video_only:
+        description: on にすると質問カードを使わず動画だけ出す（記録は clip-日付。月〜土 12:07 の日曜動画の切り抜き用。window=12-15 と組で使う）
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -100,6 +104,7 @@ jobs:
           REEL_CAPTION: ${{ inputs.reel_caption }}
           REEL_CAPTION_ID: ${{ inputs.reel_caption_id }}
           REEL_ONLY: ${{ inputs.reel_only }}
+          VIDEO_ONLY: ${{ inputs.video_only }}
           SNS_FORCE: ${{ inputs.force }}
           SNS_INSTAGRAM: ${{ vars.SNS_INSTAGRAM }}
           SNS_FACEBOOK: ${{ vars.SNS_FACEBOOK }}

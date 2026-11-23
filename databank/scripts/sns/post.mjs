@@ -138,11 +138,14 @@ const today = JSON.parse(
   env.SNS_TODAY_FILE ? fs.readFileSync(env.SNS_TODAY_FILE, 'utf8') : await (await fetch(`${SITE}sns/today.json?t=${Date.now()}`)).text(),
 )
 // 質問カードの候補が尽きても、動画の日は動画だけ出す（2026-11-13: 候補が無く、動画まで出ずに終わった）
-const videoOnly = !today.pick && Boolean(env.REEL_DRIVE_ID)
+// 月〜土のお昼（12:07）の日曜動画の切り抜きは VIDEO_ONLY=on で呼ぶ（2026-11-23）。質問カードの1問とは別の記録（clip-日付）にして、
+// 夜19:07 の投稿が「今日の1問はもう投稿済み」で止まらないようにする
+const clipSlot = env.VIDEO_ONLY === 'on' && Boolean(env.REEL_DRIVE_ID)
+const videoOnly = clipSlot || (!today.pick && Boolean(env.REEL_DRIVE_ID))
 if (videoOnly) {
   const d = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10)
   const cap = env.REEL_CAPTION || '川上牧場の切り抜き動画'
-  Object.assign(today, { pick: { id: `video-${d}`, q: '（動画だけ）' }, reason: '質問カードの候補が無いので動画だけ', text: { instagram: cap, facebook: cap, threads: cap }, images: [] })
+  Object.assign(today, { pick: { id: clipSlot ? `clip-${d}` : `video-${d}`, q: '（動画だけ）' }, reason: clipSlot ? 'お昼の日曜動画の切り抜き' : '質問カードの候補が無いので動画だけ', text: { instagram: cap, facebook: cap, threads: cap }, images: [] })
 } else if (!today.pick) {
   console.log('今日は投稿する質問がありません')
   process.exit(0)
