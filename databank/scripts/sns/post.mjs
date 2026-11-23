@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..', '..')
-const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
+const SITE = 'https://rakuno-databank.com/'
 const env = process.env
 const LIVE = env.SNS_LIVE === 'on'
 // 投稿文はドライブの .md の記号（caption_id）でも渡せる（2026-10-14）。「## Instagram」の見出しの下を使う

@@ -501,7 +501,7 @@ function frame(f, prog) {
     // noteの有料記事になっている回は、データバンクに全文が無い＝「もっと詳しくはnoteで」と正直に案内する
     return `<div class="s cover"><div class="mark">${portrait ? `<img src="${portrait}" alt="">` : ''}川上牧場 酪農データバンク</div>
       <div class="mid"><div class="endh">この回の${ep.notePaid ? '要点' : '全文'}・用語・質問は、<br>データバンクで読めます。</div>
-      <div class="url">kawakamidairyfarm-png.github.io/izumo-agri-portal/e/${esc(epId)}/</div>
+      <div class="url">rakuno-databank.com/e/${esc(epId)}/</div>
       <div class="endn">牛乳のこと、牛のこと、酪農家になる道のこと。2019年からの配信を、言葉で探せます。質問は公式LINEへ。${
         ep.notePaid ? `<br><b>もっと詳しくは、noteの記事で${ep.notePrice ? `（${ep.notePrice.toLocaleString()}円）` : ''}。note.com/kawakamifarm</b>` : ''
       }</div></div>
@@ -732,7 +732,7 @@ const mmss = (sec) => {
   const r = `${String(Math.floor((x % 3600) / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`
   return h ? `${h}:${r}` : r
 }
-const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
+const SITE = 'https://rakuno-databank.com/'
 await fs.writeFile(
   path.join(OUT, 'youtube.txt'),
   [

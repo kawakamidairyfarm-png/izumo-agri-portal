@@ -18,7 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..', '..')
-const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
+const SITE = 'https://rakuno-databank.com/'
 
 function loadPlaywright() {
   const tries = [process.env.PLAYWRIGHT_DIR, root, '/root/.claude/skills/kintsugi'].filter(Boolean)

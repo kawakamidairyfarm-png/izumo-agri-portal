@@ -64,7 +64,7 @@ const CREATOR = process.env.NOTE_CREATOR || 'kawakamifarm'
 const API_BASE = (process.env.NOTE_API_BASE || 'https://note.com').replace(/\/$/, '')
 const PODY_FEED = process.env.PODY_FEED_ID || 'OT1nXl6WW61B8vjQ98ru'
 const PODY_BASE = (process.env.PODY_BASE || 'https://pody.jp').replace(/\/$/, '')
-const UA = 'kawakami-databank-ingest/1.0 (+https://kawakamidairyfarm-png.github.io/izumo-agri-portal/)'
+const UA = 'kawakami-databank-ingest/1.0 (+https://rakuno-databank.com/)'
 
 /** タイトルから有料と判断するパターン（利用者の方針: Farmers Voices は全て有料） */
 const PAID_TITLE_RE = /(?:famars|farmers)\s*voices|【後半有料】|【有料】/i

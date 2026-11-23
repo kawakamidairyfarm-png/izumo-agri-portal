@@ -6,7 +6,7 @@ on:
       url:
         description: 開くページ
         required: false
-        default: https://kawakamidairyfarm-png.github.io/izumo-agri-portal/
+        default: https://rakuno-databank.com/
 permissions:
   contents: read
 jobs:

@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..', '..')
-const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
+const SITE = 'https://rakuno-databank.com/'
 
 /** [記事の id, 質問の番号] 。並びは読む順（値段 → 味と給食 → 中身と表示 → 牛 → 命） */
 const PICKS = [
