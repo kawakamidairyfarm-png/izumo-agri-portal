@@ -6,7 +6,7 @@
 //   VITE_CF_ANALYTICS_TOKEN=<token>  → Cloudflare Web Analytics に送る
 // GitHub Actions では pages.yml が repository variables（LOG_ENDPOINT / GOATCOUNTER_CODE / CF_ANALYTICS_TOKEN）から渡す。
 
-/** 公開先のサブパス（/izumo-agri-portal/）を除いた、サイト内での位置 */
+/** 公開先のサブパス（BASE_URL。独自ドメインの今は /）を除いた、サイト内での位置 */
 function currentPath(): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '')
   const p = location.pathname.startsWith(base) ? location.pathname.slice(base.length) : location.pathname

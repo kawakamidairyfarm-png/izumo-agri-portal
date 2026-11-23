@@ -14,7 +14,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const SITE = (process.env.SITE_URL || 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/').replace(/\/?$/, '/')
+const SITE = (process.env.SITE_URL || 'https://rakuno-databank.com/').replace(/\/?$/, '/')
 
 const args = process.argv.slice(2)
 const JSON_OUT = args.includes('--json')

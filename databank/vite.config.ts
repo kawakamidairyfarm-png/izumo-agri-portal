@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react'
 // VITE_INLINE_TRANSCRIPTS=1 のときは全文も1ファイルに束ねる（単一HTMLのテスト版用）。
 // 通常のビルドでは全文は別チャンク／別ファイルで、開いたときだけ読み込む。
 export default defineConfig({
-  base: process.env.VITE_BASE || '/izumo-agri-portal/',
+  base: process.env.VITE_BASE || '/',
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 3000,

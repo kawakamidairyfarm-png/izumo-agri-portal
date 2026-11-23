@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..', '..')
-const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
+const SITE = 'https://rakuno-databank.com/'
 const LINE = 'https://line.me/R/ti/p/@imb8734o?ts=04142028&oat_content=url'
 
 const qa = JSON.parse(fs.readFileSync(path.join(root, 'dist', 'qa.json'), 'utf8'))

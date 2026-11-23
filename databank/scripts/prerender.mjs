@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DATA = path.join(ROOT, 'data')
 const DIST = path.join(ROOT, 'dist')
-const SITE = (process.env.SITE_URL || 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/').replace(/\/?$/, '/')
+const SITE = (process.env.SITE_URL || 'https://rakuno-databank.com/').replace(/\/?$/, '/')
 const NAME = '川上牧場 酪農データバンク'
 /** 全文をこの長さで切る。長すぎるページは検索側に嫌われ、ファイルも重くなる */
 const BODY_LIMIT = 12000

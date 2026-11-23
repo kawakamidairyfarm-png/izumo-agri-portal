@@ -238,7 +238,7 @@ await fs.writeFile(
   path.join(OUT, 'captions.srt'),
   caps.map((c, i) => `${i + 1}\n${srt(c.start - FROM)} --> ${srt(c.end - FROM)}\n${c.text}\n`).join('\n'),
 )
-const SITE = 'https://kawakamidairyfarm-png.github.io/izumo-agri-portal/'
+const SITE = 'https://rakuno-databank.com/'
 await fs.writeFile(
   path.join(OUT, 'post.txt'),
   [
