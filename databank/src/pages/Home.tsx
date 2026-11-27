@@ -187,6 +187,10 @@ export default function Home() {
             </div>
           </div>
         </div>
+        {/* 2つのシミュレーター（消費者版・生産者版）への入口は1つだけ。紹介ページから各アプリへ（2026-11-27） */}
+        <Link to="/tools" className="mt-6 inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+          酪農の未来を考えるツールを見る <ArrowRight size={14} />
+        </Link>
       </section>
 
       {/* 話しているのは（実名・実物・時間） */}

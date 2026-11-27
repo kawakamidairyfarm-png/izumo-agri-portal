@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, HandHeart, HelpCircle } from 'lucide-react'
+import { ArrowRight, Compass, HandHeart, HelpCircle } from 'lucide-react'
 import Section from '../components/Section'
 import EpisodeCard from '../components/EpisodeCard'
 import SearchBox from '../components/SearchBox'
@@ -168,6 +168,24 @@ export function ForConsumers() {
           ))}
         </div>
       </Section>
+
+      {/* 消費者版シミュレーターの紹介カードへ（/tools/#consumer。2026-11-27） */}
+      <section className="mx-auto max-w-6xl px-4 pb-10">
+        <div className="rounded-3xl bg-white border border-cream-200 p-6 md:p-8 shadow-card">
+          <div className="flex items-start gap-3">
+            <Compass className="text-moss-700 shrink-0 mt-1" />
+            <div>
+              <h2 className="font-serif text-xl font-bold text-ink-900">自分と酪農の関わり方を、振り返ってみる</h2>
+              <p className="mt-1 text-sm text-ink-700 leading-relaxed">
+                買い方・食べ方・知る・つながる・お金の回し方・伝える。6つの視点で今の自分を振り返る、牛乳を飲む人向けのシミュレーターがあります。
+              </p>
+              <Link to="/tools#consumer" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+                消費者版のシミュレーターを見る <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <NextSteps audience="consumer" />
 

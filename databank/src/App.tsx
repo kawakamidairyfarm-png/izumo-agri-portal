@@ -18,14 +18,20 @@ import Terms from './pages/Terms'
 import Live from './pages/Live'
 import QAPage from './pages/QA'
 import ForSchools from './pages/ForSchools'
+import Tools from './pages/Tools'
 
-/** ページが変わったら先頭に戻し、計測にも知らせる */
+/** ページが変わったら先頭に戻し、計測にも知らせる。#印のあるURL（例 /tools/#consumer）は、その場所まで送る */
 function OnRouteChange() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   useEffect(() => {
-    window.scrollTo({ top: 0 })
     trackView()
   }, [pathname])
+  useEffect(() => {
+    const id = hash ? decodeURIComponent(hash.slice(1)) : ''
+    const target = id ? document.getElementById(id) : null
+    if (target) target.scrollIntoView({ block: 'start' })
+    else window.scrollTo({ top: 0 })
+  }, [pathname, hash])
   return null
 }
 
@@ -53,6 +59,7 @@ export default function App() {
           <Route path="for-students" element={<ForStudents />} />
           <Route path="for-consumers" element={<ForConsumers />} />
           <Route path="for-schools" element={<ForSchools />} />
+          <Route path="tools" element={<Tools />} />
           <Route path="about" element={<About />} />
           <Route path="expert" element={<Expert />} />
           <Route path="*" element={<Home />} />

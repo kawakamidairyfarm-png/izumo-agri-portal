@@ -379,6 +379,7 @@ async function main() {
   const flows = await loadFlows()
   const stairs = await loadStairs()
   const schoolSets = await loadSchoolSets()
+  const tools = await readJson(path.join(DATA, 'tools.json'))
   if (stairs.length !== 7) throw new Error(`stairs.ts の読み取りが ${stairs.length} 段（7段のはず）`)
   const AUD_LABEL = { consumer: '牛乳を飲む人', student: '酪農を志す人' }
   const urls = []
@@ -435,6 +436,7 @@ async function main() {
     { url: '/live', title: `LIVEを見てくれている人へ｜${NAME}`, description: '川上牧場のLIVEを見てくれている人へ。LIVEで話したことを、毎朝の配信の記録からあとで読めます。聞けなかった質問は公式LINEへ。', h1: 'LIVEで話したことを、あとから読めます。', lead: 'LIVEで出てきた言葉から、その話をした回を探せます。聞けなかった質問は公式LINEへ送れます。', priority: '0.7' },
     { url: '/for-schools', title: `学校の先生・栄養士の方へ｜${NAME}`, description: '給食の牛乳の味、牛乳が白いわけ、雄の子牛のこと。牧場に届いた質問に出雲の酪農家が答えた記録を、給食だより・食育・調べ学習で使えるようにテーマごとに選びました。登録なし・無料。', h1: '子どもの「なぜ？」に、酪農家が答えた記録を授業と給食に。', lead: '給食だより、食育の時間、調べ学習で使えそうな質問を、テーマごとに選んでいます。紹介するときは、回の題名と配信日を出典として添えてください。', priority: '0.8' },
     { url: '/for-consumers', title: `牛乳を飲む人へ｜${NAME}`, description: '牛乳と酪農について、消費者からよく聞かれる質問に酪農家が答えます。', h1: '牛乳を飲む人へ', lead: '', priority: '0.8' },
+    { url: '/tools', title: `酪農の未来を考えるツール｜${NAME}`, description: '牛乳を飲む人と、牛乳をつくる人。それぞれの立場から、今の自分とこれからの一歩を考える、川上牧場の2つのシミュレーター（消費者版・生産者版）の紹介。', h1: '酪農の未来を考えるツール', lead: '牛乳を飲む人と、牛乳をつくる人。それぞれの立場から、今の自分と、これからの一歩を考える2つのシミュレーターです。', priority: '0.7' },
     { url: '/expert', title: `企業・研究・メディアの方へ｜${NAME}`, description: '島根県出雲市の酪農家が、飼養管理・経営・人手・遺伝改良・資材の実態についてお答えします。専門家インタビュー、執筆・講演・勉強会の講師、取材、新規事業の伴走のご相談を承ります。', h1: '酪農の現場に、直接たずねる', lead: '搾乳牛40頭・全体80頭を1人で管理する酪農家が、統計や資料では出てこない粒度で現場の実態をお話しします。', priority: '0.8' },
     { url: '/about', title: `牧場について｜${NAME}`, description: '島根県出雲市・川上牧場について。研修生の受け入れ、酪農家・牧場向けの相談、講演や取材のご依頼。', h1: '牧場について', lead: '', priority: '0.7' },
   ]
@@ -484,6 +486,16 @@ async function main() {
                 return rows ? `<h2>${esc(set.title)}</h2><p>${esc(set.lead)}</p><dl>${rows}</dl>` : ''
               })
               .join('')
+        : f.url === '/tools'
+          ? tools.tools
+              .map(
+                (t) =>
+                  `<section id="${esc(t.key)}"><p>${esc(t.audience)}</p><h2>${esc(t.name)}</h2><p>${esc(t.text)}</p>${t.url ? `<p><a href="${esc(t.url)}">${esc(t.cta)}</a></p>` : ''}</section>`,
+              )
+              .join('') +
+            `<h2>使い方</h2>${tools.verified ? '<p>無料・登録不要・スマホで約1〜2分（目安）</p>' : ''}<ol><li>6つの視点を、10段階で選ぶ</li><li>結果を見る</li><li>必要なら、相談用の文章をコピーして、ふだん使っているAIに貼る</li></ol>` +
+            '<p>ツールの中でAIが答えるわけではありません。貼る前に、個人情報や外に出していない経営の数字が入っていないか確かめてください。数字は採点や未来の予測ではなく、自分が向かいたい方向を表すものです。</p>' +
+            (tools.noteUrl ? `<p><a href="${esc(tools.noteUrl)}">開発の背景を読む（noteメンバー限定）</a></p>` : '')
         : f.url === '/topics'
           ? `<h2>流れで読む</h2><ul>${flows.map((fl) => `<li><a href="${esc(SITE)}flow/${esc(fl.key)}/">${esc(fl.title)}</a> ${esc(fl.lead)}</li>`).join('')}</ul>` +
             taxonomy.groups
@@ -520,7 +532,7 @@ async function main() {
                   .join('')}</dl>`
               : ''
     // 配信の一覧が載るページは、いちばん新しい配信日。牧場の案内だけのページは日付を申告しない
-    if (!['/about', '/expert', '/for-schools'].includes(f.url)) lastmods.set(f.url, byDate[0]?.date)
+    if (!['/about', '/expert', '/for-schools', '/tools'].includes(f.url)) lastmods.set(f.url, byDate[0]?.date)
     await write(f.url, render(template, {
       url: f.url,
       ogTitle: f.ogTitle,
@@ -909,6 +921,7 @@ async function main() {
       `- [全配信を探す](${SITE}browse/): ${episodes.length} 回すべての索引。言葉で全文検索できます`,
       `- [酪農を志す人へ](${SITE}for-students/): 就農の資金・資格・非農家からの入り方`,
       `- [牛乳を飲む人へ](${SITE}for-consumers/): 牛乳の原価、バターの値段、雄の子牛、給食の牛乳`,
+      `- [酪農の未来を考えるツール](${SITE}tools/): 牛乳を飲む人向け（消費者版）と、酪農家・農業関係者向け（生産者版）の2つのシミュレーターの紹介`,
       `- [学校の先生・栄養士の方へ](${SITE}for-schools/): 給食だより・食育・調べ学習に使える質問と答えを、テーマごとに選んだページ（出典は回の題名と配信日）`,
       `- [届いた質問と、答えた回](${SITE}questions/): 牧場に届いた質問 ${questions.length} 件と、そのとき配信で答えたこと（FAQ）`,
       `- 届いた質問は1問ずつのページもあります（${SITE}q/<8桁の記号>/）。質問・答えの要約・答えた回の3つ`,
