@@ -35,8 +35,16 @@ mark {
   @apply bg-hay-100 text-ink-900 rounded px-0.5;
 }
 
-p, h1, h2, h3, li, dt, dd, blockquote {
+/* 見出しと短い問いは、文の切れ目で改行する（語の途中で折れない） */
+h1, h2, h3, dt {
   word-break: auto-phrase;
+  /* 切れ目の無い長い語（「〜シミュレーター」など）は、狭い画面でははみ出すより途中で折る */
+  overflow-wrap: anywhere;
+}
+/* 本文は行いっぱいまで使う。文の切れ目でしか折らないと、スマホで右端が大きく空いてガタガタに見えた（2026-11-27） */
+p, li, dd, blockquote {
+  line-break: strict;
+  text-wrap: pretty;
 }
 
 .prose-transcript p {
