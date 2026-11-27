@@ -51,3 +51,35 @@ p, li, dd, blockquote {
   /* 本文に貼られた長いURLは、切れ目が無いと画面をはみ出す（配信で紹介したリンクなど） */
   overflow-wrap: anywhere;
 }
+
+/* ─── 2026-11-28 スマホ優先の見やすさの決まり（主ボタン・副ボタン・本文リンク・フォーカス） ─── */
+@layer components {
+  /* 主ボタン: 深緑に白文字。操作・いちばん進んでほしい行き先に1画面1つ */
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-moss-700 px-5 py-2.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-moss-900;
+  }
+  /* LINE の主ボタン（LINE の緑。白文字 4.8:1） */
+  .btn-line {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-line px-5 py-2.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-line-dark;
+  }
+  /* 副ボタン: 白地に深緑の枠 */
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-moss-300 bg-white px-5 py-2.5 text-base font-bold text-moss-700 transition-colors hover:border-moss-700;
+  }
+  /* 本文リンク: 深緑＋いつも下線 */
+  .link {
+    @apply font-bold text-moss-700 underline decoration-moss-300 decoration-1 underline-offset-4 hover:decoration-moss-700;
+  }
+  /* 行き先を示すリンク（「すべて見る」など）。指で押しやすい高さを取る */
+  .link-more {
+    @apply inline-flex min-h-11 items-center gap-1 font-bold text-moss-700 underline decoration-moss-300 underline-offset-4 hover:decoration-moss-700;
+  }
+}
+
+/* キーボードで動かしたときの現在地。白と墨の二重の輪にして、明るい地でも深緑の地でも見えるように */
+:focus-visible {
+  outline: 2px solid #172a19;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff;
+}
+

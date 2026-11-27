@@ -4,7 +4,7 @@ import Section from '../components/Section'
 import EpisodeCard from '../components/EpisodeCard'
 import SearchBox from '../components/SearchBox'
 import NextSteps from '../components/NextSteps'
-import { ARTICLES, GROUPS, episodesForTopic, leadOf, paragraphs } from '../lib/data'
+import { ARTICLES, GROUPS, episodesForTopic, leadOf, paragraphs, stats } from '../lib/data'
 import { StairLadder } from './Stairs'
 import { PATHS, resolvePath } from '../lib/paths'
 
@@ -29,9 +29,9 @@ function Hero({
     <section className={dark ? 'bg-moss-900 text-white' : 'bg-moss-50'}>
       <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <p className={`text-sm font-bold ${dark ? 'text-hay-300' : 'text-moss-700'}`}>{eyebrow}</p>
-        <h1 className="mt-2 font-serif text-3xl md:text-4xl font-bold leading-tight">{title}</h1>
+        <h1 className="mt-2 font-serif text-h1 font-bold [text-wrap:balance]">{title}</h1>
         {paragraphs(lead).map((t, i) => (
-          <p key={i} className={`${i === 0 ? 'mt-4' : 'mt-2'} max-w-2xl leading-relaxed ${dark ? 'text-white' : 'text-ink-700'}`}>
+          <p key={i} className={`${i === 0 ? 'mt-4' : 'mt-2'} max-w-prose text-base md:text-[17px] ${dark ? 'text-white' : 'text-ink-700'}`}>
             {t}
           </p>
         ))}
@@ -68,10 +68,10 @@ export function ForStudents() {
               to={`/paths/${p.key}`}
               className="rounded-3xl bg-white border border-cream-200 p-6 shadow-card hover:border-moss-300 hover:-translate-y-0.5 transition-all"
             >
-              <p className="text-xs font-bold text-moss-700">{resolvePath(p).length} 回</p>
-              <h3 className="mt-1 font-serif text-xl font-bold text-ink-900">{p.title}</h3>
-              <p className="mt-2 text-sm text-ink-700 leading-relaxed">{p.lead}</p>
-              <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
+              <p className="text-sm font-bold text-moss-700">{resolvePath(p).length} 回</p>
+              <h3 className="mt-1 text-h3 font-bold text-ink-900">{p.title}</h3>
+              <p className="mt-2 text-base text-ink-700">{p.lead}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-base font-bold text-moss-700 underline decoration-moss-300 underline-offset-4">
                 読み始める <ArrowRight size={16} />
               </span>
             </Link>
@@ -84,14 +84,14 @@ export function ForStudents() {
           {GROUPS.filter((g) => g.audience !== 'consumer')
             .flatMap((g) => g.subs)
             .map((t) => (
-              <Link key={t.key} to={`/t/${t.key}`} className="rounded-full bg-white border border-cream-200 px-4 py-2 text-sm font-medium hover:border-moss-300">
+              <Link key={t.key} to={`/t/${t.key}`} className="inline-flex min-h-11 items-center rounded-full bg-white border border-cream-200 px-4 text-base font-medium hover:border-moss-300">
                 {t.label} <span className="text-ink-500">{episodesForTopic(t.key).length}</span>
               </Link>
             ))}
-          <Link to="/browse?series=trainee" className="rounded-full bg-hay-100 border border-hay-300/60 px-4 py-2 text-sm font-medium hover:border-hay-500">
+          <Link to="/browse?series=trainee" className="inline-flex min-h-11 items-center rounded-full bg-hay-100 border border-hay-300/60 px-4 text-base font-medium hover:border-hay-500">
             研修生と配信シリーズ
           </Link>
-          <Link to="/browse?series=lecture2021" className="rounded-full bg-hay-100 border border-hay-300/60 px-4 py-2 text-sm font-medium hover:border-hay-500">
+          <Link to="/browse?series=lecture2021" className="inline-flex min-h-11 items-center rounded-full bg-hay-100 border border-hay-300/60 px-4 text-base font-medium hover:border-hay-500">
             2021年 研修講義（飼料・遺伝）
           </Link>
         </div>
@@ -123,7 +123,7 @@ export function ForConsumers() {
         title="牛乳の「なぜ？」に、酪農家が答えます。"
         lead="原価はいくら？ なぜバターだけ高い？ 給食の牛乳とスーパーの牛乳は何が違う？ 雄の子牛はどうなる？ 牧場に届いた質問に、出雲の酪農家が毎朝の配信で答えてきた記録です。登録もお金も要りません。"
         placeholder="例：なぜバターだけ高いの？"
-        hint="気になる言葉を入れると、822回の中から探せます。たとえば「バター」「給食」「乳糖不耐症」。"
+        hint={`気になる言葉を入れると、${stats.episodes}回の中から探せます。たとえば「バター」「給食」「乳糖不耐症」。`}
       />
 
       <Section title="あなたはいま、どこ？" lead="スーパーで気になった段から、応援したくなった段まで。いまの自分に近い段から。">
@@ -138,8 +138,8 @@ export function ForConsumers() {
                 <HelpCircle size={18} className="shrink-0 mt-0.5 text-moss-700" />
                 {x.q}
               </p>
-              <p className="mt-2 text-sm text-ink-700 leading-relaxed">{leadOf(x.a)}</p>
-              <p className="mt-2 text-xs text-ink-500">出典：{x.episode.title}</p>
+              <p className="mt-2 text-base text-ink-700">{leadOf(x.a)}</p>
+              <p className="mt-2 text-sm text-ink-500">出典：{x.episode.title}</p>
             </Link>
           ))}
         </div>
@@ -153,9 +153,9 @@ export function ForConsumers() {
               to={`/paths/${p.key}`}
               className="rounded-3xl bg-white border border-cream-200 p-6 shadow-card hover:border-moss-300 hover:-translate-y-0.5 transition-all"
             >
-              <p className="text-xs font-bold text-moss-700">{resolvePath(p).length} 回</p>
-              <h3 className="mt-1 font-serif text-xl font-bold text-ink-900">{p.title}</h3>
-              <p className="mt-2 text-sm text-ink-700 leading-relaxed">{p.lead}</p>
+              <p className="text-sm font-bold text-moss-700">{resolvePath(p).length} 回</p>
+              <h3 className="mt-1 text-h3 font-bold text-ink-900">{p.title}</h3>
+              <p className="mt-2 text-base text-ink-700">{p.lead}</p>
             </Link>
           ))}
         </div>
@@ -175,11 +175,11 @@ export function ForConsumers() {
           <div className="flex items-start gap-3">
             <Compass className="text-moss-700 shrink-0 mt-1" />
             <div>
-              <h2 className="font-serif text-xl font-bold text-ink-900">自分と酪農の関わり方を、振り返ってみる</h2>
-              <p className="mt-1 text-sm text-ink-700 leading-relaxed">
+              <h2 className="text-h3 font-bold text-ink-900">自分と酪農の関わり方を、振り返ってみる</h2>
+              <p className="mt-1 text-base text-ink-700">
                 買い方・食べ方・知る・つながる・お金の回し方・伝える。6つの視点で今の自分を振り返る、牛乳を飲む人向けのシミュレーターがあります。
               </p>
-              <Link to="/tools#consumer" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+              <Link to="/tools#consumer" className="link-more mt-1 text-base">
                 消費者版のシミュレーターを見る <ArrowRight size={16} />
               </Link>
             </div>
@@ -194,11 +194,11 @@ export function ForConsumers() {
           <div className="flex items-start gap-3">
             <HandHeart className="text-hay-700 shrink-0 mt-1" />
             <div>
-              <h2 className="font-serif text-xl font-bold text-ink-900">買う以外の応援もあります</h2>
-              <p className="mt-1 text-sm text-ink-700 leading-relaxed">
+              <h2 className="text-h3 font-bold text-ink-900">買う以外の応援もあります</h2>
+              <p className="mt-1 text-base text-ink-700">
                 配信を聴く、コメントを残す、牧場のことを誰かに話す。それだけで酪農家の力になると、配信で何度も語られています。
               </p>
-              <Link to="/e/2026-03-21_support-beyond-buying" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-hay-700 hover:underline">
+              <Link to="/e/2026-03-21_support-beyond-buying" className="link-more mt-1 text-base">
                 「牛乳を買う以外の応援方法」を読む <ArrowRight size={16} />
               </Link>
             </div>

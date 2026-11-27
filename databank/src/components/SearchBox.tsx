@@ -48,13 +48,14 @@ export default function SearchBox({
         />
         <button
           type="submit"
-          className={`rounded-xl bg-moss-700 text-white text-sm font-bold hover:bg-moss-900 ${large ? 'px-5 py-2.5' : 'px-4 py-2'}`}
+          className={`shrink-0 rounded-xl bg-moss-700 text-white font-bold hover:bg-moss-900 ${large ? 'min-h-11 px-5 text-base' : 'min-h-10 px-4 text-sm'}`}
         >
           探す
         </button>
       </form>
       {large && (
-        <div className="mt-2 md:mt-3 flex flex-wrap gap-1 md:gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-sm text-ink-500">例：</span>
           {suggestions.map((s) => (
             <button
               key={s}
@@ -63,7 +64,7 @@ export default function SearchBox({
                 setQ(s)
                 submit(s)
               }}
-              className="rounded-full border border-cream-200 bg-white px-2 py-0.5 md:px-3 md:py-1 text-sm text-ink-700 hover:border-moss-300 hover:text-moss-700"
+              className="min-h-11 rounded-full border border-moss-300 bg-white px-4 text-base text-moss-700 hover:border-moss-700"
             >
               {s}
             </button>

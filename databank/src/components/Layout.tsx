@@ -84,8 +84,9 @@ export default function Layout() {
             </a>
           </nav>
           <button
-            className="lg:hidden p-2 rounded-lg hover:bg-cream-100"
+            className="lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-lg hover:bg-cream-100"
             aria-label="メニュー"
+            aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
             {open ? <X size={22} /> : <Menu size={22} />}
@@ -99,24 +100,24 @@ export default function Layout() {
                 to={n.to}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  `px-3 py-3 rounded-lg text-sm ${n.primary ? 'font-bold' : 'font-medium'} ${isActive ? 'bg-moss-50 text-moss-900' : n.primary ? 'text-ink-900' : 'text-ink-700'}`
+                  `flex min-h-11 items-center px-3 rounded-lg text-base ${n.primary ? 'font-bold' : 'font-medium'} ${isActive ? 'bg-moss-50 text-moss-900' : n.primary ? 'text-ink-900' : 'text-ink-700'}`
                 }
               >
                 {n.label}
               </NavLink>
             ))}
-            <p className="mt-2 border-t border-cream-200 px-3 pt-3 pb-1 text-xs font-bold text-ink-500">お仕事のご相談</p>
+            <p className="mt-2 border-t border-cream-200 px-3 pt-3 pb-1 text-sm font-bold text-ink-500">お仕事のご相談</p>
             {NAV_WORK.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}
                 onClick={() => setOpen(false)}
-                className={({ isActive }) => `px-3 py-3 rounded-lg text-sm font-medium ${isActive ? 'bg-moss-50 text-moss-900' : 'text-moss-700'}`}
+                className={({ isActive }) => `flex min-h-11 items-center px-3 rounded-lg text-base font-medium ${isActive ? 'bg-moss-50 text-moss-900' : 'text-moss-700'}`}
               >
                 {n.label}
               </NavLink>
             ))}
-            <a href={LINKS.line} target="_blank" rel="noreferrer" className="mt-2 mb-2 inline-flex items-center gap-1.5 rounded-lg bg-line px-3 py-3 text-sm font-bold text-white">
+            <a href={LINKS.line} target="_blank" rel="noreferrer" className="btn-line mt-2 mb-3">
               <MessageCircle size={16} /> LINEで質問する
             </a>
           </nav>
@@ -133,7 +134,7 @@ export default function Layout() {
         href={LINKS.line}
         target="_blank"
         rel="noreferrer"
-        className={`md:hidden fixed bottom-4 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-line px-4 py-3 text-sm font-bold text-white shadow-lg transition-transform duration-200 motion-reduce:transition-none ${
+        className={`md:hidden fixed bottom-4 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full bg-line px-4 py-3 text-base font-bold text-white shadow-lg transition-transform duration-200 motion-reduce:transition-none ${
           fabHidden ? 'translate-y-24' : 'translate-y-0'
         }`}
         aria-label="LINEで質問する"
@@ -161,84 +162,84 @@ export default function Layout() {
             </div>
             <div>
               <p className="font-bold text-ink-900 mb-2">聴く・読む・聞く</p>
-              <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-ink-700 md:grid-cols-1 md:gap-y-1.5">
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-ink-700 md:grid-cols-1 md:gap-y-0">
                 <li>
-                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.pody} target="_blank" rel="noreferrer">
+                  <a className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" href={LINKS.pody} target="_blank" rel="noreferrer">
                     Pody で音声配信を聴く
                   </a>
                 </li>
                 <li>
-                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.note} target="_blank" rel="noreferrer">
+                  <a className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" href={LINKS.note} target="_blank" rel="noreferrer">
                     note で記事を読む
                   </a>
                 </li>
                 <li>
-                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.newsletter} target="_blank" rel="noreferrer">
+                  <a className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" href={LINKS.newsletter} target="_blank" rel="noreferrer">
                     無料メルマガに登録する
                   </a>
                 </li>
                 <li>
-                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.kindle} target="_blank" rel="noreferrer">
+                  <a className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" href={LINKS.kindle} target="_blank" rel="noreferrer">
                     Kindle本『酪農未経験者のために』
                   </a>
                 </li>
                 <li>
-                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.noteSubscribe} target="_blank" rel="noreferrer">
+                  <a className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" href={LINKS.noteSubscribe} target="_blank" rel="noreferrer">
                     noteのメンバーシップ
                   </a>
                 </li>
                 <li>
-                  <a className="underline decoration-moss-300 hover:text-moss-700" href={LINKS.line} target="_blank" rel="noreferrer">
+                  <a className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" href={LINKS.line} target="_blank" rel="noreferrer">
                     公式LINEで質問する
                   </a>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/live">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/live">
                     LIVEを見てくれている人へ
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/archive">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/archive">
                     全配信の一覧（{stats.episodes} 回）
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/stairs">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/stairs">
                     あなたはいま、どこ？（7つの段）
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/topics">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/topics">
                     テーマから探す（8つの大分類）
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/paths">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/paths">
                     学びの道筋（読む順番）
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/questions">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/questions">
                     届いた質問と、答えた回
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/terms">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/terms">
                     酪農のことば帖
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/for-schools">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/for-schools">
                     学校の先生・栄養士の方へ
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/about#farmers">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/about#farmers">
                     酪農家・牧場の方へ（相談・伴走）
                   </Link>
                 </li>
                 <li>
-                  <Link className="underline decoration-moss-300 hover:text-moss-700" to="/expert">
+                  <Link className="inline-block py-1 underline decoration-moss-300 underline-offset-4 hover:text-moss-700" to="/expert">
                     企業・研究・メディアの方へ
                   </Link>
                 </li>
@@ -251,7 +252,7 @@ export default function Layout() {
               </p>
             </div>
           </div>
-          <div className="border-t border-cream-200 py-4 text-center text-xs text-ink-500">
+          <div className="border-t border-cream-200 px-4 pt-4 pb-24 md:pb-4 text-center text-sm text-ink-500">
             収録期間 {formatDate(stats.earliest)} 〜 {formatDate(stats.latest)} ／ 全文 {stats.withText} 本 ／ 要約つき {stats.withSummary} 本
           </div>
         </div>

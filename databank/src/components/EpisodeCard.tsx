@@ -43,17 +43,17 @@ export default function EpisodeCard({
         )}
         <div className="min-w-0 flex-1">
           {/* 札は減らす（2026-09-25 金継ぎ: 1枚に分類・対象・テーマ・状態の4種類が並んでいた）。日付と題名を先に */}
-          <time dateTime={episode.date} className="mb-1 block text-xs text-ink-500 tabular-nums">{formatDate(episode.date)}</time>
-          <h3 className="font-bold text-ink-900 leading-snug group-hover:text-moss-700">
+          <time dateTime={episode.date} className="mb-1 block text-sm text-ink-500 tabular-nums">{formatDate(episode.date)}</time>
+          <h3 className="text-h3 font-bold text-ink-900 group-hover:text-moss-700">
             <Highlighted text={episode.title} query={query} />
           </h3>
           {why && <p className="mt-1 text-sm text-moss-700">{why}</p>}
           {episode.summary ? (
-            <p className="mt-2 text-sm text-ink-700 leading-relaxed">
+            <p className="mt-2 text-base text-ink-700">
               <Highlighted text={query ? episode.summary : leadOf(episode.summary)} query={query} />
             </p>
           ) : (
-            <p className="mt-2 text-xs text-ink-500">
+            <p className="mt-2 text-sm text-ink-500">
               {episode.hasTranscript
                 ? episode.transcriptSource === 'pody'
                   ? 'この回の全文を、章ごとに読めます。'
@@ -66,7 +66,7 @@ export default function EpisodeCard({
             </p>
           )}
           {snippet && (
-            <p className="mt-2 text-xs text-ink-500 leading-relaxed border-l-2 border-hay-300 pl-2">
+            <p className="mt-2 text-sm text-ink-700 border-l-2 border-hay-300 pl-2">
               <Highlighted text={snippet} query={query} />
             </p>
           )}

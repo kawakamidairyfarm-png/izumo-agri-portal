@@ -22,9 +22,9 @@ export function StairLadder({ audience, compact = false }: { audience: Audience;
               {i + 1}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block font-serif text-lg font-bold text-ink-900 group-hover:text-moss-700 [text-wrap:balance]">{s.title}</span>
-              {!compact && <span className="mt-1 block text-sm text-ink-700 leading-relaxed">{s.lead}</span>}
-              <span className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-moss-700">
+              <span className="block text-h3 font-bold text-ink-900 group-hover:text-moss-700 [text-wrap:balance]">{s.title}</span>
+              {!compact && <span className="mt-1 block text-base text-ink-700">{s.lead}</span>}
+              <span className="mt-2 inline-flex items-center gap-1 text-base font-bold text-moss-700 underline decoration-moss-300 underline-offset-4">
                 この段を読む <span className="font-normal text-ink-500">{stairEpisodeCount(s)} 回</span>
                 <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
               </span>
