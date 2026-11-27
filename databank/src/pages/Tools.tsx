@@ -1,8 +1,11 @@
-import { ArrowUpRight, BookOpen, ShieldAlert } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, ShieldAlert } from 'lucide-react'
 import data from '../../data/tools.json'
+import story from '../../data/tools-story.json'
+import { LINKS } from '../lib/links'
 
 // 川上牧場が作った2つのシミュレーターへの入口（2026-11-27）。アプリ本体は別に公開されていて、ここからは直接リンクするだけ。
-// URL・アプリの画面に書いてあること（facts）・note の記事は data/tools.json にまとめる（prerender.mjs も同じファイルを読む）。
+// URL・アプリの画面に書いてあること（facts）は data/tools.json、開発の背景の本文は data/tools-story.json にまとめる（prerender.mjs も同じファイルを読む）。
 // url が空のあいだはボタンを出さない（ダミーのリンクを置かない）。
 type Tool = { key: string; audience: string; name: string; text: string; cta: string; url: string }
 const TOOLS = data.tools as Tool[]
@@ -76,17 +79,92 @@ export default function Tools() {
           </p>
         </div>
 
-        {data.noteUrl && (
-          <a
-            href={data.noteUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-moss-700 hover:underline"
-          >
-            <BookOpen size={16} /> 開発の背景を読む（noteメンバー限定）
-          </a>
-        )}
+        {/* 開発の背景は note のメンバーシップ記事だが、データバンクではこのサイトの中で無料で読める（/tools/story/） */}
+        <Link to="/tools/story" className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-moss-700 hover:underline">
+          <BookOpen size={16} /> 開発の背景を読む（無料）
+        </Link>
       </section>
     </>
+  )
+}
+
+type StoryBlock =
+  | { t: 'p'; html: string }
+  | { t: 'h2' | 'h3'; text: string }
+  | { t: 'link'; href: string; label: string }
+  | { t: 'img'; src: string; w: number; h: number; caption: string }
+const STORY = story as { source: string; title: string; date: string; blocks: StoryBlock[] }
+
+/**
+ * 開発の背景（/tools/story/）。note の記事を、データバンクではずっと無料で読めるように写したもの（2026-11-27 本人の決定）。
+ * note 側は初月だけ無料で、そのあとメンバーシップ限定にする。段落の html は写すときに strong / em / br だけ残してある
+ */
+export function ToolsStory() {
+  const [y, m, d] = STORY.date.split('-').map(Number)
+  return (
+    <article className="mx-auto max-w-2xl px-4 py-10 md:py-14">
+      <Link to="/tools" className="inline-flex items-center gap-1 text-sm font-bold text-moss-700 hover:underline">
+        <ArrowLeft size={16} /> 酪農の未来を考えるツール
+      </Link>
+      <p className="mt-6 text-sm font-bold text-moss-700">開発の背景</p>
+      <h1 className="mt-1 font-serif text-2xl md:text-3xl font-bold leading-snug text-ink-900 [text-wrap:balance]">{STORY.title}</h1>
+      <p className="mt-2 text-sm text-ink-500">
+        川上哲也（川上牧場）・{y}年{m}月{d}日
+      </p>
+      <p className="mt-5 rounded-2xl bg-hay-100 border border-hay-300/60 p-4 text-sm text-ink-700 leading-relaxed">
+        この文章は、note のメンバーシップ向けに書いた記事です。酪農データバンクでは、どなたでも無料で読めます。
+      </p>
+
+      <div className="mt-8 text-[17px] leading-loose text-ink-900">
+        {STORY.blocks.map((b, i) =>
+          b.t === 'h2' ? (
+            <h2 key={i} className="mt-12 mb-4 font-serif text-xl md:text-2xl font-bold leading-snug [text-wrap:balance]">
+              {b.text}
+            </h2>
+          ) : b.t === 'h3' ? (
+            <h3 key={i} className="mt-8 mb-3 font-serif text-lg font-bold">
+              {b.text}
+            </h3>
+          ) : b.t === 'link' ? (
+            <p key={i} className="my-5">
+              <a
+                href={b.href}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900 transition-colors"
+              >
+                {b.label} <ArrowUpRight size={18} />
+              </a>
+            </p>
+          ) : b.t === 'img' ? (
+            <figure key={i} className="my-6">
+              <img src={b.src} width={b.w} height={b.h} loading="lazy" decoding="async" alt={b.caption} className="w-full h-auto rounded-xl border border-cream-200" />
+              {b.caption && <figcaption className="mt-2 text-center text-sm text-ink-500">{b.caption}</figcaption>}
+            </figure>
+          ) : (
+            <p key={i} className="my-3" dangerouslySetInnerHTML={{ __html: b.t === 'p' ? b.html : '' }} />
+          ),
+        )}
+      </div>
+
+      <div className="mt-12 rounded-3xl bg-white border border-cream-200 p-6 shadow-card">
+        <h2 className="font-serif text-lg font-bold text-ink-900">感想や診断の結果を、聞かせてください</h2>
+        <p className="mt-2 text-sm text-ink-700 leading-relaxed">「自分はこんな形になった」「この項目は納得できなかった」など、公式LINEから送れます。</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <a href={LINKS.line} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-moss-700 px-5 py-3 text-sm font-bold text-white hover:bg-moss-900 transition-colors">
+            公式LINEで送る <ArrowUpRight size={18} />
+          </a>
+          <Link to="/tools" className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-cream-200 px-5 py-3 text-sm font-bold text-moss-700 hover:border-moss-300">
+            2つのツールに戻る <ArrowRight size={16} />
+          </Link>
+        </div>
+        <p className="mt-4 text-sm text-ink-500">
+          元の記事：
+          <a href={STORY.source} target="_blank" rel="noreferrer" className="underline hover:text-moss-700">
+            note（メンバーシップ）
+          </a>
+        </p>
+      </div>
+    </article>
   )
 }

@@ -18,7 +18,7 @@ import Terms from './pages/Terms'
 import Live from './pages/Live'
 import QAPage from './pages/QA'
 import ForSchools from './pages/ForSchools'
-import Tools from './pages/Tools'
+import Tools, { ToolsStory } from './pages/Tools'
 
 /** ページが変わったら先頭に戻し、計測にも知らせる。#印のあるURL（例 /tools/#consumer）は、その場所まで送る */
 function OnRouteChange() {
@@ -60,6 +60,7 @@ export default function App() {
           <Route path="for-consumers" element={<ForConsumers />} />
           <Route path="for-schools" element={<ForSchools />} />
           <Route path="tools" element={<Tools />} />
+          <Route path="tools/story" element={<ToolsStory />} />
           <Route path="about" element={<About />} />
           <Route path="expert" element={<Expert />} />
           <Route path="*" element={<Home />} />

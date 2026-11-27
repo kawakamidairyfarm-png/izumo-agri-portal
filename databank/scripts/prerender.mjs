@@ -380,6 +380,7 @@ async function main() {
   const stairs = await loadStairs()
   const schoolSets = await loadSchoolSets()
   const tools = await readJson(path.join(DATA, 'tools.json'))
+  const toolsStory = await readJson(path.join(DATA, 'tools-story.json'))
   if (stairs.length !== 7) throw new Error(`stairs.ts の読み取りが ${stairs.length} 段（7段のはず）`)
   const AUD_LABEL = { consumer: '牛乳を飲む人', student: '酪農を志す人' }
   const urls = []
@@ -437,6 +438,7 @@ async function main() {
     { url: '/for-schools', title: `学校の先生・栄養士の方へ｜${NAME}`, description: '給食の牛乳の味、牛乳が白いわけ、雄の子牛のこと。牧場に届いた質問に出雲の酪農家が答えた記録を、給食だより・食育・調べ学習で使えるようにテーマごとに選びました。登録なし・無料。', h1: '子どもの「なぜ？」に、酪農家が答えた記録を授業と給食に。', lead: '給食だより、食育の時間、調べ学習で使えそうな質問を、テーマごとに選んでいます。紹介するときは、回の題名と配信日を出典として添えてください。', priority: '0.8' },
     { url: '/for-consumers', title: `牛乳を飲む人へ｜${NAME}`, description: '牛乳と酪農について、消費者からよく聞かれる質問に酪農家が答えます。', h1: '牛乳を飲む人へ', lead: '', priority: '0.8' },
     { url: '/tools', title: `酪農の未来を考えるツール｜${NAME}`, description: '牛乳を飲む人と、牛乳をつくる人。それぞれの立場から、今の自分とこれからの一歩を考える、川上牧場の2つのシミュレーター（消費者版・生産者版）の紹介。', h1: '酪農の未来を考えるツール', lead: '牛乳を飲む人と、牛乳をつくる人。それぞれの立場から、今の自分と、これからの一歩を考える2つのシミュレーターです。', priority: '0.7' },
+    { url: '/tools/story', title: `${toolsStory.title}｜${NAME}`, description: '牛乳を飲む人と、牛乳をつくる人のための2つのシミュレーターを、なぜ作ったのか。0か100かではない「玉虫色のグラデーション」という考え方と、AIを中に入れないAIアプリにした理由。川上牧場・川上哲也の文章。', h1: toolsStory.title, lead: '', priority: '0.6' },
     { url: '/expert', title: `企業・研究・メディアの方へ｜${NAME}`, description: '島根県出雲市の酪農家が、飼養管理・経営・人手・遺伝改良・資材の実態についてお答えします。専門家インタビュー、執筆・講演・勉強会の講師、取材、新規事業の伴走のご相談を承ります。', h1: '酪農の現場に、直接たずねる', lead: '搾乳牛40頭・全体80頭を1人で管理する酪農家が、統計や資料では出てこない粒度で現場の実態をお話しします。', priority: '0.8' },
     { url: '/about', title: `牧場について｜${NAME}`, description: '島根県出雲市・川上牧場について。研修生の受け入れ、酪農家・牧場向けの相談、講演や取材のご依頼。', h1: '牧場について', lead: '', priority: '0.7' },
   ]
@@ -454,7 +456,7 @@ async function main() {
   }
   const menu =
     `<nav><ul>` +
-    fixed.map((f) => `<li><a href="${esc(SITE)}${f.url === '/' ? '' : f.url.replace(/^\//, '') + '/'}">${esc(f.h1)}</a></li>`).join('') +
+    fixed.filter((f) => f.url !== '/tools/story').map((f) => `<li><a href="${esc(SITE)}${f.url === '/' ? '' : f.url.replace(/^\//, '') + '/'}">${esc(f.h1)}</a></li>`).join('') +
     paths.map((p) => `<li><a href="${esc(SITE)}paths/${esc(p.key)}/">${esc(p.title)}</a></li>`).join('') +
     `<li><a href="https://kawakamibokuzyou.hp.peraichi.com/">川上牧場のホームページ</a></li>` +
     `</ul></nav>`
@@ -495,7 +497,22 @@ async function main() {
               .join('') +
             `<h2>使い方</h2>${tools.facts ? `<p>${esc(tools.facts)}</p>` : ''}<ol><li>6つの視点を、10段階で選ぶ（いまの位置と、目指したい姿）</li><li>結果を見る</li><li>必要なら、相談用の文章をコピーして、ふだん使っているAIに貼る</li></ol>` +
             '<p>ツールの中でAIが答えるわけではありません。貼る前に、個人情報や外に出していない経営の数字が入っていないか確かめてください。数字は採点や未来の予測ではなく、自分が向かいたい方向を表すものです。</p>' +
-            (tools.noteUrl ? `<p><a href="${esc(tools.noteUrl)}">開発の背景を読む（noteメンバー限定）</a></p>` : '')
+            `<p><a href="${esc(SITE)}tools/story/">開発の背景を読む（無料）</a></p>`
+        : f.url === '/tools/story'
+          ? // note のメンバーシップ記事を、データバンクでは無料で読めるように写した本文（data/tools-story.json）
+            `<p>この文章は、note のメンバーシップ向けに書いた記事です。酪農データバンクでは、どなたでも無料で読めます。</p>` +
+            toolsStory.blocks
+              .map((b) =>
+                b.t === 'h2' || b.t === 'h3'
+                  ? `<${b.t}>${esc(b.text)}</${b.t}>`
+                  : b.t === 'link'
+                    ? `<p><a href="${esc(b.href)}">${esc(b.label)}</a></p>`
+                    : b.t === 'img'
+                      ? `<figure><img src="${esc(b.src)}" width="${b.w}" height="${b.h}" alt="${esc(b.caption)}" loading="lazy"><figcaption>${esc(b.caption)}</figcaption></figure>`
+                      : `<p>${b.html}</p>`,
+              )
+              .join('') +
+            `<p><a href="${esc(SITE)}tools/">酪農の未来を考えるツール</a></p>`
         : f.url === '/topics'
           ? `<h2>流れで読む</h2><ul>${flows.map((fl) => `<li><a href="${esc(SITE)}flow/${esc(fl.key)}/">${esc(fl.title)}</a> ${esc(fl.lead)}</li>`).join('')}</ul>` +
             taxonomy.groups
@@ -532,7 +549,7 @@ async function main() {
                   .join('')}</dl>`
               : ''
     // 配信の一覧が載るページは、いちばん新しい配信日。牧場の案内だけのページは日付を申告しない
-    if (!['/about', '/expert', '/for-schools', '/tools'].includes(f.url)) lastmods.set(f.url, byDate[0]?.date)
+    if (!['/about', '/expert', '/for-schools', '/tools', '/tools/story'].includes(f.url)) lastmods.set(f.url, byDate[0]?.date)
     await write(f.url, render(template, {
       url: f.url,
       ogTitle: f.ogTitle,
