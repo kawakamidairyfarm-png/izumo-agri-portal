@@ -2,7 +2,7 @@ import { ArrowUpRight, BookOpen, ShieldAlert } from 'lucide-react'
 import data from '../../data/tools.json'
 
 // 川上牧場が作った2つのシミュレーターへの入口（2026-11-27）。アプリ本体は別に公開されていて、ここからは直接リンクするだけ。
-// URL・確認済みの印・note の記事は data/tools.json にまとめる（prerender.mjs も同じファイルを読む）。
+// URL・アプリの画面に書いてあること（facts）・note の記事は data/tools.json にまとめる（prerender.mjs も同じファイルを読む）。
 // url が空のあいだはボタンを出さない（ダミーのリンクを置かない）。
 type Tool = { key: string; audience: string; name: string; text: string; cta: string; url: string }
 const TOOLS = data.tools as Tool[]
@@ -50,10 +50,10 @@ export default function Tools() {
 
         <div className="mt-8 rounded-3xl bg-cream-50 border border-cream-200 p-6 md:p-8">
           <h2 className="font-serif text-xl font-bold text-ink-900">使い方</h2>
-          {data.verified && <p className="mt-2 text-sm font-bold text-moss-700">無料・登録不要・スマホで約1〜2分（目安）</p>}
+          {data.facts && <p className="mt-2 text-sm font-bold text-moss-700">{data.facts}</p>}
           <ol className="mt-3 grid gap-2 text-sm text-ink-700 leading-relaxed md:grid-cols-3">
             <li className="rounded-2xl bg-white border border-cream-200 p-4">
-              <span className="font-bold text-moss-700">1.</span> 6つの視点を、10段階で選ぶ
+              <span className="font-bold text-moss-700">1.</span> 6つの視点を、10段階で選ぶ（いまの位置と、目指したい姿）
             </li>
             <li className="rounded-2xl bg-white border border-cream-200 p-4">
               <span className="font-bold text-moss-700">2.</span> 結果を見る

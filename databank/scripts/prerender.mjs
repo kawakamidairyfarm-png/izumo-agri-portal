@@ -493,7 +493,7 @@ async function main() {
                   `<section id="${esc(t.key)}"><p>${esc(t.audience)}</p><h2>${esc(t.name)}</h2><p>${esc(t.text)}</p>${t.url ? `<p><a href="${esc(t.url)}">${esc(t.cta)}</a></p>` : ''}</section>`,
               )
               .join('') +
-            `<h2>使い方</h2>${tools.verified ? '<p>無料・登録不要・スマホで約1〜2分（目安）</p>' : ''}<ol><li>6つの視点を、10段階で選ぶ</li><li>結果を見る</li><li>必要なら、相談用の文章をコピーして、ふだん使っているAIに貼る</li></ol>` +
+            `<h2>使い方</h2>${tools.facts ? `<p>${esc(tools.facts)}</p>` : ''}<ol><li>6つの視点を、10段階で選ぶ（いまの位置と、目指したい姿）</li><li>結果を見る</li><li>必要なら、相談用の文章をコピーして、ふだん使っているAIに貼る</li></ol>` +
             '<p>ツールの中でAIが答えるわけではありません。貼る前に、個人情報や外に出していない経営の数字が入っていないか確かめてください。数字は採点や未来の予測ではなく、自分が向かいたい方向を表すものです。</p>' +
             (tools.noteUrl ? `<p><a href="${esc(tools.noteUrl)}">開発の背景を読む（noteメンバー限定）</a></p>` : '')
         : f.url === '/topics'
